@@ -78,6 +78,24 @@ void Program::mainLoop() {
 	renderEngine->assignBuffers(b2);
 	renderEngine->setBufferData(b2);
 
+	float root2on2 = 0.70710678f;
+
+	Renderable b4;
+	glm::vec3 end = Geometry::geomSlerp(glm::vec3(root2on2, 0.f, root2on2), glm::vec3(0.f, 1.f, 0.f), 0.5f);
+	Geometry::createArc(glm::vec3(root2on2, 0.f, root2on2), end, glm::vec3(0.f, 0.f, 0.f), b4);
+	renderEngine->assignBuffers(b4);
+	renderEngine->setBufferData(b4);
+
+	//Renderable b3;
+	//Geometry::createArc(glm::vec3(root2on2, root2on2, 0.f), glm::vec3(0.f, root2on2, root2on2), glm::vec3(0.f, root2on2, 0.f), b3);
+	//renderEngine->assignBuffers(b3);
+	//renderEngine->setBufferData(b3);
+
+	Renderable b3;
+	Geometry::createArc(glm::vec3(root2on2, 0.f, -root2on2), end, glm::vec3(0.f, 0.f, 0.f), b3);
+	renderEngine->assignBuffers(b3);
+	renderEngine->setBufferData(b3);
+
 	Renderable l1;
 	Geometry::createLine(glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f), l1);
 	renderEngine->assignBuffers(l1);
@@ -100,6 +118,9 @@ void Program::mainLoop() {
 	objects.push_back(l1);
 	objects.push_back(l2);
 	objects.push_back(l3);
+
+	objects.push_back(b3);
+	objects.push_back(b4);
 
 	while (true) {
 		SDL_Event e;
