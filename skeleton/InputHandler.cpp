@@ -3,8 +3,8 @@
 Camera* InputHandler::camera;
 RenderEngine* InputHandler::renderEngine;
 Program* InputHandler::program;
-float InputHandler::mouseOldX;
-float InputHandler::mouseOldY;
+int InputHandler::mouseOldX;
+int InputHandler::mouseOldY;
 bool InputHandler::moved;
 
 // Must be called before processing any SDL2 events
@@ -61,15 +61,15 @@ void InputHandler::mouse(SDL_MouseButtonEvent& e) {
 
 // Callback for mouse motion
 void InputHandler::motion(SDL_MouseMotionEvent& e) {
-	double dx, dy;
-	dx = (e.x - mouseOldX);
-	dy = (e.y - mouseOldY);
+	int dx, dy;
+	dx = e.x - mouseOldX;
+	dy = e.y - mouseOldY;
 
 	// left mouse button moves camera
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 		moved = true;
-		camera->updateLongitudeRotation(dx * 0.5);
-		camera->updateLatitudeRotation(dy * 0.5);
+		camera->updateLongitudeRotation(dx * 0.5f);
+		camera->updateLatitudeRotation(dy * 0.5f);
 	}
 
 	// Update current position of the mouse
@@ -77,8 +77,8 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 	SDL_Window* window = SDL_GetWindowFromID(e.windowID);
 	SDL_GetWindowSize(window, &width, &height);
 
-	int iX = (int)e.x;
-	int iY = height - (int)e.y;
+	int iX = e.x;
+	int iY = height - e.y;
 	//program->setMousePos(iX, iY);
 
 	mouseOldX = e.x;
@@ -87,15 +87,15 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 
 // Callback for mouse scroll
 void InputHandler::scroll(SDL_MouseWheelEvent& e) {
-	double dy;
-	dy = (e.x - e.y);
+	int dy;
+	dy = e.x - e.y;
 
 	const Uint8 *state = SDL_GetKeyboardState(0);
 	if (state[SDL_SCANCODE_LSHIFT]) {
 		//program->moveCurrentPart(dy * -0.25f);
 	}
 	else {
-		camera->updatePosition(glm::vec3(dy * -1.0f, 0.0, 0.0));
+		camera->updatePosition(glm::vec3(0.f, 0.f, dy));
 	}
 }
 

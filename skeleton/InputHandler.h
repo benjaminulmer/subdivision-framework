@@ -27,8 +27,8 @@ private:
 	static RenderEngine* renderEngine;
 	static Program* program;
 
-	static float mouseOldX;
-	static float mouseOldY;
+	static int mouseOldX;
+	static int mouseOldY;
 
 	static bool moved;
 };

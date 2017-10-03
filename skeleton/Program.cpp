@@ -65,18 +65,22 @@ void Program::mainLoop() {
 
 	Renderable a;
 	ContentReadWrite::loadOBJ("models/sphere.obj", a);
-	a.drawMode = GL_TRIANGLES;
 	renderEngine->assignBuffers(a);
 	renderEngine->setBufferData(a);
 
+	Renderable b;
+	Geometry::createArc(glm::vec3(1.5f, 0.f, 0.f), glm::vec3(0.f, 1.5f, 0.f), glm::vec3(0.f, 0.f, 0.f), b);
+	renderEngine->assignBuffers(b);
+	renderEngine->setBufferData(b);
+
 	objects.push_back(a);
+	objects.push_back(b);
 
 	while (true) {
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
-
 		renderEngine->render(objects, camera->getLookAt());
 
 		SDL_GL_SwapWindow(window);

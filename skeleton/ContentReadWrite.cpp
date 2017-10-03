@@ -75,7 +75,7 @@ bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 		r.verts.push_back(vertex);
 		r.normals.push_back(normal);
 	}
-
+	r.drawMode = GL_TRIANGLES;
 	fclose(file);
 	return true;
 }

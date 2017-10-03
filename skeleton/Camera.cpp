@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 Camera::Camera() {
-	eye = glm::vec3(-10.0f, 0.0f, 0.0f);
+	eye = glm::vec3(0.0f, 0.0f, 10.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 	centre = glm::vec3(0.0f, 0.0f, 0.0f);
 

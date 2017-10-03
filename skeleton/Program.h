@@ -11,6 +11,7 @@
 #include "RenderEngine.h"
 #include "InputHandler.h"
 #include "ContentReadWrite.h"
+#include "Geometry.h"
 
 class Program {
 
