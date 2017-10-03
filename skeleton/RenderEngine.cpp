@@ -19,10 +19,6 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 	glClearColor(0.3f, 0.3f, 0.4f, 0.f);
 }
 
-RenderEngine::~RenderEngine() {
-	// nothing to do here, program will clean up window pointer
-}
-
 // Called to render the active object. RenderEngine stores all information about how to render
 void RenderEngine::render(const std::vector<Renderable>& objects, glm::mat4 view) {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -42,7 +38,6 @@ void RenderEngine::render(const std::vector<Renderable>& objects, glm::mat4 view
 
 // Assigns buffers for a renderable
 void RenderEngine::assignBuffers(Renderable& renderable) {
-
 	glGenVertexArrays(1, &renderable.vao);
 	glBindVertexArray(renderable.vao);
 
@@ -57,22 +52,10 @@ void RenderEngine::assignBuffers(Renderable& renderable) {
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.normalBuffer);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
-
-	//// UV buffer
-	//glGenBuffers(1, &renderable.uvBuffer);
-	//glBindBuffer(GL_ARRAY_BUFFER, renderable.uvBuffer);
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	//glEnableVertexAttribArray(2);
-
-	//// Face buffer
-	//glGenBuffers(1, &renderable.indexBuffer);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.indexBuffer);
-	//glBindVertexArray(0);
 }
 
 // Sets buffer data for a renderable
 void RenderEngine::setBufferData(Renderable& renderable) {
-
 	// Vertex buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.verts.size(), renderable.verts.data(), GL_STATIC_DRAW);
@@ -80,14 +63,13 @@ void RenderEngine::setBufferData(Renderable& renderable) {
 	// Normal buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.normalBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.normals.size(), renderable.normals.data(), GL_STATIC_DRAW);
+}
 
-	//// UV buffer
-	//glBindBuffer(GL_ARRAY_BUFFER, renderable.uvBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*renderable.uvs.size(), renderable.uvs.data(), GL_STATIC_DRAW);
-
-	//// Face buffer
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.indexBuffer);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*renderable.faces.size(), renderable.faces.data(), GL_STATIC_DRAW);
+// Deletes buffers for a renderable
+void RenderEngine::deleteBufferData(Renderable & renderable) {
+	glDeleteBuffers(1, &renderable.vertexBuffer);
+	glDeleteBuffers(1, &renderable.normalBuffer);
+	glDeleteVertexArrays(1, &renderable.vao);
 }
 
 // Sets projection and viewport for new width and height

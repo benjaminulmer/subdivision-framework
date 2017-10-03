@@ -11,8 +11,6 @@ Program::Program() {
 
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {
-	//loadObjects();
-
 	setupWindow();
 	GLenum err = glewInit();
 	if (glewInit() != GLEW_OK) {
@@ -23,7 +21,6 @@ void Program::start() {
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine, this);
 
-	//assignBuffers();
 	mainLoop();
 }
 
@@ -61,20 +58,48 @@ void Program::setupWindow() {
 
 // Main loop
 void Program::mainLoop() {
-	std::vector<Renderable> objects;
-
 	Renderable a;
 	ContentReadWrite::loadOBJ("models/sphere.obj", a);
 	renderEngine->assignBuffers(a);
 	renderEngine->setBufferData(a);
 
 	Renderable b;
-	Geometry::createArc(glm::vec3(1.5f, 0.f, 0.f), glm::vec3(0.f, 1.5f, 0.f), glm::vec3(0.f, 0.f, 0.f), b);
+	Geometry::createArc(glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f), b);
 	renderEngine->assignBuffers(b);
 	renderEngine->setBufferData(b);
 
-	objects.push_back(a);
+	Renderable b1;
+	Geometry::createArc(glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 0.f), b1);
+	renderEngine->assignBuffers(b1);
+	renderEngine->setBufferData(b1);
+
+	Renderable b2;
+	Geometry::createArc(glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 0.f), b2);
+	renderEngine->assignBuffers(b2);
+	renderEngine->setBufferData(b2);
+
+	Renderable l1;
+	Geometry::createLine(glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f), l1);
+	renderEngine->assignBuffers(l1);
+	renderEngine->setBufferData(l1);
+
+	Renderable l2;
+	Geometry::createLine(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), l2);
+	renderEngine->assignBuffers(l2);
+	renderEngine->setBufferData(l2);
+
+	Renderable l3;
+	Geometry::createLine(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 1.f), l3);
+	renderEngine->assignBuffers(l3);
+	renderEngine->setBufferData(l3);
+
+	//objects.push_back(a);
 	objects.push_back(b);
+	objects.push_back(b1);
+	objects.push_back(b2);
+	objects.push_back(l1);
+	objects.push_back(l2);
+	objects.push_back(l3);
 
 	while (true) {
 		SDL_Event e;

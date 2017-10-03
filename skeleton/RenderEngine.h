@@ -11,22 +11,17 @@
 #include "ShaderTools.h"
 #include "Camera.h"
 
-//#include "Texture.h"
-//#include "lodepng.h"
-
 class RenderEngine {
 
 public:
 	RenderEngine(SDL_Window* window, Camera* camera);
-	virtual ~RenderEngine();
 
 	void render(const std::vector<Renderable>& objects, glm::mat4 view);
 
 	void assignBuffers(Renderable& renderable);
-
 	void setBufferData(Renderable& renderable);
+	void deleteBufferData(Renderable& renderable);
 
-	unsigned int loadTexture(std::string filename);
 	void setWindowSize(int newWidth, int newHeight);
 	void updateLightPos(glm::vec3 add);
 

@@ -27,6 +27,8 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
+	std::vector<Renderable> objects;
+
 	int mouseX, mouseY;
 
 	void setupWindow();
