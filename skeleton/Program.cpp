@@ -64,13 +64,8 @@ void Program::mainLoop() {
 	renderEngine->setBufferData(a);
 
 	Renderable b;
-	SdogGrid test;
-	test.minLong = 0.;
-	test.maxLong = M_PI / 2;
-	test.minLat = 0.;
-	test.maxLat = M_PI / 4;
-	test.maxRadius = 1.;
-	test.minRadius = 0.5;
+	SdogGrid test(1.0, 0.5, M_PI/4, 0.0, M_PI/2, 0.0);
+
 	test.createRenderable(b);
 	renderEngine->assignBuffers(b);
 	renderEngine->setBufferData(b);

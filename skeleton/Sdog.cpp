@@ -1,5 +1,12 @@
 #include "Sdog.h"
 
+// Creats an SdogGrid with given bounds in each (spherical) direction
+SdogGrid::SdogGrid(double maxRadius, double minRadius, double maxLat,
+	               double minLat, double maxLong, double minLong)  : 
+	maxRadius(maxRadius), minRadius(minRadius),
+	maxLat(maxLat), minLat(minLat),
+	maxLong(maxLong), minLong(minLong) {}
+
 // Creats a renderable of the boundaries of the Sdog grid
 // Completely generalized for all 3 grid types
 void SdogGrid::createRenderable(Renderable & r) {
@@ -30,10 +37,10 @@ void SdogGrid::createRenderable(Renderable & r) {
 	Geometry::createArc(i2, i4, origin, r);
 
 	// Small circle arcs connect points on same latitude line
-	Geometry::createArc(o1, o2, glm::vec3(0.f, sin(minLat), 0.f), r);
-	Geometry::createArc(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f), r);
-	Geometry::createArc(i1, i2, glm::vec3(0.f, sin(minLat), 0.f), r);
-	Geometry::createArc(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f), r);
+	Geometry::createArc(o1, o2, glm::vec3(0.f, sin(minLat), 0.f) * (float)maxRadius, r);
+	Geometry::createArc(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)maxRadius, r);
+	Geometry::createArc(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRadius, r);
+	Geometry::createArc(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRadius, r);
 }
 
 Sdog::Sdog() {

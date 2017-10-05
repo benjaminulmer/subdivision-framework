@@ -8,14 +8,20 @@ enum class GridType {
 	SG
 };
 
-struct SdogGrid {
+class SdogGrid {
+	
+public:
+	SdogGrid(double maxRadius, double minRadius, double maxLat,
+	         double minLat, double maxLong, double minLong);
+
+	void createRenderable(Renderable& r);
+
+private:
 	GridType type;
 
 	double maxRadius, minRadius;
 	double maxLat, minLat;
 	double maxLong, minLong;
-
-	void createRenderable(Renderable& r);
 };
 
 class Sdog {
