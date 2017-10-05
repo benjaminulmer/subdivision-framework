@@ -26,9 +26,13 @@ void Geometry::createArc(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderabl
 		glm::vec3 result = geomSlerp(v1, v2, t);
 
 		r.verts.push_back(centre + result);
+		if (i != 0 && i != angleDeg) {
+			r.verts.push_back(centre + result);
+			r.normals.push_back(glm::vec3(0.f, 1.f, 0.f));
+		}
 		r.normals.push_back(glm::vec3(0.f, 1.f, 0.f));
 	}
-	r.drawMode = GL_LINE_STRIP;
+	r.drawMode = GL_LINES;
 }
 
 // Creates a renderable for a line defined by p1 and p2
