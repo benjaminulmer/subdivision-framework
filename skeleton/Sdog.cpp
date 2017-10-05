@@ -1,28 +1,57 @@
 #include "Sdog.h"
 
 // Creats an SdogGrid with given bounds in each (spherical) direction
-SdogGrid::SdogGrid(double maxRadius, double minRadius, double maxLat,
-	               double minLat, double maxLong, double minLong)  : 
+SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
+	               double maxLat, double minLat, double maxLong, double minLong) :
 	maxRadius(maxRadius), minRadius(minRadius),
 	maxLat(maxLat), minLat(minLat),
 	maxLong(maxLong), minLong(minLong) {}
 
+// Subdivides current grid into 4-8 chidren (depending on grid type)
+void SdogGrid::subdivide() {
+
+	double midRadius = (maxRadius + minRadius) / 2;
+	double midLat = (maxLat + minLat) / 2;
+	double midLong = (maxLong + minLong) / 2;
+
+	if (type == GridType::NG) {
+		children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
+		children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, maxLat, midLat, maxLong, midLong);
+		children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+
+		children[0] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		children[0] = new SdogGrid(GridType::NG, midRadius, minRadius, maxLat, midLat, midLong, minLong);
+		children[0] = new SdogGrid(GridType::NG, midRadius, minRadius, maxLat, midLat, maxLong, midLong);
+		children[0] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, maxLong, midLong);
+	}
+	else if (type == GridType::LG) {
+
+	}
+	else { // (type == GridType::SG)
+		children[0] = new SdogGrid(GridType::LG, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[2] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+		children[3] = new SdogGrid(GridType::SG, midRadius, 0.0, maxLat, minLat, maxLong, minLong);
+	}
+}
+
 // Creats a renderable of the boundaries of the Sdog grid
-// Completely generalized for all 3 grid types
 void SdogGrid::createRenderable(Renderable & r) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
 
+	// Find key points, same for all types of grids
 	// Outer points
-	glm::vec3 o1 = glm::vec3(cos(minLong)*cos(minLat), sin(minLat), sin(minLong)*cos(minLat)) * (float)maxRadius;
-	glm::vec3 o2 = glm::vec3(cos(maxLong)*cos(minLat), sin(minLat), sin(maxLong)*cos(minLat)) * (float)maxRadius;
-	glm::vec3 o3 = glm::vec3(cos(minLong)*cos(maxLat), sin(maxLat), sin(minLong)*cos(maxLat)) * (float)maxRadius;
-	glm::vec3 o4 = glm::vec3(cos(maxLong)*cos(maxLat), sin(maxLat), sin(maxLong)*cos(maxLat)) * (float)maxRadius;
+	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRadius;
+	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRadius;
+	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRadius;
+	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRadius;
 
 	// Inner points
-	glm::vec3 i1 = glm::vec3(cos(minLong)*cos(minLat), sin(minLat), sin(minLong)*cos(minLat)) * (float)minRadius;
-	glm::vec3 i2 = glm::vec3(cos(maxLong)*cos(minLat), sin(minLat), sin(maxLong)*cos(minLat)) * (float)minRadius;
-	glm::vec3 i3 = glm::vec3(cos(minLong)*cos(maxLat), sin(maxLat), sin(minLong)*cos(maxLat)) * (float)minRadius;
-	glm::vec3 i4 = glm::vec3(cos(maxLong)*cos(maxLat), sin(maxLat), sin(maxLong)*cos(maxLat)) * (float)minRadius;
+	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRadius;
+	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRadius;
+	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
+	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
 	// Straight lines connect each inner point to coresponding outer point
 	Geometry::createLine(i1, o1, r);
@@ -43,7 +72,51 @@ void SdogGrid::createRenderable(Renderable & r) {
 	Geometry::createArc(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRadius, r);
 }
 
-Sdog::Sdog() {
+// Creates an SDOG with the given radius
+// Does not automatically subdivide
+Sdog::Sdog(double radius) : 
+	radius(radius), numLevels(0) {
+	
+	// Uses standard Z curve to determine order of quadrants
+	octants[0] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
+	octants[1] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0,  M_PI / 2, 0.0);
+	octants[2] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0, -M_PI / 2, 0.0);
+	octants[3] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0,  M_PI / 2, 0.0);
 
+	octants[4] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+	octants[5] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0,  M_PI,  M_PI / 2);
+	octants[6] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+	octants[7] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0,  M_PI,  M_PI / 2);
+}
+
+// Subdivides SDOG to the desired level (if not already that deep)
+void Sdog::subdivideTo(int level) {
+	if (level <= numLevels) {
+		return;
+	}
+
+}
+
+
+void Sdog::draw(std::vector<Renderable>& objects) {
+	
+	//Renderable r;
+	//octants[3]->subdivide();
+	//octants[3]->getChild(0)->createRenderable(r);
+	//octants[3]->getChild(1)->createRenderable(r);
+	//octants[3]->getChild(2)->createRenderable(r);
+	//octants[3]->getChild(3)->createRenderable(r);
+	//RenderEngine::assignBuffers(r);
+	//RenderEngine::setBufferData(r);
+	//objects.push_back(r);
+	
+	for (SdogGrid* g : octants) {
+		Renderable r;
+		g->createRenderable(r);
+		RenderEngine::assignBuffers(r);
+		RenderEngine::setBufferData(r);
+
+		objects.push_back(r);
+	}
 }
 

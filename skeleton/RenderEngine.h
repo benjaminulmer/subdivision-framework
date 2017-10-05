@@ -18,9 +18,9 @@ public:
 
 	void render(const std::vector<Renderable>& objects, glm::mat4 view);
 
-	void assignBuffers(Renderable& renderable);
-	void setBufferData(Renderable& renderable);
-	void deleteBufferData(Renderable& renderable);
+	static void assignBuffers(Renderable& renderable);
+	static void setBufferData(Renderable& renderable);
+	static void deleteBufferData(Renderable& renderable);
 
 	void setWindowSize(int newWidth, int newHeight);
 	void updateLightPos(glm::vec3 add);

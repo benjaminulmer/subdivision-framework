@@ -39,7 +39,7 @@ void Program::setupWindow() {
 	
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-	window = SDL_CreateWindow("CPSC589 Project", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	window = SDL_CreateWindow("sudivision framework", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (window == nullptr){
 		//TODO: cleanup methods upon exit
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -63,14 +63,8 @@ void Program::mainLoop() {
 	renderEngine->assignBuffers(a);
 	renderEngine->setBufferData(a);
 
-	Renderable b;
-	SdogGrid test(1.0, 0.5, M_PI/4, 0.0, M_PI/2, 0.0);
-
-	test.createRenderable(b);
-	renderEngine->assignBuffers(b);
-	renderEngine->setBufferData(b);
-
-	objects.push_back(b);
+	Sdog sdog(2.0);
+	sdog.draw(objects);
 
 	while (true) {
 		SDL_Event e;
