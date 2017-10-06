@@ -8,6 +8,7 @@ SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
 	maxLat(maxLat), minLat(minLat),
 	maxLong(maxLong), minLong(minLong) {
 
+	// Each grid type has a different number of children
 	if (type == GridType::NG) {
 		numChildren = 8;
 	}
@@ -20,53 +21,75 @@ SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
 	leaf = true;
 }
 
-// Subdivides current grid into 4-8 chidren (depending on grid type)
-void SdogGrid::subdivide(int level) {
+// Recursive function for subdiving the tree to given level
+void SdogGrid::subdivideTo(int level) {
 
-	double midRadius = (maxRadius + minRadius) / 2;
-	double midLat = (maxLat + minLat) / 2;
-	double midLong = (maxLong + minLong) / 2;
-
+	// Only subdivide if a leaf (children already exist otherwise)
 	if (leaf) {
-
-		if (type == GridType::NG) {
-			children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
-			children[2] = new SdogGrid(GridType::NG, maxRadius, midRadius, maxLat, midLat, maxLong, midLong);
-			children[3] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-
-			children[4] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, midLong, minLong);
-			children[5] = new SdogGrid(GridType::NG, midRadius, minRadius, maxLat, midLat, midLong, minLong);
-			children[6] = new SdogGrid(GridType::NG, midRadius, minRadius, maxLat, midLat, maxLong, midLong);
-			children[7] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, maxLong, midLong);
-		}
-		else if (type == GridType::LG) {
-			children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-			children[2] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, midLong, minLong);
-			children[3] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, maxLong, midLong);
-
-			children[4] = new SdogGrid(GridType::LG, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-			children[5] = new SdogGrid(GridType::LG, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
-		}
-		else { // (type == GridType::SG)
-			children[0] = new SdogGrid(GridType::LG, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-			children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[2] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-			children[3] = new SdogGrid(GridType::SG, midRadius, 0.0, maxLat, minLat, maxLong, minLong);
-		}
+		subdivide();
 		leaf = false;
 	}
-
+	// If more leveles need to be created recursively subdivide children
 	if (level > 0) {
 		for (int i = 0; i < numChildren; i++) {
-			children[i]->subdivide(level - 1);
+			children[i]->subdivideTo(level - 1);
 		}
 	}
 }
 
-// Creats a renderable of the boundaries of the Sdog grid
-void SdogGrid::createRenderable(Renderable & r) {
+// Subdivides grid into children grids
+void SdogGrid::subdivide() {
+
+	// Midpoints
+	double midRadius = (maxRadius + minRadius) / 2;
+	double midLat = (maxLat + minLat) / 2;
+	double midLong = (maxLong + minLong) / 2;
+
+	// Subdivision is different for each grid type
+	if (type == GridType::NG) {
+		children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
+		children[2] = new SdogGrid(GridType::NG, maxRadius, midRadius, maxLat, midLat, maxLong, midLong);
+		children[3] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+
+		children[4] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		children[5] = new SdogGrid(GridType::NG, midRadius, minRadius, maxLat, midLat, midLong, minLong);
+		children[6] = new SdogGrid(GridType::NG, midRadius, minRadius, maxLat, midLat, maxLong, midLong);
+		children[7] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, maxLong, midLong);
+	}
+	else if (type == GridType::LG) {
+		children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+		children[2] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		children[3] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, maxLong, midLong);
+
+		children[4] = new SdogGrid(GridType::LG, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[5] = new SdogGrid(GridType::LG, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
+	}
+	else { // (type == GridType::SG)
+		children[0] = new SdogGrid(GridType::LG, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[2] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+		children[3] = new SdogGrid(GridType::SG, midRadius, 0.0, maxLat, minLat, maxLong, minLong);
+	}
+}
+
+// Recursive function for creating renderable at desired level
+void SdogGrid::createRenderable(Renderable & r, int level) {
+	
+	// If not at desired level recursively create renderables for children
+	if (level != 0) {
+		for (int i = 0; i < numChildren; i++) {
+			children[i]->createRenderable(r, level - 1);
+		}
+	}
+	else {
+		fillRenderable(r);
+	}
+}
+
+// Fills a renderable with geometry for the grid
+void SdogGrid::fillRenderable(Renderable& r) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
 
 	// Find key points, same for all types of grids
@@ -106,7 +129,8 @@ void SdogGrid::createRenderable(Renderable & r) {
 Sdog::Sdog(double radius) : 
 	radius(radius), numLevels(0) {
 	
-	// Uses standard Z curve to determine order of quadrants
+	// TODO Uses standard Z curve to determine order of quadrants?
+	// Create starting octants of SDOG
 	octants[0] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 	octants[1] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0,  M_PI / 2, 0.0);
 	octants[2] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0, -M_PI / 2, 0.0);
@@ -120,42 +144,30 @@ Sdog::Sdog(double radius) :
 
 // Subdivides SDOG to the desired level (if not already that deep)
 void Sdog::subdivideTo(int level) {
+
+	// Check if enough levels are already created
 	if (level <= numLevels || level <= 0) {
 		return;
 	}
+
+	// Start recursive call down tree
 	for (SdogGrid* g : octants) {
-		g->subdivide(level - 1);
+		g->subdivideTo(level - 1);
 	}
 	numLevels = level;
 }
 
-void SdogGrid::draw(std::vector<Renderable>& objects, int level) {
-
-	// At desired level, draw grid
-	if (level == 0) {
-		Renderable r;
-		createRenderable(r);
-		RenderEngine::assignBuffers(r);
-		RenderEngine::setBufferData(r);
-		objects.push_back(r);
-	}
-	// Not at desired level, recursively call
-	else {
-		for (int i = 0; i < numChildren; i++) {
-			children[i]->draw(objects, level - 1);
-		}
-	}
-}
-
-void Sdog::draw(std::vector<Renderable>& objects, int level) {
+// Creates a renderable for the SDOG at the given level
+void Sdog::createRenderable(Renderable& r, int level) {
 
 	// Create more levels if needed
 	if (level > numLevels) {
 		subdivideTo(level);
 	}
 
+	// Start recursive call down tree
 	for (SdogGrid* g : octants) {
-		g->draw(objects, level);
+		g->createRenderable(r, level);
 	}
 }
 

@@ -15,9 +15,8 @@ public:
 	SdogGrid(GridType type, double maxRadius, double minRadius, 
 	         double maxLat, double minLat, double maxLong, double minLong);
 
-	void subdivide(int level);
-	void createRenderable(Renderable& r);
-	void draw(std::vector<Renderable>& objects, int level);
+	void subdivideTo(int level);
+	void createRenderable(Renderable& r, int level);
 
 private:
 	GridType type;
@@ -29,6 +28,9 @@ private:
 	SdogGrid* children[8];
 	int numChildren;
 	bool leaf;
+
+	void subdivide();
+	void fillRenderable(Renderable& r);
 };
 
 class Sdog {
@@ -37,7 +39,7 @@ public:
 	Sdog(double radius);
 
 	void subdivideTo(int level);
-	void draw(std::vector<Renderable>& objects, int level);
+	void createRenderable(Renderable& r, int level);
 
 private:
 	double radius;

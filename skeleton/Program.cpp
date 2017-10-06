@@ -64,7 +64,11 @@ void Program::mainLoop() {
 	renderEngine->setBufferData(a);
 
 	Sdog sdog(2.0);
-	sdog.draw(objects, 2);
+	Renderable b;
+	sdog.createRenderable(b, 2);
+	RenderEngine::assignBuffers(b);
+	RenderEngine::setBufferData(b);
+	objects.push_back(b);
 
 	while (true) {
 		SDL_Event e;
