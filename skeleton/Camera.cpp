@@ -9,10 +9,6 @@ Camera::Camera() {
 	latitudeRotRad = 0;
 }
 
-Camera::~Camera() {
-	// nothing to do here
-}
-
 // Returns view matrix for the camera
 glm::mat4 Camera::getLookAt() {
 	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);

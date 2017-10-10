@@ -23,12 +23,11 @@ public:
 
 	std::vector<glm::vec3> verts;
 	std::vector<glm::vec3> normals;
-	//std::vector<glm::vec3> colours;
 
 	GLuint vao;
 	GLuint vertexBuffer;
 	GLuint normalBuffer;
-	//GLuint colourBuffer;
+	glm::vec3 colour;
 
 	GLuint drawMode;
 };

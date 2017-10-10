@@ -10,7 +10,6 @@ class Camera {
 
 public:
 	Camera();
-	virtual ~Camera();
 
 	glm::mat4 getLookAt();
 	glm::vec3 getPosition();

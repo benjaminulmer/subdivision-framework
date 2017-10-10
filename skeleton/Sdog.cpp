@@ -166,8 +166,9 @@ void Sdog::createRenderable(Renderable& r, int level) {
 	}
 
 	// Start recursive call down tree
-	for (SdogGrid* g : octants) {
-		g->createRenderable(r, level);
+	for (int i = 0; i < 8; i ++) {
+		//octants[i]->createRenderable(r, level);
 	}
+	octants[2]->createRenderable(r, level);
 }
 

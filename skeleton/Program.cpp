@@ -59,15 +59,19 @@ void Program::setupWindow() {
 // Main loop
 void Program::mainLoop() {
 	Renderable a;
-	ContentReadWrite::loadOBJ("models/sphere.obj", a);
-	renderEngine->assignBuffers(a);
-	renderEngine->setBufferData(a);
+	ContentReadWrite::loadOBJ("models/oct.obj", a);
+	RenderEngine::assignBuffers(a);
+	RenderEngine::setBufferData(a);
+	a.colour = glm::vec3(1.f, 1.f, 1.f);
 
 	Sdog sdog(2.0);
 	Renderable b;
-	sdog.createRenderable(b, 2);
+	sdog.createRenderable(b, 3);
 	RenderEngine::assignBuffers(b);
 	RenderEngine::setBufferData(b);
+	b.colour = glm::vec3(0.f, 0.f, 0.f);
+
+	objects.push_back(a);
 	objects.push_back(b);
 
 	while (true) {
