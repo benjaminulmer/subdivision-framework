@@ -64,9 +64,10 @@ void Program::mainLoop() {
 	RenderEngine::setBufferData(a);
 	a.colour = glm::vec3(1.f, 1.f, 1.f);
 
-	Sdog sdog(2.0, 0.5, 0.5);
+	Sdog sdog(4.0, 0.5, 0.5);
 	Renderable b;
-	sdog.createRenderable(b, 3);
+	sdog.subdivideTo(7);
+	sdog.createRenderable(b, 4);
 	RenderEngine::assignBuffers(b);
 	RenderEngine::setBufferData(b);
 	b.colour = glm::vec3(0.f, 0.f, 0.f);
@@ -75,13 +76,13 @@ void Program::mainLoop() {
 	objects.push_back(b);
 
 	std::vector<float> volumes;
-	sdog.getVolumes(volumes, 1);
+	sdog.getVolumes(volumes, 7);
 
 	float max = -FLT_MAX;
 	float min = FLT_MAX;
 
 	for (float v : volumes) {
-		std::cout << v << std::endl;
+		//std::cout << v << std::endl;
 
 		max = (v > max) ? v : max;
 		min = (v < min) ? v : min;
@@ -94,9 +95,6 @@ void Program::mainLoop() {
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
-
-		Sdog sdog2 = Sdog(2.0, 0.5, 0.5);
-		sdog2.subdivideTo(5);
 
 		renderEngine->render(objects, camera->getLookAt());
 		SDL_GL_SwapWindow(window);

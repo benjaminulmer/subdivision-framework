@@ -200,15 +200,21 @@ Sdog::~Sdog() {
 }
 
 // Subdivides SDOG to the desired level (if not already that deep)
-void Sdog::subdivideTo(int level) {
+void Sdog::subdivideTo(int level, bool wholeSphere) {
 
 	// Check if enough levels are already created
 	if (level <= numLevels || level <= 0) {
 		return;
 	}
 
-	for (SdogGrid* g : octants) {
-		g->subdivideTo(level - 1);
+	if (wholeSphere) {
+		for (int i = 0; i < 8; i++) {
+			octants[i]->subdivideTo(level);
+		}
+	}
+	// Only for one octant
+	else {
+		octants[2]->subdivideTo(level);
 	}
 	numLevels = level;
 }

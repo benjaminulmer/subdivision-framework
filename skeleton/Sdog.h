@@ -47,7 +47,7 @@ public:
 
 	static double maxRadiusAlpha, maxLatAlpha;
 
-	void subdivideTo(int level);
+	void subdivideTo(int level, bool wholeSphere = false);
 	void createRenderable(Renderable& r, int level, bool wholeSphere = false);
 	
 	void getVolumes(std::vector<float>& volumes, int level, bool wholeSphere = false);
