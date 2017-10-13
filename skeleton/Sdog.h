@@ -14,6 +14,7 @@ class SdogGrid {
 public:
 	SdogGrid(GridType type, double maxRadius, double minRadius, 
 	         double maxLat, double minLat, double maxLong, double minLong);
+	virtual ~SdogGrid();
 
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level);
@@ -38,7 +39,13 @@ private:
 class Sdog {
 
 public:
-	Sdog(double radius);
+	Sdog(double radius, double maxRadiusAlpha, double maxLatAlpha);
+	Sdog(const Sdog& other);
+	Sdog& operator= (const Sdog& other);
+	virtual ~Sdog();
+
+
+	static double maxRadiusAlpha, maxLatAlpha;
 
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level, bool wholeSphere = false);

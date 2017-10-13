@@ -64,7 +64,7 @@ void Program::mainLoop() {
 	RenderEngine::setBufferData(a);
 	a.colour = glm::vec3(1.f, 1.f, 1.f);
 
-	Sdog sdog(2.0);
+	Sdog sdog(2.0, 0.5, 0.5);
 	Renderable b;
 	sdog.createRenderable(b, 3);
 	RenderEngine::assignBuffers(b);
@@ -88,13 +88,20 @@ void Program::mainLoop() {
 	}
 	std::cout << "Max: " << max << " Min: " << min << std::endl;
 
+	int count = 0;
 	while (true) {
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
+
+		Sdog sdog2 = Sdog(2.0, 0.5, 0.5);
+		sdog2.subdivideTo(5);
+
 		renderEngine->render(objects, camera->getLookAt());
 		SDL_GL_SwapWindow(window);
+
+		count++;
 	}
 
 	// Clean up, program needs to exit

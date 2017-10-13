@@ -1,5 +1,8 @@
 #include "Sdog.h"
 
+double Sdog::maxRadiusAlpha;
+double Sdog::maxLatAlpha;
+
 // Creats an SdogGrid with given bounds in each (spherical) direction
 SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
 	               double maxLat, double minLat, double maxLong, double minLong) :
@@ -19,6 +22,14 @@ SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
 		numChildren = 4;
 	}
 	leaf = true;
+}
+
+SdogGrid::~SdogGrid() {
+	if (!leaf) {
+		for (int i = 0; i < numChildren; i++) {
+			delete children[i];
+		}
+	}
 }
 
 // Recursive function for subdiving the tree to given level
@@ -41,8 +52,9 @@ void SdogGrid::subdivideTo(int level) {
 void SdogGrid::subdivide() {
 
 	// Midpoints
-	double midRadius = (maxRadius + minRadius) / 2;
-	double midLat = (maxLat + minLat) / 2;
+	double midRadius = (Sdog::maxRadiusAlpha * maxRadius) + ((1.0 - Sdog::maxRadiusAlpha) * minRadius);
+	double midLat = (Sdog::maxLatAlpha * maxLat) + ((1.0 - Sdog::maxLatAlpha) * minLat);
+
 	double midLong = (maxLong + minLong) / 2;
 
 	// Subdivision is different for each grid type
@@ -141,9 +153,12 @@ void SdogGrid::fillRenderable(Renderable& r) {
 
 // Creates an SDOG with the given radius
 // Does not automatically subdivide
-Sdog::Sdog(double radius) : 
+Sdog::Sdog(double radius, double maxRadiusAlpha, double maxLatAlpha) :
 	radius(radius), numLevels(0) {
 	
+	Sdog::maxRadiusAlpha = maxRadiusAlpha;
+	Sdog::maxLatAlpha = maxLatAlpha;
+
 	// TODO Uses standard Z curve to determine order of quadrants?
 	// Create starting octants of SDOG
 	octants[0] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
@@ -155,6 +170,33 @@ Sdog::Sdog(double radius) :
 	octants[5] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0,  M_PI,  M_PI / 2);
 	octants[6] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0, -M_PI, -M_PI / 2);
 	octants[7] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0,  M_PI,  M_PI / 2);
+}
+
+Sdog::Sdog(const Sdog & other) {
+	for (int i = 0; i < 8; i++) {
+
+	}
+}
+
+Sdog& Sdog::operator= (const Sdog& other) {
+
+	if (this == &other) {
+		return *this;
+	}
+
+	for (int i = 0; i < 8; i++) {
+		delete octants[i];
+		//octants[i] = other.octants[i];
+	}
+	radius = other.radius;
+	numLevels = other.numLevels;
+	return *this;
+}
+
+Sdog::~Sdog() {
+	for (int i = 0; i < 8; i++) {
+		delete octants[i];
+	}
 }
 
 // Subdivides SDOG to the desired level (if not already that deep)
