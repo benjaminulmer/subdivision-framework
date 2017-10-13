@@ -74,6 +74,20 @@ void Program::mainLoop() {
 	objects.push_back(a);
 	objects.push_back(b);
 
+	std::vector<float> volumes;
+	sdog.getVolumes(volumes, 1);
+
+	float max = -FLT_MAX;
+	float min = FLT_MAX;
+
+	for (float v : volumes) {
+		std::cout << v << std::endl;
+
+		max = (v > max) ? v : max;
+		min = (v < min) ? v : min;
+	}
+	std::cout << "Max: " << max << " Min: " << min << std::endl;
+
 	while (true) {
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {

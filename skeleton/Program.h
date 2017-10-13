@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <cfloat>
 
 #include "RenderEngine.h"
 #include "InputHandler.h"

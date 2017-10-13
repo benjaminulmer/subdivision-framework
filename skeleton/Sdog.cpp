@@ -88,6 +88,21 @@ void SdogGrid::createRenderable(Renderable & r, int level) {
 	}
 }
 
+// Recursive function for getting volumes at desired level
+void SdogGrid::getVolumes(std::vector<float>& volumes, int level) {
+	
+	// If not at desired level recursively get volumes for children
+	if (level != 0) {
+		for (int i = 0; i < numChildren; i++) {
+			children[i]->getVolumes(volumes, level - 1);
+		}
+	}
+	else {
+		float volume = (maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0;
+		volumes.push_back(abs(volume));
+	}
+}
+
 // Fills a renderable with geometry for the grid
 void SdogGrid::fillRenderable(Renderable& r) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
@@ -150,7 +165,6 @@ void Sdog::subdivideTo(int level) {
 		return;
 	}
 
-	// Start recursive call down tree
 	for (SdogGrid* g : octants) {
 		g->subdivideTo(level - 1);
 	}
@@ -158,17 +172,39 @@ void Sdog::subdivideTo(int level) {
 }
 
 // Creates a renderable for the SDOG at the given level
-void Sdog::createRenderable(Renderable& r, int level) {
+void Sdog::createRenderable(Renderable& r, int level, bool wholeSphere) {
 
 	// Create more levels if needed
 	if (level > numLevels) {
 		subdivideTo(level);
 	}
 
-	// Start recursive call down tree
-	for (int i = 0; i < 8; i ++) {
-		//octants[i]->createRenderable(r, level);
+	if (wholeSphere) {
+		for (int i = 0; i < 8; i++) {
+			octants[i]->createRenderable(r, level);
+		}
 	}
-	octants[2]->createRenderable(r, level);
+	// Only for one octant
+	else {
+		octants[2]->createRenderable(r, level);
+	}
 }
 
+// Gets the volume of all cell for the SDOG at the given level
+void Sdog::getVolumes(std::vector<float>& volumes, int level, bool wholeSphere) {
+	
+	// Create more levels if needed
+	if (level > numLevels) {
+		subdivideTo(level);
+	}
+
+	if (wholeSphere) {
+		for (int i = 0; i < 8; i++) {
+			octants[i]->getVolumes(volumes, level);
+		}
+	}
+	// Only for one octant
+	else {
+		octants[2]->getVolumes(volumes, level);
+	}
+}

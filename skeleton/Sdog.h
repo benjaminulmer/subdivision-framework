@@ -18,6 +18,8 @@ public:
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level);
 
+	void getVolumes(std::vector<float>& volumes, int level);
+
 private:
 	GridType type;
 
@@ -39,7 +41,9 @@ public:
 	Sdog(double radius);
 
 	void subdivideTo(int level);
-	void createRenderable(Renderable& r, int level);
+	void createRenderable(Renderable& r, int level, bool wholeSphere = false);
+	
+	void getVolumes(std::vector<float>& volumes, int level, bool wholeSphere = false);
 
 private:
 	double radius;
