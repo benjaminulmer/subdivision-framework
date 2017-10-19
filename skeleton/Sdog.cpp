@@ -1,5 +1,7 @@
 #include "Sdog.h"
 
+Scheme Sdog::scheme;
+
 // Creats an SdogGrid with given bounds in each (spherical) direction
 SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
 	               double maxLat, double minLat, double maxLong, double minLong) :
@@ -49,29 +51,34 @@ void SdogGrid::subdivideTo(int level) {
 void SdogGrid::subdivide() {
 
 	// Midpoints
-	double midRadius = (maxRadius + minRadius) / 2;
-	double midLat = (maxLat + minLat) / 2;
-
-	if (type == GridType::SG) {
-		midRadius = (0.629960524 * maxRadius) + ((1.0 - 0.629960524) * minRadius);
-		midLat = (0.464559054 * maxLat) + ((1.0 - 0.464559054) * minLat);
-	}
-	else if (type == GridType::NG) {
-		double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
-		double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
-
-		midRadius = num / denom;
-		midLat = asin((sin(maxLat) + sin(minLat)) / 2);
-	}
-	else { // (type == GridType::LG)
-		double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
-		double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
-
-		midRadius = num / denom;
-		midLat = asin((2 * sin(maxLat) + sin(minLat)) / 3);
-	}
-
 	double midLong = (maxLong + minLong) / 2;
+	double midRadius;
+	double midLat;
+
+	if (Sdog::scheme == Scheme::NAIVE || Sdog::scheme == Scheme::SDOG) {
+		midRadius = (maxRadius + minRadius) / 2;
+		midLat = (maxLat + minLat) / 2;
+	}
+	else { // Sdog::scheme == Scheme::VOLUME || Sdog::scheme == Scheme::VOLUME_SDOG
+		if (type == GridType::SG) {
+			midRadius = (0.629960524 * maxRadius) + ((1.0 - 0.629960524) * minRadius);
+			midLat = (0.464559054 * maxLat) + ((1.0 - 0.464559054) * minLat);
+		}
+		else if (type == GridType::NG) {
+			double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
+			double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
+
+			midRadius = num / denom;
+			midLat = asin((sin(maxLat) + sin(minLat)) / 2);
+		}
+		else { // (type == GridType::LG)
+			double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
+			double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
+
+			midRadius = num / denom;
+			midLat = asin((2 * sin(maxLat) + sin(minLat)) / 3);
+		}
+	}
 
 	// Subdivision is different for each grid type
 	if (type == GridType::NG) {
@@ -169,20 +176,36 @@ void SdogGrid::fillRenderable(Renderable& r) {
 
 // Creates an SDOG with the given radius
 // Does not automatically subdivide
-Sdog::Sdog(double radius) :
+Sdog::Sdog(Scheme scheme, double radius) :
 	radius(radius), numLevels(0) {
 	
+	Sdog::scheme = scheme;
+
 	// TODO Uses standard Z curve to determine order of quadrants?
 	// Create starting octants of SDOG
-	octants[0] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
-	octants[1] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0,  M_PI / 2, 0.0);
-	octants[2] = new SdogGrid(GridType::NG, radius, 0.0,  M_PI / 2, 0.0, -M_PI / 2, 0.0);
-	octants[3] = new SdogGrid(GridType::NG, radius, 0.0,  M_PI / 2, 0.0,  M_PI / 2, 0.0);
 
-	octants[4] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-	octants[5] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0,  M_PI,  M_PI / 2);
-	octants[6] = new SdogGrid(GridType::NG, radius, 0.0,  M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-	octants[7] = new SdogGrid(GridType::NG, radius, 0.0,  M_PI / 2, 0.0,  M_PI,  M_PI / 2);
+	if (scheme == Scheme::SDOG || scheme == Scheme::VOLUME_SDOG) {
+		octants[0] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[1] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
+		octants[2] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[3] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
+
+		octants[4] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+		octants[5] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
+		octants[6] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+		octants[7] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
+	}
+	else { // scheme == Scheme::NAIVE || scheme == Scheme::VOLUME
+		octants[0] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[1] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
+		octants[2] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[3] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
+
+		octants[4] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+		octants[5] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
+		octants[6] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+		octants[7] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
+	}
 }
 
 Sdog::Sdog(const Sdog & other) {

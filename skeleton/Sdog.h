@@ -3,6 +3,13 @@
 #include "Geometry.h"
 #include "RenderEngine.h"
 
+enum class Scheme {
+	SDOG,
+	NAIVE,
+	VOLUME_SDOG,
+	VOLUME
+};
+
 enum class GridType {
 	NG,
 	LG,
@@ -39,10 +46,12 @@ private:
 class Sdog {
 
 public:
-	Sdog(double radius = 2.0);
+	Sdog(Scheme scheme, double radius = 2.0);
 	Sdog(const Sdog& other);
 	Sdog& operator= (const Sdog& other);
 	virtual ~Sdog();
+
+	static Scheme scheme;
 
 	void subdivideTo(int level, bool wholeSphere = false);
 	void createRenderable(Renderable& r, int level, bool wholeSphere = false);

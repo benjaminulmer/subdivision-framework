@@ -20,6 +20,7 @@ public:
 	Program();
 
 	void start();
+	void setScheme(Scheme scheme);
 	void updateSubdivisionLevel(int add);
 
 private:
@@ -29,7 +30,7 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
-	Sdog sdog;
+	Sdog* sdog;
 	Renderable referenceOctant;
 	Renderable cells;
 	int level;

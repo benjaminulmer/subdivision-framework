@@ -4,6 +4,7 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
+	sdog = nullptr;
 
 	level = 0;
 	width = height = 512;
@@ -26,6 +27,7 @@ void Program::start() {
 	RenderEngine::setBufferData(referenceOctant);
 	referenceOctant.colour = glm::vec3(1.f, 1.f, 1.f);
 
+	setScheme(Scheme::SDOG);
 	updateSubdivisionLevel(level);
 	mainLoop();
 }
@@ -98,13 +100,20 @@ void Program::mainLoop() {
 	SDL_Quit();
 }
 
+// Sets the scheme that will be used for octant subdivision
+void Program::setScheme(Scheme scheme) {
+	delete sdog;
+	sdog = new Sdog(scheme);
+	updateSubdivisionLevel(0);
+}
+
 // Updates the level of subdivision being shown
 void Program::updateSubdivisionLevel(int add) {
 
 	level = (level + add < 0) ? level : level + add;
 
 	cells = Renderable();
-	sdog.createRenderable(cells, level);
+	sdog->createRenderable(cells, level);
 	RenderEngine::assignBuffers(cells);
 	RenderEngine::setBufferData(cells);
 	cells.colour = glm::vec3(0.f, 0.f, 0.f);
