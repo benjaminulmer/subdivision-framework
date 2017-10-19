@@ -39,13 +39,10 @@ private:
 class Sdog {
 
 public:
-	Sdog(double radius, double maxRadiusAlpha, double maxLatAlpha);
+	Sdog(double radius = 2.0);
 	Sdog(const Sdog& other);
 	Sdog& operator= (const Sdog& other);
 	virtual ~Sdog();
-
-
-	static double maxRadiusAlpha, maxLatAlpha;
 
 	void subdivideTo(int level, bool wholeSphere = false);
 	void createRenderable(Renderable& r, int level, bool wholeSphere = false);

@@ -1,8 +1,5 @@
 #include "Sdog.h"
 
-double Sdog::maxRadiusAlpha;
-double Sdog::maxLatAlpha;
-
 // Creats an SdogGrid with given bounds in each (spherical) direction
 SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
 	               double maxLat, double minLat, double maxLong, double minLong) :
@@ -52,8 +49,27 @@ void SdogGrid::subdivideTo(int level) {
 void SdogGrid::subdivide() {
 
 	// Midpoints
-	double midRadius = (Sdog::maxRadiusAlpha * maxRadius) + ((1.0 - Sdog::maxRadiusAlpha) * minRadius);
-	double midLat = (Sdog::maxLatAlpha * maxLat) + ((1.0 - Sdog::maxLatAlpha) * minLat);
+	double midRadius = (maxRadius + minRadius) / 2;
+	double midLat = (maxLat + minLat) / 2;
+
+	if (type == GridType::SG) {
+		midRadius = (0.629960524 * maxRadius) + ((1.0 - 0.629960524) * minRadius);
+		midLat = (0.464559054 * maxLat) + ((1.0 - 0.464559054) * minLat);
+	}
+	else if (type == GridType::NG) {
+		double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
+		double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
+
+		midRadius = num / denom;
+		midLat = asin((sin(maxLat) + sin(minLat)) / 2);
+	}
+	else { // (type == GridType::LG)
+		double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
+		double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
+
+		midRadius = num / denom;
+		midLat = asin((2 * sin(maxLat) + sin(minLat)) / 3);
+	}
 
 	double midLong = (maxLong + minLong) / 2;
 
@@ -102,7 +118,7 @@ void SdogGrid::createRenderable(Renderable & r, int level) {
 
 // Recursive function for getting volumes at desired level
 void SdogGrid::getVolumes(std::vector<float>& volumes, int level) {
-	
+
 	// If not at desired level recursively get volumes for children
 	if (level != 0) {
 		for (int i = 0; i < numChildren; i++) {
@@ -153,23 +169,20 @@ void SdogGrid::fillRenderable(Renderable& r) {
 
 // Creates an SDOG with the given radius
 // Does not automatically subdivide
-Sdog::Sdog(double radius, double maxRadiusAlpha, double maxLatAlpha) :
+Sdog::Sdog(double radius) :
 	radius(radius), numLevels(0) {
 	
-	Sdog::maxRadiusAlpha = maxRadiusAlpha;
-	Sdog::maxLatAlpha = maxLatAlpha;
-
 	// TODO Uses standard Z curve to determine order of quadrants?
 	// Create starting octants of SDOG
-	octants[0] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
-	octants[1] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0,  M_PI / 2, 0.0);
-	octants[2] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0, -M_PI / 2, 0.0);
-	octants[3] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0,  M_PI / 2, 0.0);
+	octants[0] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
+	octants[1] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0,  M_PI / 2, 0.0);
+	octants[2] = new SdogGrid(GridType::NG, radius, 0.0,  M_PI / 2, 0.0, -M_PI / 2, 0.0);
+	octants[3] = new SdogGrid(GridType::NG, radius, 0.0,  M_PI / 2, 0.0,  M_PI / 2, 0.0);
 
-	octants[4] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-	octants[5] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0,  M_PI,  M_PI / 2);
-	octants[6] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-	octants[7] = new SdogGrid(GridType::SG, radius, 0.0,  M_PI / 2, 0.0,  M_PI,  M_PI / 2);
+	octants[4] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+	octants[5] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0,  M_PI,  M_PI / 2);
+	octants[6] = new SdogGrid(GridType::NG, radius, 0.0,  M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+	octants[7] = new SdogGrid(GridType::NG, radius, 0.0,  M_PI / 2, 0.0,  M_PI,  M_PI / 2);
 }
 
 Sdog::Sdog(const Sdog & other) {

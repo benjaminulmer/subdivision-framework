@@ -43,9 +43,16 @@ void InputHandler::pollEvent(SDL_Event& e) {
 void InputHandler::key(SDL_KeyboardEvent& e) {
 	// Light controls
 	switch (e.keysym.sym) {
+	case(SDLK_w) :
+		program->updateSubdivisionLevel(1);
+		break;
+	case(SDLK_q):
+		program->updateSubdivisionLevel(-1);
+		break;
 	case(SDLK_ESCAPE) :
 		SDL_Quit();
 		exit(0);
+		break;
 	}
 }
 
@@ -102,6 +109,6 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 // Callback for window reshape/resize
 void InputHandler::reshape(SDL_WindowEvent& e) {
 	if (e.event == SDL_WINDOWEVENT_RESIZED) {
-		//program->setWindowSize(e.data1, e.data2);
+		renderEngine->setWindowSize(e.data1, e.data2);
 	}
 }

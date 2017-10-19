@@ -5,7 +5,7 @@ Program::Program() {
 	renderEngine = nullptr;
 	camera = nullptr;
 
-	mouseX = mouseY = 0;
+	level = 0;
 	width = height = 512;
 }
 
@@ -21,6 +21,12 @@ void Program::start() {
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine, this);
 
+	ContentReadWrite::loadOBJ("models/oct.obj", referenceOctant);
+	RenderEngine::assignBuffers(referenceOctant);
+	RenderEngine::setBufferData(referenceOctant);
+	referenceOctant.colour = glm::vec3(1.f, 1.f, 1.f);
+
+	updateSubdivisionLevel(level);
 	mainLoop();
 }
 
@@ -58,36 +64,18 @@ void Program::setupWindow() {
 
 // Main loop
 void Program::mainLoop() {
-	Renderable a;
-	ContentReadWrite::loadOBJ("models/oct.obj", a);
-	RenderEngine::assignBuffers(a);
-	RenderEngine::setBufferData(a);
-	a.colour = glm::vec3(1.f, 1.f, 1.f);
 
-	Sdog sdog(4.0, 0.5, 0.5);
-	Renderable b;
-	sdog.subdivideTo(7);
-	sdog.createRenderable(b, 4);
-	RenderEngine::assignBuffers(b);
-	RenderEngine::setBufferData(b);
-	b.colour = glm::vec3(0.f, 0.f, 0.f);
+	//std::vector<float> volumes;
+	//sdog.getVolumes(volumes, 4);
 
-	objects.push_back(a);
-	objects.push_back(b);
+	//float max = -FLT_MAX;
+	//float min = FLT_MAX;
 
-	std::vector<float> volumes;
-	sdog.getVolumes(volumes, 7);
-
-	float max = -FLT_MAX;
-	float min = FLT_MAX;
-
-	for (float v : volumes) {
-		//std::cout << v << std::endl;
-
-		max = (v > max) ? v : max;
-		min = (v < min) ? v : min;
-	}
-	std::cout << "Max: " << max << " Min: " << min << std::endl;
+	//for (float v : volumes) {
+	//	max = (v > max) ? v : max;
+	//	min = (v < min) ? v : min;
+	//}
+	//std::cout << "Max: " << max << " Min: " << min << std::endl;
 
 	int count = 0;
 	while (true) {
@@ -95,6 +83,10 @@ void Program::mainLoop() {
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
+
+		objects.clear();
+		objects.push_back(referenceOctant);
+		objects.push_back(cells);
 
 		renderEngine->render(objects, camera->getLookAt());
 		SDL_GL_SwapWindow(window);
@@ -104,4 +96,16 @@ void Program::mainLoop() {
 
 	// Clean up, program needs to exit
 	SDL_Quit();
+}
+
+// Updates the level of subdivision being shown
+void Program::updateSubdivisionLevel(int add) {
+
+	level = (level + add < 0) ? level : level + add;
+
+	cells = Renderable();
+	sdog.createRenderable(cells, level);
+	RenderEngine::assignBuffers(cells);
+	RenderEngine::setBufferData(cells);
+	cells.colour = glm::vec3(0.f, 0.f, 0.f);
 }

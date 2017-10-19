@@ -20,6 +20,7 @@ public:
 	Program();
 
 	void start();
+	void updateSubdivisionLevel(int add);
 
 private:
 	SDL_Window* window;
@@ -28,9 +29,11 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
+	Sdog sdog;
+	Renderable referenceOctant;
+	Renderable cells;
+	int level;
 	std::vector<Renderable> objects;
-
-	int mouseX, mouseY;
 
 	void setupWindow();
 	void mainLoop();
