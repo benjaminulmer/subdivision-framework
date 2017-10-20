@@ -28,7 +28,10 @@ void Program::start() {
 	referenceOctant.colour = glm::vec3(1.f, 1.f, 1.f);
 
 	setScheme(Scheme::SDOG);
-	updateSubdivisionLevel(level);
+
+	objects.push_back(&referenceOctant);
+	objects.push_back(&cells);
+
 	mainLoop();
 }
 
@@ -86,10 +89,6 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		objects.clear();
-		objects.push_back(referenceOctant);
-		objects.push_back(cells);
-
 		renderEngine->render(objects, camera->getLookAt());
 		SDL_GL_SwapWindow(window);
 
@@ -110,7 +109,10 @@ void Program::setScheme(Scheme scheme) {
 // Updates the level of subdivision being shown
 void Program::updateSubdivisionLevel(int add) {
 
-	level = (level + add < 0) ? level : level + add;
+	if (level + add < 0 || level + add > 6) {
+		return;
+	}
+	level += add;
 
 	cells = Renderable();
 	sdog->createRenderable(cells, level);

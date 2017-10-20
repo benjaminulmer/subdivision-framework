@@ -16,7 +16,7 @@ class RenderEngine {
 public:
 	RenderEngine(SDL_Window* window, Camera* camera);
 
-	void render(const std::vector<Renderable>& objects, glm::mat4 view);
+	void render(const std::vector<Renderable*>& objects, glm::mat4 view);
 
 	static void assignBuffers(Renderable& renderable);
 	static void setBufferData(Renderable& renderable);

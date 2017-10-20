@@ -20,6 +20,8 @@ void Geometry::createArc(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderabl
 	int angleDeg = (int) (theta * 180.f / M_PI);
 
 	// #num line segments ~= angle of arc in degrees
+	angleDeg /= 4;
+	angleDeg++;
 	for (int i = 0; i <= angleDeg; i++) {
 		float t = (float)i / angleDeg;
 		

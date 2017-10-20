@@ -20,19 +20,19 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const std::vector<Renderable>& objects, glm::mat4 view) {
+void RenderEngine::render(const std::vector<Renderable*>& objects, glm::mat4 view) {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glUseProgram(mainProgram);
 
-	for (const Renderable& r : objects) {
-		glBindVertexArray(r.vao);
+	for (const Renderable* r : objects) {
+		glBindVertexArray(r->vao);
 
 		glm::mat4 modelView = view;
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(r.colour));
+		glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(r->colour));
 
-		glDrawArrays(r.drawMode, 0, r.verts.size());
+		glDrawArrays(r->drawMode, 0, r->verts.size());
 		glBindVertexArray(0);
 	}
 }

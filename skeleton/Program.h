@@ -34,7 +34,7 @@ private:
 	Renderable referenceOctant;
 	Renderable cells;
 	int level;
-	std::vector<Renderable> objects;
+	std::vector<Renderable*> objects;
 
 	void setupWindow();
 	void mainLoop();
