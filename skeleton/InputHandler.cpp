@@ -114,7 +114,7 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 		//program->moveCurrentPart(dy * -0.25f);
 	}
 	else {
-		camera->updatePosition(glm::vec3(0.f, 0.f, dy));
+		camera->updateZoom(dy);
 	}
 }
 

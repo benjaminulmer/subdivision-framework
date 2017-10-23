@@ -13,9 +13,9 @@ public:
 
 	glm::mat4 getLookAt();
 	glm::vec3 getPosition();
-	void updateLongitudeRotation(float rad);
-	void updateLatitudeRotation(float rad);
-	void updatePosition(glm::vec3 value);
+	void updateLongitudeRotation(float deg);
+	void updateLatitudeRotation(float deg);
+	void updateZoom(float value);
 
 private:
 	glm::vec3 eye;
