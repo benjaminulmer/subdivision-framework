@@ -1,12 +1,14 @@
 #include "Camera.h"
 
 Camera::Camera() {
-	eye = glm::vec3(0.0f, 0.0f, 10.0f);
-	up = glm::vec3(0.0f, 1.0f, 0.0f);
-	centre = glm::vec3(0.0f, 0.0f, 0.0f);
+	eye = glm::vec3(0.f, 0.f, 10.f);
+	up = glm::vec3(0.f, 1.f, 0.f);
+	centre = glm::vec3(0.f, 0.f, 0.f);
 
 	longitudeRotRad = 0;
 	latitudeRotRad = 0;
+
+	translation = glm::vec3(0.f, 0.f, 0.f);
 }
 
 // Returns view matrix for the camera
@@ -15,19 +17,19 @@ glm::mat4 Camera::getLookAt() {
 	// Rotate eye along longitude
 	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
 
-	// Find axis to rotate eye and up along latitude
-	glm::vec3 axis = glm::cross(eyeTemp, glm::vec3(0.0, 1.0, 0.0));
+	// Find axis then rotate eye and up along latitude
+	glm::vec3 axis = glm::cross(eyeTemp, glm::vec3(0.f, 1.f, 0.f));
 
 	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, axis);
 	glm::vec3 upTemp = glm::rotate(up, latitudeRotRad, axis);
 
-	return glm::lookAt(eyeTemp, centre, upTemp);
+	return glm::lookAt(eyeTemp + translation, centre + translation, upTemp);
 }
 
 // Returns position of the camera
 glm::vec3 Camera::getPosition() {
 	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
-	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, glm::cross(eyeTemp, glm::vec3(0.0, 1.0, 0.0)));
+	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, glm::cross(eyeTemp, glm::vec3(0.f, 1.f, 0.f)));
 
 	return eyeTemp;
 }
@@ -53,4 +55,34 @@ void Camera::updateLatitudeRotation(float deg) {
 void Camera::updateZoom(float value) {
 	float zoom = (eye.z / 10.f) * value;
 	eye.z += zoom;
+}
+
+// Translates camera along x and y of view plane
+void Camera::translate(glm::vec3 planeTranslation) {
+
+	// Scale translation based on zoom level
+	float scale = (eye.z / 500.f);
+	planeTranslation *= scale;
+
+	// Get rotation axis
+	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
+	glm::vec3 axis = glm::cross(eyeTemp, glm::vec3(0.f, 1.f, 0.f));
+
+	// Convert screen space translation into world space translation
+	glm::vec3 rotatedTranslation = glm::rotateY(planeTranslation, -longitudeRotRad);
+	rotatedTranslation = glm::rotate(rotatedTranslation, latitudeRotRad, axis);
+
+	translation += rotatedTranslation;
+}
+
+// Reset camera to starting position
+void Camera::reset() {
+	eye = glm::vec3(0.f, 0.f, 10.f);
+	up = glm::vec3(0.f, 1.f, 0.f);
+	centre = glm::vec3(0.f, 0.f, 0.f);
+
+	longitudeRotRad = 0;
+	latitudeRotRad = 0;
+
+	translation = glm::vec3(0.f, 0.f, 0.f);
 }

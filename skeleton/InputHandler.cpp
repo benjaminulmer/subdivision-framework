@@ -61,6 +61,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	case(SDLK_4):
 		program->setScheme(Scheme::VOLUME);
 		break;
+	case(SDLK_c):
+		camera->reset();
+		break;
 	case(SDLK_ESCAPE) :
 		SDL_Quit();
 		exit(0);
@@ -72,10 +75,6 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 void InputHandler::mouse(SDL_MouseButtonEvent& e) {
 	mouseOldX = e.x;
 	mouseOldY = e.y;
-
-	if (e.button == SDL_BUTTON_LEFT && !moved) {
-		//program->_3Dpick(true);
-	}
 }
 
 // Callback for mouse motion
@@ -86,9 +85,11 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 
 	// left mouse button moves camera
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-		moved = true;
 		camera->updateLongitudeRotation(dx * 0.5f);
 		camera->updateLatitudeRotation(dy * 0.5f);
+	}
+	else if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
+		camera->translate(glm::vec3(-dx, dy, 0.f));
 	}
 
 	// Update current position of the mouse

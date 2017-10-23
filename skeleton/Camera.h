@@ -16,6 +16,9 @@ public:
 	void updateLongitudeRotation(float deg);
 	void updateLatitudeRotation(float deg);
 	void updateZoom(float value);
+	void translate(glm::vec3 planeTranslation);
+
+	void reset();
 
 private:
 	glm::vec3 eye;
@@ -24,4 +27,6 @@ private:
 
 	float longitudeRotRad;
 	float latitudeRotRad;
+
+	glm::vec3 translation;
 };
