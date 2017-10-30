@@ -75,10 +75,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\mesh.frag">
+    <None Include="shaders\oneColour.vert">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\mesh.vert">
+    <None Include="shaders\oneColour.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\manyColours.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\manyColours.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

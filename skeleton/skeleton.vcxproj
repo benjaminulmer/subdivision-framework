@@ -174,8 +174,10 @@
     <ClCompile Include="ShaderTools.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\mesh.frag" />
-    <None Include="shaders\mesh.vert" />
+    <None Include="shaders\manyColours.frag" />
+    <None Include="shaders\manyColours.vert" />
+    <None Include="shaders\oneColour.frag" />
+    <None Include="shaders\oneColour.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

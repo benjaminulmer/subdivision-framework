@@ -5,7 +5,7 @@ uniform mat4 projection;
 
 layout (location = 0) in vec3 vertex;
 layout (location = 1) in vec3 normal;
-layout (location = 2) in vec2 uv;
+layout (location = 2) in vec4 colour;
 
 out vec3 N;
 out vec3 L;
@@ -16,7 +16,7 @@ void main(void) {
 
 	vec3 lightPos = vec3(0.0, 10.0, 0.0);
 
-	UV = uv;
+	//UV = uv;
 
 	// Put light in camera space
 	vec4 lightCameraSpace = modelView * vec4(lightPos, 1.0);

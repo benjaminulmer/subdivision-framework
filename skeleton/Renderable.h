@@ -19,15 +19,19 @@ struct IndexedLists {
 class Renderable {
 
 public:
-	Renderable() : vao(0), vertexBuffer(0), normalBuffer(0), drawMode(0) {}
+	Renderable() : vao(0), vertexBuffer(0), normalBuffer(0), colourBuffer(0), drawMode(0) {}
 
 	std::vector<glm::vec3> verts;
 	std::vector<glm::vec3> normals;
+	std::vector<glm::vec4> colours;
 
 	GLuint vao;
 	GLuint vertexBuffer;
 	GLuint normalBuffer;
+	GLuint colourBuffer;
 	glm::vec3 colour;
+
+	bool single;
 
 	GLuint drawMode;
 };

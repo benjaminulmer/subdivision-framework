@@ -29,7 +29,8 @@ private:
 	SDL_Window* window;
 	int width, height;
 
-	GLuint mainProgram;
+	GLuint oneColourProgram;
+	GLuint manyColoursProgram;
 
 	Camera* camera;
 	glm::mat4 view;
