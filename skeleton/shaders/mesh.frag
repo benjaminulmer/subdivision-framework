@@ -16,7 +16,7 @@ void main(void) {
 
 	// Use for shading
 	//vec3 col = vec3(1.0, 1.0, 1.0);
-	colour = vec4(objColour * diffuse, 1.0);
+	colour = vec4(objColour, 1.0);
 
 	// Use for flat shading
 	//colour = vec4(0.0, 0.0, 0.0, 1.0);

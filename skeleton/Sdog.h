@@ -5,6 +5,7 @@
 
 enum class Scheme {
 	SDOG,
+	SDOG_OPT,
 	NAIVE,
 	VOLUME_SDOG,
 	VOLUME

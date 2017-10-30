@@ -52,13 +52,16 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	case(SDLK_1) :
 		program->setScheme(Scheme::SDOG);
 		break;
-	case(SDLK_2):
-		program->setScheme(Scheme::NAIVE);
+	case(SDLK_2) :
+		program->setScheme(Scheme::SDOG_OPT);
 		break;
 	case(SDLK_3):
-		program->setScheme(Scheme::VOLUME_SDOG);
+		program->setScheme(Scheme::NAIVE);
 		break;
 	case(SDLK_4):
+		program->setScheme(Scheme::VOLUME_SDOG);
+		break;
+	case(SDLK_5):
 		program->setScheme(Scheme::VOLUME);
 		break;
 	case(SDLK_c):

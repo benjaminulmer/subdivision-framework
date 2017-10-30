@@ -59,6 +59,10 @@ void SdogGrid::subdivide() {
 		midRadius = (maxRadius + minRadius) / 2;
 		midLat = (maxLat + minLat) / 2;
 	}
+	else if (Sdog::scheme == Scheme::SDOG_OPT) {
+		midRadius = 0.51 * maxRadius + 0.49 * minRadius;
+		midLat = 0.49 * maxLat + 0.51 * minLat;
+	}
 	else { // Sdog::scheme == Scheme::VOLUME || Sdog::scheme == Scheme::VOLUME_SDOG
 		if (type == GridType::SG) {
 			midRadius = (0.629960524 * maxRadius) + ((1.0 - 0.629960524) * minRadius);
@@ -184,7 +188,7 @@ Sdog::Sdog(Scheme scheme, double radius) :
 	// TODO Uses standard Z curve to determine order of quadrants?
 	// Create starting octants of SDOG
 
-	if (scheme == Scheme::SDOG || scheme == Scheme::VOLUME_SDOG) {
+	if (scheme == Scheme::SDOG || scheme == Scheme::VOLUME_SDOG || scheme == Scheme::SDOG_OPT) {
 		octants[0] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
 		octants[2] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);

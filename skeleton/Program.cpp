@@ -6,7 +6,7 @@ Program::Program() {
 	camera = nullptr;
 	sdog = nullptr;
 
-	level = 0;
+	level = 1;
 	width = height = 512;
 }
 
@@ -22,7 +22,7 @@ void Program::start() {
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine, this);
 
-	ContentReadWrite::loadOBJ("models/oct.obj", referenceOctant);
+	ContentReadWrite::loadOBJ("models/octant.obj", referenceOctant);
 	RenderEngine::assignBuffers(referenceOctant);
 	RenderEngine::setBufferData(referenceOctant);
 	referenceOctant.colour = glm::vec3(1.f, 1.f, 1.f);
