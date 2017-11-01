@@ -23,18 +23,13 @@ void Program::start() {
 	InputHandler::setUp(camera, renderEngine, this);
 
 	ContentReadWrite::loadOBJ("models/octant.obj", referenceOctant);
+	referenceOctant.colour = glm::vec3(1.f, 1.f, 1.f);
 	RenderEngine::assignBuffers(referenceOctant);
 	RenderEngine::setBufferData(referenceOctant);
 
-	referenceOctant.single = true;
-	referenceOctant.colour = glm::vec3(1.f, 1.f, 1.f);
-	for (glm::vec3 v : referenceOctant.verts) {
-		referenceOctant.colours.push_back(glm::vec4(0.f, 0.f, 0.f, 0.f));
-	}
-
 	setScheme(Scheme::SDOG);
 
-	//objects.push_back(&referenceOctant);
+	objects.push_back(&referenceOctant);
 	objects.push_back(&cells);
 
 	mainLoop();
@@ -82,8 +77,17 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		//updateSubdivisionLevel(0);
-		renderEngine->render(objects, camera->getLookAt());
+		float max = -FLT_MAX;
+		float min = FLT_MAX;
+
+		glm::vec3 cameraPos = camera->getPosition();
+		for (glm::vec3 v : cells.verts) {
+			float dist = glm::length(cameraPos - v);
+
+			max = (dist > max) ? dist : max;
+			min = (dist < min) ? dist : min;
+		}
+		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
 
 		count++;
@@ -107,37 +111,13 @@ void Program::updateSubdivisionLevel(int add) {
 
 	cells = Renderable();
 	sdog->createRenderable(cells, level);
-
-	glm::vec3 cameraPos = camera->getPosition();
-
-	float max = -FLT_MAX;
-	float min = FLT_MAX;
-
-	for (glm::vec3 v : cells.verts) {
-		float dist = glm::length(cameraPos - v);
-
-		max = (dist > max) ? dist : max;
-		min = (dist < min) ? dist : min;
-	}
-
-	for (glm::vec3 v : cells.verts) {
-		float dist = glm::length(cameraPos - v);
-
-		float norm = (dist - min) / (max - min);
-		norm = 1.f - 2.5f * (norm - 0.f);
-
-		if (norm < 0.f) norm = 0.f;
-		if (norm > 1.f) norm = 1.f;
-
-		cells.colours.push_back(glm::vec4(0.f, 0.f, 0.f, 1.f));
-	}
-
-	cells.single = false;
-
+	cells.colour = glm::vec3(0.f, 0.f, 0.f);
+	cells.fade = true;
 	RenderEngine::assignBuffers(cells);
 	RenderEngine::setBufferData(cells);
 }
 
+// Updates bounds of which cells to show
 void Program::updateBounds(BoundParam param, int inc) {
 	if (param == BoundParam::MAX_RADIUS) {
 

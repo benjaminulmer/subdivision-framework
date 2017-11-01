@@ -16,25 +16,24 @@ class RenderEngine {
 public:
 	RenderEngine(SDL_Window* window, Camera* camera);
 
-	void render(const std::vector<Renderable*>& objects, glm::mat4 view);
+	void render(const std::vector<Renderable*>& objects, glm::mat4 view, float max, float min);
 
 	static void assignBuffers(Renderable& renderable);
 	static void setBufferData(Renderable& renderable);
 	static void deleteBufferData(Renderable& renderable);
 
 	void setWindowSize(int newWidth, int newHeight);
-	void updateLightPos(glm::vec3 add);
+	void toggleFade() { fade = !fade; }
 
 private:
 	SDL_Window* window;
 	int width, height;
 
-	GLuint oneColourProgram;
-	GLuint manyColoursProgram;
+	GLuint mainProgram;
+	bool fade;
 
 	Camera* camera;
 	glm::mat4 view;
 	glm::mat4 projection;
-	glm::vec3 lightPos;
 };
 

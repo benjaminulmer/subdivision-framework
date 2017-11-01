@@ -67,6 +67,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	case(SDLK_c) :
 		camera->reset();
 		break;
+	case(SDLK_f):
+		renderEngine->toggleFade();
+		break;
 	case(SDLK_ESCAPE) :
 		SDL_Quit();
 		exit(0);

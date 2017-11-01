@@ -15,7 +15,7 @@ public:
 	glm::vec3 getPosition();
 	void updateLongitudeRotation(float deg);
 	void updateLatitudeRotation(float deg);
-	void updateZoom(float value);
+	void updateZoom(int value);
 	void translate(glm::vec3 planeTranslation);
 
 	void reset();

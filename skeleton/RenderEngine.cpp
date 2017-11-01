@@ -1,14 +1,12 @@
 #include "RenderEngine.h"
 
 RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
-	window(window), camera(camera) {
+	window(window), fade(false), camera(camera) {
 
 	SDL_GetWindowSize(window, &width, &height);
 
-	oneColourProgram = ShaderTools::compileShaders("./shaders/oneColour.vert", "./shaders/oneColour.frag");
-	manyColoursProgram = ShaderTools::compileShaders("./shaders/manyColours.vert", "./shaders/manyColours.frag");
+	mainProgram = ShaderTools::compileShaders("./shaders/main.vert", "./shaders/main.frag");
 
-	lightPos = glm::vec3(-10.f, 100.f, -10.f);
 	projection = glm::perspective(45.f, (float)width/height, 0.01f, 1000.f);
 
 	// Default openGL state
@@ -21,30 +19,25 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPointSize(30.f);
-	glClearColor(0.3f, 0.3f, 0.4f, 0.f);
+	glClearColor(0.3f, 0.3f, 0.4f, 1.f);
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const std::vector<Renderable*>& objects, glm::mat4 view) {
+void RenderEngine::render(const std::vector<Renderable*>& objects, glm::mat4 view, float max, float min) {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glUseProgram(mainProgram);
 
-	for (const Renderable* r : objects) {
-
-		GLuint program;
-		if (r->single) {
-			program = oneColourProgram;
-		}
-		else {
-			program = manyColoursProgram;
-		}
-		glUseProgram(program);
-		
+	for (const Renderable* r : objects) {	
 		glBindVertexArray(r->vao);
 
 		glm::mat4 modelView = view;
-		glUniformMatrix4fv(glGetUniformLocation(program, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
-		glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		glUniform3fv(glGetUniformLocation(program, "objColour"), 1, glm::value_ptr(r->colour));
+		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
+		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(r->colour));
+
+		glUniform1i(glGetUniformLocation(mainProgram, "fade"), fade && r->fade);
+		glUniform1f(glGetUniformLocation(mainProgram, "maxDist"), max);
+		glUniform1f(glGetUniformLocation(mainProgram, "minDist"), min);
 
 		glDrawArrays(r->drawMode, 0, r->verts.size());
 		glBindVertexArray(0);
@@ -67,12 +60,6 @@ void RenderEngine::assignBuffers(Renderable& renderable) {
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.normalBuffer);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
-
-	// Colour buffer
-	glGenBuffers(1, &renderable.colourBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, renderable.colourBuffer);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(2);
 }
 
 // Sets buffer data for a renderable
@@ -84,17 +71,12 @@ void RenderEngine::setBufferData(Renderable& renderable) {
 	// Normal buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.normalBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.normals.size(), renderable.normals.data(), GL_STATIC_DRAW);
-
-	// Colour buffer
-	glBindBuffer(GL_ARRAY_BUFFER, renderable.colourBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*renderable.colours.size(), renderable.colours.data(), GL_STATIC_DRAW);
 }
 
 // Deletes buffers for a renderable
 void RenderEngine::deleteBufferData(Renderable & renderable) {
 	glDeleteBuffers(1, &renderable.vertexBuffer);
 	glDeleteBuffers(1, &renderable.normalBuffer);
-	glDeleteBuffers(1, &renderable.colourBuffer);
 	glDeleteVertexArrays(1, &renderable.vao);
 }
 
@@ -104,9 +86,4 @@ void RenderEngine::setWindowSize(int newWidth, int newHeight) {
 	height = newHeight;
 	projection = glm::perspective(45.0f, (float)width/height, 0.01f, 100.0f);
 	glViewport(0, 0, width, height);
-}
-
-// Updates lightPos by specified value
-void RenderEngine::updateLightPos(glm::vec3 add) {
-	lightPos += add;
 }

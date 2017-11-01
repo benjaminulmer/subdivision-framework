@@ -48,11 +48,11 @@ void Camera::updateLongitudeRotation(float deg) {
 
 // Rotates camera along latitudinal axis (spherical coords)
 void Camera::updateLatitudeRotation(float deg) {
-	latitudeRotRad += deg * M_PI/180;
+	latitudeRotRad += deg * M_PI / 180;
 }
 
 // Zooms camera in or out (+1 or -1)
-void Camera::updateZoom(float value) {
+void Camera::updateZoom(int value) {
 	float zoom = (eye.z / 10.f) * value;
 	eye.z += zoom;
 }
