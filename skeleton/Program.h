@@ -32,6 +32,7 @@ public:
 	void setScheme(Scheme scheme);
 	void updateSubdivisionLevel(int add);
 	void updateBounds(BoundParam param, int inc);
+	void toggleReference();
 
 private:
 	SDL_Window* window;
@@ -44,6 +45,7 @@ private:
 	Renderable referenceOctant;
 	Renderable cells;
 	int level;
+
 	std::vector<Renderable*> objects;
 
 	void setupWindow();

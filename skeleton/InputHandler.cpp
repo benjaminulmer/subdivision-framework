@@ -70,6 +70,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	case(SDLK_f):
 		renderEngine->toggleFade();
 		break;
+	case(SDLK_r):
+		program->toggleReference();
+		break;
 	case(SDLK_ESCAPE) :
 		SDL_Quit();
 		exit(0);

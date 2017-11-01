@@ -139,3 +139,14 @@ void Program::updateBounds(BoundParam param, int inc) {
 	}
 	updateSubdivisionLevel(0);
 }
+
+// Toggles drawing of reference octant
+void Program::toggleReference() {
+	if (objects.size() == 1) {
+		objects.push_back(&referenceOctant);
+	}
+	else {
+		objects.clear();
+		objects.push_back(&cells);
+	}
+}
