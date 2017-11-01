@@ -34,7 +34,7 @@ void Program::start() {
 
 	setScheme(Scheme::SDOG);
 
-	objects.push_back(&referenceOctant);
+	//objects.push_back(&referenceOctant);
 	objects.push_back(&cells);
 
 	mainLoop();
@@ -75,18 +75,6 @@ void Program::setupWindow() {
 // Main loop
 void Program::mainLoop() {
 
-	//std::vector<float> volumes;
-	//sdog.getVolumes(volumes, 4);
-
-	//float max = -FLT_MAX;
-	//float min = FLT_MAX;
-
-	//for (float v : volumes) {
-	//	max = (v > max) ? v : max;
-	//	min = (v < min) ? v : min;
-	//}
-	//std::cout << "Max: " << max << " Min: " << min << std::endl;
-
 	int count = 0;
 	while (true) {
 		SDL_Event e;
@@ -94,15 +82,12 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		updateSubdivisionLevel(0);
+		//updateSubdivisionLevel(0);
 		renderEngine->render(objects, camera->getLookAt());
 		SDL_GL_SwapWindow(window);
 
 		count++;
 	}
-
-	// Clean up, program needs to exit
-	SDL_Quit();
 }
 
 // Sets the scheme that will be used for octant subdivision
@@ -144,11 +129,33 @@ void Program::updateSubdivisionLevel(int add) {
 		if (norm < 0.f) norm = 0.f;
 		if (norm > 1.f) norm = 1.f;
 
-		cells.colours.push_back(glm::vec4(0.f, 0.f, 0.f, norm));
+		cells.colours.push_back(glm::vec4(0.f, 0.f, 0.f, 1.f));
 	}
 
 	cells.single = false;
 
 	RenderEngine::assignBuffers(cells);
 	RenderEngine::setBufferData(cells);
+}
+
+void Program::updateBounds(BoundParam param, int inc) {
+	if (param == BoundParam::MAX_RADIUS) {
+
+	}
+	else if (param == BoundParam::MIN_RADIUS) {
+
+	}
+	else if (param == BoundParam::MAX_LAT) {
+		Sdog::maxLat += inc * M_PI / 180;
+	}
+	else if (param == BoundParam::MIN_LAT) {
+		Sdog::minLat += inc * M_PI / 180;
+	}
+	else if (param == BoundParam::MAX_LONG) {
+		Sdog::maxLong += inc * M_PI / 180;
+	}
+	else if (param == BoundParam::MIN_LONG) {
+		Sdog::minLong += inc * M_PI / 180;
+	}
+	updateSubdivisionLevel(0);
 }

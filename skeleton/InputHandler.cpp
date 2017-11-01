@@ -43,10 +43,10 @@ void InputHandler::pollEvent(SDL_Event& e) {
 void InputHandler::key(SDL_KeyboardEvent& e) {
 	// Light controls
 	switch (e.keysym.sym) {
-	case(SDLK_w) :
+	case(SDLK_UP) :
 		program->updateSubdivisionLevel(1);
 		break;
-	case(SDLK_q):
+	case(SDLK_DOWN) :
 		program->updateSubdivisionLevel(-1);
 		break;
 	case(SDLK_1) :
@@ -55,16 +55,16 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	case(SDLK_2) :
 		program->setScheme(Scheme::SDOG_OPT);
 		break;
-	case(SDLK_3):
+	case(SDLK_3) :
 		program->setScheme(Scheme::NAIVE);
 		break;
-	case(SDLK_4):
+	case(SDLK_4) :
 		program->setScheme(Scheme::VOLUME_SDOG);
 		break;
-	case(SDLK_5):
+	case(SDLK_5) :
 		program->setScheme(Scheme::VOLUME);
 		break;
-	case(SDLK_c):
+	case(SDLK_c) :
 		camera->reset();
 		break;
 	case(SDLK_ESCAPE) :
@@ -114,8 +114,23 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 	dy = e.x - e.y;
 
 	const Uint8 *state = SDL_GetKeyboardState(0);
-	if (state[SDL_SCANCODE_LSHIFT]) {
-		//program->moveCurrentPart(dy * -0.25f);
+	if (state[SDL_SCANCODE_U]) {
+		
+	}
+	else if (state[SDL_SCANCODE_J]) {
+
+	}
+	else if (state[SDL_SCANCODE_I]) {
+		program->updateBounds(BoundParam::MAX_LAT, dy);
+	}
+	else if (state[SDL_SCANCODE_K]) {
+		program->updateBounds(BoundParam::MIN_LAT, dy);
+	}
+	else if (state[SDL_SCANCODE_O]) {
+		program->updateBounds(BoundParam::MAX_LONG, dy);
+	}
+	else if (state[SDL_SCANCODE_L]) {
+		program->updateBounds(BoundParam::MIN_LONG, dy);
 	}
 	else {
 		camera->updateZoom(dy);

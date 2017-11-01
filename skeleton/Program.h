@@ -14,6 +14,15 @@
 #include "ContentReadWrite.h"
 #include "Sdog.h"
 
+enum class BoundParam {
+	MAX_RADIUS,
+	MIN_RADIUS,
+	MAX_LAT,
+	MIN_LAT,
+	MAX_LONG,
+	MIN_LONG
+};
+
 class Program {
 
 public:
@@ -22,6 +31,7 @@ public:
 	void start();
 	void setScheme(Scheme scheme);
 	void updateSubdivisionLevel(int add);
+	void updateBounds(BoundParam param, int inc);
 
 private:
 	SDL_Window* window;

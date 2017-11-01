@@ -41,6 +41,7 @@ private:
 	bool leaf;
 
 	void subdivide();
+	bool inRange();
 	void fillRenderable(Renderable& r);
 };
 
@@ -53,6 +54,7 @@ public:
 	virtual ~Sdog();
 
 	static Scheme scheme;
+	static double maxRadius, minRadius, maxLat, minLat, maxLong, minLong;
 
 	void subdivideTo(int level, bool wholeSphere = false);
 	void createRenderable(Renderable& r, int level, bool wholeSphere = false);
