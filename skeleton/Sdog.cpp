@@ -1,6 +1,7 @@
 #include "Sdog.h"
 
 Scheme Sdog::scheme;
+bool Sdog::cull;
 double Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong;
 
 // Creats an SdogGrid with given bounds in each (spherical) direction
@@ -128,10 +129,12 @@ void SdogGrid::createRenderable(Renderable & r, int level) {
 	}
 }
 
+// Return true if grid is in bounds and culling is on
 bool SdogGrid::inRange() {
-	return (maxRadius <= Sdog::maxRadius && minRadius >= Sdog::minRadius &&
+	int i;
+	return ((maxRadius <= Sdog::maxRadius && minRadius >= Sdog::minRadius &&
 	        maxLat <= Sdog::maxLat && minLat >= Sdog::minLat &&
-	        maxLong <= Sdog::maxLong && minLong >= Sdog::minLong);
+	        maxLong <= Sdog::maxLong && minLong >= Sdog::minLong)) || !Sdog::cull;
 }
 
 // Recursive function for getting volumes at desired level
@@ -191,10 +194,6 @@ Sdog::Sdog(Scheme scheme, double radius) :
 	radius(radius), numLevels(0) {
 	
 	Sdog::scheme = scheme;
-	maxRadius = 4.0; minRadius = 0.0;
-	maxLat = M_PI / 2; minLat = 0.0;
-	maxLong = 0.0, minLong = -M_PI / 2;
-
 
 	// TODO Uses standard Z curve to determine order of quadrants?
 	// Create starting octants of SDOG
@@ -213,7 +212,7 @@ Sdog::Sdog(Scheme scheme, double radius) :
 	else { // scheme == Scheme::NAIVE || scheme == Scheme::VOLUME
 		octants[0] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[2] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, 0.0, -M_PI / 2);
 		octants[3] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
 
 		octants[4] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);

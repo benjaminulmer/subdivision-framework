@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <cfloat>
+#include <algorithm>
 
 #include "RenderEngine.h"
 #include "InputHandler.h"
@@ -33,6 +34,8 @@ public:
 	void updateSubdivisionLevel(int add);
 	void updateBounds(BoundParam param, int inc);
 	void toggleReference();
+	void drawBounds(bool flag);
+	void toggleCull();
 
 private:
 	SDL_Window* window;
@@ -44,6 +47,7 @@ private:
 	Sdog* sdog;
 	Renderable referenceOctant;
 	Renderable cells;
+	Renderable bounds;
 	int level;
 
 	std::vector<Renderable*> objects;

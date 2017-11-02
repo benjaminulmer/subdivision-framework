@@ -22,15 +22,31 @@ void Program::start() {
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine, this);
 
+	// Assign buffers
+	RenderEngine::assignBuffers(referenceOctant);
+	RenderEngine::assignBuffers(cells);
+	RenderEngine::assignBuffers(bounds);
+
+	// Create geometry for reference
 	ContentReadWrite::loadOBJ("models/octant.obj", referenceOctant);
 	referenceOctant.colour = glm::vec3(1.f, 1.f, 1.f);
-	RenderEngine::assignBuffers(referenceOctant);
 	RenderEngine::setBufferData(referenceOctant);
 
-	setScheme(Scheme::SDOG);
+	// Object data
+	cells.colour = glm::vec3(0.f, 0.f, 0.f);
+	cells.fade = true;
+	bounds.colour = glm::vec3(1.f, 0.f, 0.f);
 
+	// Objects to draw
 	objects.push_back(&referenceOctant);
 	objects.push_back(&cells);
+	//objects.push_back(&bounds);
+
+	Sdog::maxRadius = 4.0; Sdog::minRadius = 0.0;
+	Sdog::maxLat = M_PI / 2; Sdog::minLat = 0.0;
+	Sdog::maxLong = 0.0, Sdog::minLong = -M_PI / 2;
+	setScheme(Scheme::SDOG);
+	Sdog::cull = false;
 
 	mainLoop();
 }
@@ -50,21 +66,21 @@ void Program::setupWindow() {
 	
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-	window = SDL_CreateWindow("sudivision framework", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-	if (window == nullptr){
-		//TODO: cleanup methods upon exit
-		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		exit(EXIT_FAILURE);
-	}
+window = SDL_CreateWindow("sudivision framework", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+if (window == nullptr) {
+	//TODO: cleanup methods upon exit
+	std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+	SDL_Quit();
+	exit(EXIT_FAILURE);
+}
 
-	SDL_GLContext context = SDL_GL_CreateContext(window);
-	if (context == NULL)
-	{
-		std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
-	}
+SDL_GLContext context = SDL_GL_CreateContext(window);
+if (context == NULL)
+{
+	std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
+}
 
-	SDL_GL_SetSwapInterval(1); // Vsync on
+SDL_GL_SetSwapInterval(1); // Vsync on
 }
 
 // Main loop
@@ -76,6 +92,12 @@ void Program::mainLoop() {
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
+
+		SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
+		bounds.verts.clear();
+		bounds.normals.clear();
+		b.createRenderable(bounds, 0);
+		RenderEngine::setBufferData(bounds);
 
 		float max = -FLT_MAX;
 		float min = FLT_MAX;
@@ -109,44 +131,75 @@ void Program::updateSubdivisionLevel(int add) {
 	}
 	level += add;
 
-	cells = Renderable();
+	cells.verts.clear();
+	cells.normals.clear();
 	sdog->createRenderable(cells, level);
-	cells.colour = glm::vec3(0.f, 0.f, 0.f);
-	cells.fade = true;
-	RenderEngine::assignBuffers(cells);
 	RenderEngine::setBufferData(cells);
 }
 
 // Updates bounds of which cells to show
 void Program::updateBounds(BoundParam param, int inc) {
 	if (param == BoundParam::MAX_RADIUS) {
-
+		Sdog::maxRadius -= inc * 0.1;
+		if (Sdog::maxRadius >= 4.0) Sdog::maxRadius = 4.0;
+		if (Sdog::maxRadius <= Sdog::minRadius) Sdog::maxRadius = Sdog::minRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
-
+		Sdog::minRadius += inc * 0.1;
+		if (Sdog::minRadius >= Sdog::maxRadius) Sdog::minRadius = Sdog::maxRadius;
+		if (Sdog::minRadius <= 0.0) Sdog::minRadius = 0.0;
 	}
 	else if (param == BoundParam::MAX_LAT) {
-		Sdog::maxLat += inc * M_PI / 180;
+		Sdog::maxLat -= inc * M_PI / 180;
+		if (Sdog::maxLat >= M_PI / 2) Sdog::maxLat = M_PI / 2;
+		if (Sdog::maxLat <= Sdog::minLat) Sdog::maxLat = Sdog::minLat;
 	}
 	else if (param == BoundParam::MIN_LAT) {
 		Sdog::minLat += inc * M_PI / 180;
+		if (Sdog::minLat >= Sdog::maxLat) Sdog::minLat = Sdog::maxLat;
+		if (Sdog::minLat <= 0.0) Sdog::minLat = 0.0;
 	}
 	else if (param == BoundParam::MAX_LONG) {
-		Sdog::maxLong += inc * M_PI / 180;
+		Sdog::maxLong -= inc * M_PI / 180;
+		if (Sdog::maxLong >= 0.0) Sdog::maxLong = 0.0;
+		if (Sdog::maxLong <= Sdog::minLong) Sdog::maxLong = Sdog::minLong;
 	}
 	else if (param == BoundParam::MIN_LONG) {
 		Sdog::minLong += inc * M_PI / 180;
+		if (Sdog::minLong >= Sdog::maxLong) Sdog::minLong = Sdog::maxLong;
+		if (Sdog::minLong <= -M_PI / 2) Sdog::minLong = -M_PI / 2;
 	}
 	updateSubdivisionLevel(0);
 }
 
 // Toggles drawing of reference octant
 void Program::toggleReference() {
-	if (objects.size() == 1) {
-		objects.push_back(&referenceOctant);
+
+	auto pos = std::find(objects.begin(), objects.end(), &referenceOctant);
+
+	if (pos != objects.end()) {
+		objects.erase(pos);
 	}
 	else {
-		objects.clear();
-		objects.push_back(&cells);
+		objects.push_back(&referenceOctant);
 	}
+}
+
+// Turn bounds box drawing on or off
+void Program::drawBounds(bool flag) {
+
+	auto pos = std::find(objects.begin(), objects.end(), &bounds);
+
+	if (!flag && pos != objects.end()) {
+		objects.erase(pos);
+	}
+	else if (flag && pos == objects.end()) {
+		objects.push_back(&bounds);
+	}
+}
+
+// Toggles bounds culling
+void Program::toggleCull() {
+	Sdog::cull = !Sdog::cull;
+	updateSubdivisionLevel(0);
 }

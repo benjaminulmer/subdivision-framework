@@ -54,6 +54,7 @@ public:
 	virtual ~Sdog();
 
 	static Scheme scheme;
+	static bool cull;
 	static double maxRadius, minRadius, maxLat, minLat, maxLong, minLong;
 
 	void subdivideTo(int level, bool wholeSphere = false);

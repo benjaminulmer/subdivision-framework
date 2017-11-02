@@ -15,7 +15,7 @@ void InputHandler::setUp(Camera* camera, RenderEngine* renderEngine, Program* pr
 }
 
 void InputHandler::pollEvent(SDL_Event& e) {
-	if (e.type == SDL_KEYDOWN) {
+	if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
 		InputHandler::key(e.key);
 	}
 	else if (e.type == SDL_MOUSEBUTTONDOWN) {
@@ -41,43 +41,57 @@ void InputHandler::pollEvent(SDL_Event& e) {
 
 // Callback for key presses
 void InputHandler::key(SDL_KeyboardEvent& e) {
-	// Light controls
-	switch (e.keysym.sym) {
-	case(SDLK_UP) :
-		program->updateSubdivisionLevel(1);
-		break;
-	case(SDLK_DOWN) :
-		program->updateSubdivisionLevel(-1);
-		break;
-	case(SDLK_1) :
-		program->setScheme(Scheme::SDOG);
-		break;
-	case(SDLK_2) :
-		program->setScheme(Scheme::SDOG_OPT);
-		break;
-	case(SDLK_3) :
-		program->setScheme(Scheme::NAIVE);
-		break;
-	case(SDLK_4) :
-		program->setScheme(Scheme::VOLUME_SDOG);
-		break;
-	case(SDLK_5) :
-		program->setScheme(Scheme::VOLUME);
-		break;
-	case(SDLK_c) :
-		camera->reset();
-		break;
-	case(SDLK_f):
-		renderEngine->toggleFade();
-		break;
-	case(SDLK_r):
-		program->toggleReference();
-		break;
-	case(SDLK_ESCAPE) :
-		SDL_Quit();
-		exit(0);
-		break;
+	
+	auto key = e.keysym.sym;
+
+	if (e.state == SDL_PRESSED) {
+		if (key == SDLK_UP) {
+			program->updateSubdivisionLevel(1);
+		}
+		else if (key == SDLK_DOWN) {
+			program->updateSubdivisionLevel(-1);
+		}
+		else if (key == SDLK_1) {
+			program->setScheme(Scheme::SDOG);
+		}
+		else if (key == SDLK_2) {
+			program->setScheme(Scheme::SDOG_OPT);
+		}
+		else if (key == SDLK_3) {
+			program->setScheme(Scheme::NAIVE);
+		}
+		else if (key == SDLK_4) {
+			program->setScheme(Scheme::VOLUME_SDOG);
+		}
+		else if (key == SDLK_5) {
+			program->setScheme(Scheme::VOLUME);
+		}
+		else if (key == SDLK_c) {
+			program->toggleCull();
+		}
+		else if (key == SDLK_f) {
+			renderEngine->toggleFade();
+		}
+		else if (key == SDLK_r) {
+			program->toggleReference();
+		}
+		else if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
+		         key == SDLK_j || key == SDLK_k || key == SDLK_l) {
+			program->drawBounds(true);
+		}
+		else if (key == SDLK_ESCAPE) {
+			SDL_Quit();
+			exit(0);
+		}
 	}
+	else { // (e.state == SDL_RELEASED)
+		if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
+		    key == SDLK_j || key == SDLK_k || key == SDLK_l) {
+			program->drawBounds(false);
+		}
+	}
+
+
 }
 
 // Callback for mouse button presses
@@ -121,10 +135,10 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 
 	const Uint8 *state = SDL_GetKeyboardState(0);
 	if (state[SDL_SCANCODE_U]) {
-		
+		program->updateBounds(BoundParam::MAX_RADIUS, dy);
 	}
 	else if (state[SDL_SCANCODE_J]) {
-
+		program->updateBounds(BoundParam::MIN_RADIUS, dy);
 	}
 	else if (state[SDL_SCANCODE_I]) {
 		program->updateBounds(BoundParam::MAX_LAT, dy);
