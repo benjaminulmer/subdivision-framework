@@ -7,6 +7,7 @@ Program::Program() {
 	sdog = nullptr;
 
 	level = 1;
+	referenceState = 0;
 	width = height = 512;
 }
 
@@ -40,11 +41,19 @@ void Program::start() {
 	// Objects to draw
 	objects.push_back(&referenceOctant);
 	objects.push_back(&cells);
-	//objects.push_back(&bounds);
 
+	// Set up starting bounds
 	Sdog::maxRadius = 4.0; Sdog::minRadius = 0.0;
 	Sdog::maxLat = M_PI / 2; Sdog::minLat = 0.0;
 	Sdog::maxLong = 0.0, Sdog::minLong = -M_PI / 2;
+
+	// And renderable for it
+	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
+	bounds.verts.clear();
+	bounds.normals.clear();
+	b.createRenderable(bounds, 0);
+	RenderEngine::setBufferData(bounds);
+
 	setScheme(Scheme::SDOG);
 	Sdog::cull = false;
 
@@ -66,39 +75,32 @@ void Program::setupWindow() {
 	
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-window = SDL_CreateWindow("sudivision framework", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-if (window == nullptr) {
-	//TODO: cleanup methods upon exit
-	std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-	SDL_Quit();
-	exit(EXIT_FAILURE);
-}
+	window = SDL_CreateWindow("sudivision framework", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	if (window == nullptr) {
+		//TODO: cleanup methods upon exit
+		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+		SDL_Quit();
+		exit(EXIT_FAILURE);
+	}
 
-SDL_GLContext context = SDL_GL_CreateContext(window);
-if (context == NULL)
-{
-	std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
-}
+	SDL_GLContext context = SDL_GL_CreateContext(window);
+	if (context == NULL) {
+		std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
+	}
 
-SDL_GL_SetSwapInterval(1); // Vsync on
+	SDL_GL_SetSwapInterval(1); // Vsync on
 }
 
 // Main loop
 void Program::mainLoop() {
-
-	int count = 0;
 	while (true) {
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
 
-		SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
-		bounds.verts.clear();
-		bounds.normals.clear();
-		b.createRenderable(bounds, 0);
-		RenderEngine::setBufferData(bounds);
-
+		// Find min and max distance for cell renderable
+		// Used for fading
 		float max = -FLT_MAX;
 		float min = FLT_MAX;
 
@@ -111,8 +113,6 @@ void Program::mainLoop() {
 		}
 		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
-
-		count++;
 	}
 }
 
@@ -125,7 +125,6 @@ void Program::setScheme(Scheme scheme) {
 
 // Updates the level of subdivision being shown
 void Program::updateSubdivisionLevel(int add) {
-
 	if (level + add < 0 || level + add > 6) {
 		return;
 	}
@@ -139,6 +138,8 @@ void Program::updateSubdivisionLevel(int add) {
 
 // Updates bounds of which cells to show
 void Program::updateBounds(BoundParam param, int inc) {
+
+	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
 		Sdog::maxRadius -= inc * 0.1;
 		if (Sdog::maxRadius >= 4.0) Sdog::maxRadius = 4.0;
@@ -169,31 +170,42 @@ void Program::updateBounds(BoundParam param, int inc) {
 		if (Sdog::minLong >= Sdog::maxLong) Sdog::minLong = Sdog::maxLong;
 		if (Sdog::minLong <= -M_PI / 2) Sdog::minLong = -M_PI / 2;
 	}
+
+	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
+	bounds.verts.clear();
+	bounds.normals.clear();
+	b.createRenderable(bounds, 0);
+	RenderEngine::setBufferData(bounds);
+
 	updateSubdivisionLevel(0);
 }
 
 // Toggles drawing of reference octant
 void Program::toggleReference() {
-
-	auto pos = std::find(objects.begin(), objects.end(), &referenceOctant);
-
-	if (pos != objects.end()) {
+	if (referenceState == 0) {
+		referenceOctant.model = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+		referenceState++;
+	}
+	else if (referenceState == 1) {
+		auto pos = std::find(objects.begin(), objects.end(), &referenceOctant);
 		objects.erase(pos);
+		referenceState++;
 	}
 	else {
 		objects.push_back(&referenceOctant);
+		referenceOctant.model = glm::mat4();
+		referenceState = 0;
 	}
 }
 
 // Turn bounds box drawing on or off
-void Program::drawBounds(bool flag) {
-
+void Program::setBoundsDrawing(bool state) {
 	auto pos = std::find(objects.begin(), objects.end(), &bounds);
 
-	if (!flag && pos != objects.end()) {
+	if (!state && pos != objects.end()) {
 		objects.erase(pos);
 	}
-	else if (flag && pos == objects.end()) {
+	else if (state && pos == objects.end()) {
 		objects.push_back(&bounds);
 	}
 }

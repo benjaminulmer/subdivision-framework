@@ -131,7 +131,6 @@ void SdogGrid::createRenderable(Renderable & r, int level) {
 
 // Return true if grid is in bounds and culling is on
 bool SdogGrid::inRange() {
-	int i;
 	return ((maxRadius <= Sdog::maxRadius && minRadius >= Sdog::minRadius &&
 	        maxLat <= Sdog::maxLat && minLat >= Sdog::minLat &&
 	        maxLong <= Sdog::maxLong && minLong >= Sdog::minLong)) || !Sdog::cull;
@@ -229,7 +228,6 @@ Sdog::Sdog(const Sdog & other) {
 }
 
 Sdog& Sdog::operator= (const Sdog& other) {
-
 	if (this == &other) {
 		return *this;
 	}

@@ -77,7 +77,7 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		}
 		else if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
 		         key == SDLK_j || key == SDLK_k || key == SDLK_l) {
-			program->drawBounds(true);
+			program->setBoundsDrawing(true);
 		}
 		else if (key == SDLK_ESCAPE) {
 			SDL_Quit();
@@ -87,7 +87,7 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	else { // (e.state == SDL_RELEASED)
 		if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
 		    key == SDLK_j || key == SDLK_k || key == SDLK_l) {
-			program->drawBounds(false);
+			program->setBoundsDrawing(false);
 		}
 	}
 

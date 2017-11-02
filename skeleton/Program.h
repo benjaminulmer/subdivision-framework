@@ -34,7 +34,7 @@ public:
 	void updateSubdivisionLevel(int add);
 	void updateBounds(BoundParam param, int inc);
 	void toggleReference();
-	void drawBounds(bool flag);
+	void setBoundsDrawing(bool state);
 	void toggleCull();
 
 private:
@@ -48,7 +48,9 @@ private:
 	Renderable referenceOctant;
 	Renderable cells;
 	Renderable bounds;
+
 	int level;
+	int referenceState;
 
 	std::vector<Renderable*> objects;
 

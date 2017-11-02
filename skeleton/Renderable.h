@@ -24,6 +24,8 @@ public:
 	std::vector<glm::vec3> verts;
 	std::vector<glm::vec3> normals;
 
+	glm::mat4 model;
+
 	GLuint vao;
 	GLuint vertexBuffer;
 	GLuint normalBuffer;
