@@ -1,14 +1,7 @@
 #include "Camera.h"
 
 Camera::Camera() {
-	eye = glm::vec3(0.f, 0.f, 10.f);
-	up = glm::vec3(0.f, 1.f, 0.f);
-	centre = glm::vec3(0.f, 0.f, 0.f);
-
-	longitudeRotRad = 0;
-	latitudeRotRad = 0;
-
-	translation = glm::vec3(0.f, 0.f, 0.f);
+	reset();
 }
 
 // Returns view matrix for the camera
@@ -84,5 +77,5 @@ void Camera::reset() {
 	longitudeRotRad = 0;
 	latitudeRotRad = 0;
 
-	translation = glm::vec3(0.f, 0.f, 0.f);
+	translation = glm::vec3(-1.f, 1.f, 1.f);
 }

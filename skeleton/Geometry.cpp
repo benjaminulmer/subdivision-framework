@@ -15,11 +15,16 @@ void Geometry::createArc(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderabl
 	glm::vec3 v1 = p1 - centre;
 	glm::vec3 v2 = p2 - centre;
 
+	// Points on centre, cannot create arc (and will crash)
+	if (glm::length(v1) == 0 || glm::length(v2) == 0) {
+		return;
+	}
+
 	// Compute angle between vectors
 	float theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
 	int angleDeg = (int) (theta * 180.f / M_PI);
 
-	// #num line segments ~= angle of arc in degrees
+	// #num line segments ~= angle of arc in degrees / 4
 	angleDeg /= 4;
 	angleDeg++;
 	for (int i = 0; i <= angleDeg; i++) {

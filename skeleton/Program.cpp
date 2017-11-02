@@ -8,7 +8,7 @@ Program::Program() {
 
 	level = 1;
 	referenceState = 0;
-	width = height = 512;
+	width = height = 800;
 }
 
 // Called to start the program. Conducts set up then enters the main loop
