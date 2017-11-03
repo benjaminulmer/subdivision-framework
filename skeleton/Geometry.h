@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 #define _USE_MATH_DEFINES
 #include <math.h>
 

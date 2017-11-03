@@ -3,7 +3,6 @@
 // Geometric slerp between two vectors
 glm::vec3 Geometry::geomSlerp(glm::vec3 v1, glm::vec3 v2, float t) {
 	float theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
-	int angleDeg = (int)(theta * 180.f / M_PI);
 
 	glm::vec3 term1 = (sin((1.f - t) * theta) / sin(theta)) * v1;
 	glm::vec3 term2 = (sin(t * theta) / sin(theta)) * v2;
@@ -16,13 +15,21 @@ void Geometry::createArc(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderabl
 	glm::vec3 v2 = p2 - centre;
 
 	// Points on centre, cannot create arc (and will crash)
-	if (glm::length(v1) == 0 || glm::length(v2) == 0) {
+	if (glm::length2(v1) < 0.0001 || glm::length2(v2) < 0.0001) {
 		return;
 	}
 
 	// Compute angle between vectors
 	float theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
 	int angleDeg = (int) (theta * 180.f / M_PI);
+
+	// Points are very close on arc, just draw line between them
+	if (angleDeg == 0) {
+		r.verts.push_back(p1);
+		r.verts.push_back(p2);
+		r.normals.push_back(glm::vec3(0.f, 1.f, 0.f));
+		r.normals.push_back(glm::vec3(0.f, 1.f, 0.f));
+	}
 
 	// #num line segments ~= angle of arc in degrees / 4
 	angleDeg /= 4;

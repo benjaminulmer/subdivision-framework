@@ -90,8 +90,6 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			program->setBoundsDrawing(false);
 		}
 	}
-
-
 }
 
 // Callback for mouse button presses
