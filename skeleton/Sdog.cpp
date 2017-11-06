@@ -111,7 +111,7 @@ void SdogGrid::subdivide() {
 		children[0] = new SdogGrid(GridType::LG, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
 		children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
 		children[2] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-		children[3] = new SdogGrid(GridType::SG, midRadius, 0.0, maxLat, minLat, maxLong, minLong);
+		children[3] = new SdogGrid(GridType::SG, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
 	}
 }
 
@@ -131,9 +131,29 @@ void SdogGrid::createRenderable(Renderable & r, int level) {
 
 // Return true if grid is in bounds and culling is on
 bool SdogGrid::inRange() {
+
+	// Special cases for negative numbers
+	double rMinLat, rMaxLat, rMinLong, rMaxLong;
+	if (maxLat < 0.0) {
+		rMinLat = maxLat;
+		rMaxLat = minLat;
+	}
+	else {
+		rMinLat = minLat;
+		rMaxLat = maxLat;
+	}
+	if (maxLong < 0.0) {
+		rMinLong = maxLong;
+		rMaxLong = minLong;
+	}
+	else {
+		rMinLong = minLong;
+		rMaxLong = maxLong;
+	}
+
 	return ((maxRadius <= Sdog::maxRadius && minRadius >= Sdog::minRadius &&
-	        maxLat <= Sdog::maxLat && minLat >= Sdog::minLat &&
-	        maxLong <= Sdog::maxLong && minLong >= Sdog::minLong)) || !Sdog::cull;
+	        rMaxLat <= Sdog::maxLat && rMinLat >= Sdog::minLat &&
+	        rMaxLong <= Sdog::maxLong && rMinLong >= Sdog::minLong)) || !Sdog::cull;
 }
 
 // Recursive function for getting volumes at desired level
@@ -200,7 +220,7 @@ Sdog::Sdog(Scheme scheme, double radius) :
 	if (scheme == Scheme::SDOG || scheme == Scheme::VOLUME_SDOG || scheme == Scheme::SDOG_OPT) {
 		octants[0] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, 0.0, -M_PI / 2);
+		octants[2] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[3] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
 
 		octants[4] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
@@ -211,7 +231,7 @@ Sdog::Sdog(Scheme scheme, double radius) :
 	else { // scheme == Scheme::NAIVE || scheme == Scheme::VOLUME
 		octants[0] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, 0.0, -M_PI / 2);
+		octants[2] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[3] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
 
 		octants[4] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
@@ -272,7 +292,7 @@ void Sdog::createRenderable(Renderable& r, int level, bool wholeSphere) {
 
 	// Create more levels if needed
 	if (level > numLevels) {
-		subdivideTo(level);
+		subdivideTo(level, wholeSphere);
 	}
 
 	if (wholeSphere) {

@@ -158,17 +158,17 @@ void Program::updateBounds(BoundParam param, int inc) {
 	else if (param == BoundParam::MIN_LAT) {
 		Sdog::minLat += inc * M_PI / 180;
 		if (Sdog::minLat >= Sdog::maxLat) Sdog::minLat = Sdog::maxLat;
-		if (Sdog::minLat <= 0.0) Sdog::minLat = 0.0;
+		//if (Sdog::minLat <= 0.0) Sdog::minLat = 0.0;
 	}
 	else if (param == BoundParam::MAX_LONG) {
 		Sdog::maxLong -= inc * M_PI / 180;
-		if (Sdog::maxLong >= 0.0) Sdog::maxLong = 0.0;
+		//if (Sdog::maxLong >= 0.0) Sdog::maxLong = 0.0;
 		if (Sdog::maxLong <= Sdog::minLong) Sdog::maxLong = Sdog::minLong;
 	}
 	else if (param == BoundParam::MIN_LONG) {
 		Sdog::minLong += inc * M_PI / 180;
 		if (Sdog::minLong >= Sdog::maxLong) Sdog::minLong = Sdog::maxLong;
-		if (Sdog::minLong <= -M_PI / 2) Sdog::minLong = -M_PI / 2;
+		//if (Sdog::minLong <= -M_PI / 2) Sdog::minLong = -M_PI / 2;
 	}
 
 	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
