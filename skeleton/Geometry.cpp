@@ -46,7 +46,6 @@ void Geometry::createArcR(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderab
 			r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
 		}
 	}
-	r.drawMode = GL_LINES;
 }
 
 // Creates a renderable for a line defined by p1 and p2
@@ -55,7 +54,6 @@ void Geometry::createLineR(glm::vec3 p1, glm::vec3 p2, Renderable & r) {
 	r.verts.push_back(p2);
 	r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
 	r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
-	r.drawMode = GL_LINES;
 }
 
 // Creates vector of points on an arc defined by p1, p2, and centre points

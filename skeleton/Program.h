@@ -13,7 +13,7 @@
 #include "RenderEngine.h"
 #include "InputHandler.h"
 #include "ContentReadWrite.h"
-#include "Sdog.h"
+#include "VolumetricSphericalHierarchy.h"
 
 enum class BoundParam {
 	MAX_RADIUS,
@@ -44,7 +44,9 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
-	Sdog* sdog;
+	GridInfo info;
+	VolumetricSphericalHierarchy* sdog;
+
 	Renderable referenceOctant;
 	Renderable cells;
 	Renderable bounds;

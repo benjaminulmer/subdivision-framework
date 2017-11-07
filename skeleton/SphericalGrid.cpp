@@ -1,16 +1,12 @@
-#include "Sdog.h"
-
-Scheme Sdog::scheme;
-bool Sdog::cull;
-double Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong;
+#include "SphericalGrid.h"
 
 // Creats an SdogGrid with given bounds in each (spherical) direction
-SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
-	               double maxLat, double minLat, double maxLong, double minLong) :
+SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadius, double minRadius,
+                             double maxLat, double minLat, double maxLong, double minLong) :
 	type(type),
 	maxRadius(maxRadius), minRadius(minRadius),
 	maxLat(maxLat), minLat(minLat),
-	maxLong(maxLong), minLong(minLong) {
+	maxLong(maxLong), minLong(minLong), info(info) {
 
 	// Each grid type has a different number of children
 	if (type == GridType::NG) {
@@ -25,7 +21,8 @@ SdogGrid::SdogGrid(GridType type, double maxRadius, double minRadius,
 	leaf = true;
 }
 
-SdogGrid::~SdogGrid() {
+// Deletes all children if has any
+SphericalGrid::~SphericalGrid() {
 	if (!leaf) {
 		for (int i = 0; i < numChildren; i++) {
 			delete children[i];
@@ -34,7 +31,7 @@ SdogGrid::~SdogGrid() {
 }
 
 // Recursive function for subdiving the tree to given level
-void SdogGrid::subdivideTo(int level) {
+void SphericalGrid::subdivideTo(int level) {
 
 	// Only subdivide if a leaf (children already exist otherwise)
 	if (leaf) {
@@ -50,22 +47,22 @@ void SdogGrid::subdivideTo(int level) {
 }
 
 // Subdivides grid into children grids
-void SdogGrid::subdivide() {
+void SphericalGrid::subdivide() {
 
 	// Midpoints
 	double midLong = (maxLong + minLong) / 2;
 	double midRadius;
 	double midLat;
 
-	if (Sdog::scheme == Scheme::NAIVE || Sdog::scheme == Scheme::SDOG) {
+	if (info.scheme == Scheme::NAIVE || info.scheme == Scheme::SDOG) {
 		midRadius = (maxRadius + minRadius) / 2;
 		midLat = (maxLat + minLat) / 2;
 	}
-	else if (Sdog::scheme == Scheme::SDOG_OPT) {
+	else if (info.scheme == Scheme::SDOG_OPT) {
 		midRadius = 0.51 * maxRadius + 0.49 * minRadius;
 		midLat = 0.49 * maxLat + 0.51 * minLat;
 	}
-	else { // Sdog::scheme == Scheme::VOLUME || Sdog::scheme == Scheme::VOLUME_SDOG
+	else { // info.scheme == Scheme::VOLUME || info.scheme == Scheme::VOLUME_SDOG
 		if (type == GridType::SG) {
 			midRadius = (0.629960524 * maxRadius) + ((1.0 - 0.629960524) * minRadius);
 			midLat = (0.464559054 * maxLat) + ((1.0 - 0.464559054) * minLat);
@@ -88,35 +85,35 @@ void SdogGrid::subdivide() {
 
 	// Subdivision is different for each grid type
 	if (type == GridType::NG) {
-		children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-		children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
-		children[2] = new SdogGrid(GridType::NG, maxRadius, midRadius, maxLat, midLat, maxLong, midLong);
-		children[3] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+		children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
+		children[2] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, maxLat, midLat, maxLong, midLong);
+		children[3] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
 
-		children[4] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, midLong, minLong);
-		children[5] = new SdogGrid(GridType::NG, midRadius, minRadius, maxLat, midLat, midLong, minLong);
-		children[6] = new SdogGrid(GridType::NG, midRadius, minRadius, maxLat, midLat, maxLong, midLong);
-		children[7] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, maxLong, midLong);
+		children[4] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		children[5] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, maxLat, midLat, midLong, minLong);
+		children[6] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, maxLat, midLat, maxLong, midLong);
+		children[7] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, maxLong, midLong);
 	}
 	else if (type == GridType::LG) {
-		children[0] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-		children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-		children[2] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, midLong, minLong);
-		children[3] = new SdogGrid(GridType::NG, midRadius, minRadius, midLat, minLat, maxLong, midLong);
+		children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+		children[2] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		children[3] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, maxLong, midLong);
 
-		children[4] = new SdogGrid(GridType::LG, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-		children[5] = new SdogGrid(GridType::LG, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
+		children[4] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[5] = new SphericalGrid(GridType::LG, info, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
 	}
 	else { // (type == GridType::SG)
-		children[0] = new SdogGrid(GridType::LG, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-		children[1] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-		children[2] = new SdogGrid(GridType::NG, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-		children[3] = new SdogGrid(GridType::SG, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
+		children[0] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[2] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+		children[3] = new SphericalGrid(GridType::SG, info, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
 	}
 }
 
 // Recursive function for creating renderable at desired level
-void SdogGrid::createRenderable(Renderable & r, int level, float max, float min, float avg, bool lines) {
+void SphericalGrid::createRenderable(Renderable & r, int level, float max, float min, float avg, bool lines) {
 	
 	// If not at desired level recursively create renderables for children
 	if (level != 0) {
@@ -124,13 +121,13 @@ void SdogGrid::createRenderable(Renderable & r, int level, float max, float min,
 			children[i]->createRenderable(r, level - 1, max, min, avg, lines);
 		}
 	}
-	else if (inRange()){
+	else {// if (inRange()) {
 		fillRenderable(r, max, min, avg, lines);
 	}
 }
 
 // Return true if grid is in bounds and culling is on
-bool SdogGrid::inRange() {
+bool SphericalGrid::inRange() {
 
 	// Special cases for negative numbers
 	double rMinLat, rMaxLat, rMinLong, rMaxLong;
@@ -151,13 +148,13 @@ bool SdogGrid::inRange() {
 		rMaxLong = maxLong;
 	}
 
-	return ((maxRadius <= Sdog::maxRadius && minRadius >= Sdog::minRadius &&
-	        rMaxLat <= Sdog::maxLat && rMinLat >= Sdog::minLat &&
-	        rMaxLong <= Sdog::maxLong && rMinLong >= Sdog::minLong)) || !Sdog::cull;
+	return ((maxRadius <= info.maxRadius && minRadius >= info.minRadius &&
+	        rMaxLat <= info.maxLat && rMinLat >= info.minLat &&
+	        rMaxLong <= info.maxLong && rMinLong >= info.minLong)) || !info.cull;
 }
 
 // Recursive function for getting volumes at desired level
-void SdogGrid::getVolumes(std::vector<float>& volumes, int level) {
+void SphericalGrid::getVolumes(std::vector<float>& volumes, int level) {
 
 	// If not at desired level recursively get volumes for children
 	if (level != 0) {
@@ -172,7 +169,7 @@ void SdogGrid::getVolumes(std::vector<float>& volumes, int level) {
 }
 
 // Fills a renderable with geometry for the grid
-void SdogGrid::fillRenderable(Renderable& r, float max, float min, float avg, bool lines) {
+void SphericalGrid::fillRenderable(Renderable& r, float max, float min, float avg, bool lines) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
 
 	// Find key points, same for all types of grids
@@ -245,7 +242,7 @@ void SdogGrid::fillRenderable(Renderable& r, float max, float min, float avg, bo
 		}
 	}
 	else {
-		r.drawMode = GL_TRIANGLES;
+		r.drawMode = GL_LINES;
 
 		// Straight lines connect each inner point to coresponding outer point
 		Geometry::createLineR(i1, o1, r);
@@ -266,122 +263,4 @@ void SdogGrid::fillRenderable(Renderable& r, float max, float min, float avg, bo
 		Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRadius, r);
 	}
 
-}
-
-// Creates an SDOG with the given radius
-// Does not automatically subdivide
-Sdog::Sdog(Scheme scheme, double radius) :
-	radius(radius), numLevels(0) {
-	
-	Sdog::scheme = scheme;
-
-	// TODO Uses standard Z curve to determine order of quadrants?
-	// Create starting octants of SDOG
-
-	if (scheme == Scheme::SDOG || scheme == Scheme::VOLUME_SDOG || scheme == Scheme::SDOG_OPT) {
-		octants[0] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[1] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[3] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
-
-		octants[4] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[5] = new SdogGrid(GridType::SG, radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
-		octants[6] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[7] = new SdogGrid(GridType::SG, radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
-	}
-	else { // scheme == Scheme::NAIVE || scheme == Scheme::VOLUME
-		octants[0] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[1] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[3] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
-
-		octants[4] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[5] = new SdogGrid(GridType::NG, radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
-		octants[6] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[7] = new SdogGrid(GridType::NG, radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
-	}
-}
-
-Sdog::Sdog(const Sdog & other) {
-	for (int i = 0; i < 8; i++) {
-
-	}
-}
-
-Sdog& Sdog::operator= (const Sdog& other) {
-	if (this == &other) {
-		return *this;
-	}
-
-	for (int i = 0; i < 8; i++) {
-		delete octants[i];
-		//octants[i] = other.octants[i];
-	}
-	radius = other.radius;
-	numLevels = other.numLevels;
-	return *this;
-}
-
-Sdog::~Sdog() {
-	for (int i = 0; i < 8; i++) {
-		delete octants[i];
-	}
-}
-
-// Subdivides SDOG to the desired level (if not already that deep)
-void Sdog::subdivideTo(int level, bool wholeSphere) {
-
-	// Check if enough levels are already created
-	if (level <= numLevels || level <= 0) {
-		return;
-	}
-
-	if (wholeSphere) {
-		for (int i = 0; i < 8; i++) {
-			octants[i]->subdivideTo(level);
-		}
-	}
-	// Only for one octant
-	else {
-		octants[2]->subdivideTo(level);
-	}
-	numLevels = level;
-}
-
-// Creates a renderable for the SDOG at the given level
-void Sdog::createRenderable(Renderable& r, int level, float max, float min, float avg, bool lines, bool wholeSphere) {
-
-	// Create more levels if needed
-	if (level > numLevels) {
-		subdivideTo(level, wholeSphere);
-	}
-
-	if (wholeSphere) {
-		for (int i = 0; i < 8; i++) {
-			octants[i]->createRenderable(r, level, max, min, avg, lines);
-		}
-	}
-	// Only for one octant
-	else {
-		octants[2]->createRenderable(r, level, max, min, avg, lines);
-	}
-}
-
-// Gets the volume of all cell for the SDOG at the given level
-void Sdog::getVolumes(std::vector<float>& volumes, int level, bool wholeSphere) {
-	
-	// Create more levels if needed
-	if (level > numLevels) {
-		subdivideTo(level);
-	}
-
-	if (wholeSphere) {
-		for (int i = 0; i < 8; i++) {
-			octants[i]->getVolumes(volumes, level);
-		}
-	}
-	// Only for one octant
-	else {
-		octants[2]->getVolumes(volumes, level);
-	}
 }

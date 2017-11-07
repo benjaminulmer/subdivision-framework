@@ -38,7 +38,10 @@
     <ClInclude Include="Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Sdog.h">
+    <ClInclude Include="VolumetricSphericalHierarchy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SphericalGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -67,7 +70,10 @@
     <ClCompile Include="Geometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Sdog.cpp">
+    <ClCompile Include="VolumetricSphericalHierarchy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SphericalGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

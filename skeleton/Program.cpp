@@ -39,20 +39,21 @@ void Program::start() {
 	objects.push_back(&referenceOctant);
 	objects.push_back(&cells);
 
-	// Set up starting bounds
-	Sdog::maxRadius = 4.0; Sdog::minRadius = 0.0;
-	Sdog::maxLat = M_PI / 2; Sdog::minLat = 0.0;
-	Sdog::maxLong = 0.0, Sdog::minLong = -M_PI / 2;
+	// Set up GridInfo
+	info.radius = 4.0;
+	info.maxRadius = 4.0; info.minRadius = 0.0;
+	info.maxLat = M_PI / 2; info.minLat = 0.0;
+	info.maxLong = 0.0, info.minLong = -M_PI / 2;
 
 	// And renderable for it
-	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
+	SphericalGrid b(GridType::NG, info, info.maxRadius, info.minRadius, info.maxLat, info.minLat, info.maxLong, info.minLong);
 	bounds.verts.clear();
 	bounds.colours.clear();
 	b.createRenderable(bounds, 0, 0, 0, 0, true);
 	RenderEngine::setBufferData(bounds);
 
 	setScheme(Scheme::SDOG);
-	Sdog::cull = true;
+	info.cull = true;
 
 	mainLoop();
 }
@@ -116,7 +117,8 @@ void Program::mainLoop() {
 // Sets the scheme that will be used for octant subdivision
 void Program::setScheme(Scheme scheme) {
 	delete sdog;
-	sdog = new Sdog(scheme, 4.0);
+	info.scheme = scheme;
+	sdog = new VolumetricSphericalHierarchy(info);
 	updateSubdivisionLevel(0);
 }
 
@@ -153,37 +155,37 @@ void Program::updateBounds(BoundParam param, int inc) {
 
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
-		Sdog::maxRadius -= inc * 0.1;
-		if (Sdog::maxRadius >= 4.0) Sdog::maxRadius = 4.0;
-		if (Sdog::maxRadius <= Sdog::minRadius) Sdog::maxRadius = Sdog::minRadius;
+		info.maxRadius -= inc * 0.1;
+		if (info.maxRadius >= 4.0) info.maxRadius = 4.0;
+		if (info.maxRadius <= info.minRadius) info.maxRadius = info.minRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
-		Sdog::minRadius += inc * 0.1;
-		if (Sdog::minRadius >= Sdog::maxRadius) Sdog::minRadius = Sdog::maxRadius;
-		if (Sdog::minRadius <= 0.0) Sdog::minRadius = 0.0;
+		info.minRadius += inc * 0.1;
+		if (info.minRadius >= info.maxRadius) info.minRadius = info.maxRadius;
+		if (info.minRadius <= 0.0) info.minRadius = 0.0;
 	}
 	else if (param == BoundParam::MAX_LAT) {
-		Sdog::maxLat -= inc * M_PI / 180;
-		if (Sdog::maxLat >= M_PI / 2) Sdog::maxLat = M_PI / 2;
-		if (Sdog::maxLat <= Sdog::minLat) Sdog::maxLat = Sdog::minLat;
+		info.maxLat -= inc * M_PI / 180;
+		if (info.maxLat >= M_PI / 2) info.maxLat = M_PI / 2;
+		if (info.maxLat <= info.minLat) info.maxLat = info.minLat;
 	}
 	else if (param == BoundParam::MIN_LAT) {
-		Sdog::minLat += inc * M_PI / 180;
-		if (Sdog::minLat >= Sdog::maxLat) Sdog::minLat = Sdog::maxLat;
+		info.minLat += inc * M_PI / 180;
+		if (info.minLat >= info.maxLat) info.minLat = info.maxLat;
 		//if (Sdog::minLat <= 0.0) Sdog::minLat = 0.0;
 	}
 	else if (param == BoundParam::MAX_LONG) {
-		Sdog::maxLong -= inc * M_PI / 180;
+		info.maxLong -= inc * M_PI / 180;
 		//if (Sdog::maxLong >= 0.0) Sdog::maxLong = 0.0;
-		if (Sdog::maxLong <= Sdog::minLong) Sdog::maxLong = Sdog::minLong;
+		if (info.maxLong <= info.minLong) info.maxLong = info.minLong;
 	}
 	else if (param == BoundParam::MIN_LONG) {
-		Sdog::minLong += inc * M_PI / 180;
-		if (Sdog::minLong >= Sdog::maxLong) Sdog::minLong = Sdog::maxLong;
+		info.minLong += inc * M_PI / 180;
+		if (info.minLong >= info.maxLong) info.minLong = info.maxLong;
 		//if (Sdog::minLong <= -M_PI / 2) Sdog::minLong = -M_PI / 2;
 	}
 
-	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
+	SphericalGrid b(GridType::NG, info, info.maxRadius, info.minRadius, info.maxLat, info.minLat, info.maxLong, info.minLong);
 	bounds.verts.clear();
 	bounds.colours.clear();
 	b.createRenderable(bounds, 0, 0, 0, 0, true);
@@ -224,6 +226,6 @@ void Program::setBoundsDrawing(bool state) {
 
 // Toggles bounds culling
 void Program::toggleCull() {
-	Sdog::cull = !Sdog::cull;
+	info.cull = !info.cull;
 	updateSubdivisionLevel(0);
 }
