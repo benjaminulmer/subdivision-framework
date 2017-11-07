@@ -116,16 +116,16 @@ void SdogGrid::subdivide() {
 }
 
 // Recursive function for creating renderable at desired level
-void SdogGrid::createRenderable(Renderable & r, int level) {
+void SdogGrid::createRenderable(Renderable & r, int level, float max, float min) {
 	
 	// If not at desired level recursively create renderables for children
 	if (level != 0) {
 		for (int i = 0; i < numChildren; i++) {
-			children[i]->createRenderable(r, level - 1);
+			children[i]->createRenderable(r, level - 1, max, min);
 		}
 	}
 	else if (inRange()){
-		fillRenderable(r);
+		fillRenderable(r, max, min);
 	}
 }
 
@@ -172,7 +172,7 @@ void SdogGrid::getVolumes(std::vector<float>& volumes, int level) {
 }
 
 // Fills a renderable with geometry for the grid
-void SdogGrid::fillRenderable(Renderable& r) {
+void SdogGrid::fillRenderable(Renderable& r, float max, float min) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
 
 	// Find key points, same for all types of grids
@@ -188,23 +188,41 @@ void SdogGrid::fillRenderable(Renderable& r) {
 	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
-	// Straight lines connect each inner point to coresponding outer point
-	Geometry::createLine(i1, o1, r);
-	Geometry::createLine(i2, o2, r);
-	Geometry::createLine(i3, o3, r);
-	Geometry::createLine(i4, o4, r);
+	// Outside and inside
+	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
+	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
 
-	// Great circle arcs connect points on same longtitude line
-	Geometry::createArc(o1, o3, origin, r);
-	Geometry::createArc(o2, o4, origin, r);
-	Geometry::createArc(i1, i3, origin, r);
-	Geometry::createArc(i2, i4, origin, r);
+	r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
+	r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
 
-	// Small circle arcs connect points on same latitude line
-	Geometry::createArc(o1, o2, glm::vec3(0.f, sin(minLat), 0.f) * (float)maxRadius, r);
-	Geometry::createArc(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)maxRadius, r);
-	Geometry::createArc(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRadius, r);
-	Geometry::createArc(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRadius, r);
+	// Sides
+	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
+	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
+
+	r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
+	r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
+
+	// Top and bottom
+	r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
+	r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
+
+	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
+	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
+
+	r.drawMode = GL_TRIANGLES;
+
+	float volume = abs((maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
+
+	float norm = (volume - min) / (max - min);
+
+	if (abs(max - min) < 0.00001) {
+		norm = 1;
+	}
+
+	for (int i = 0; i < 36; i++) {
+		r.colours.push_back(glm::vec3(norm, 0.f, 0.f));
+	}
+
 }
 
 // Creates an SDOG with the given radius
@@ -288,7 +306,7 @@ void Sdog::subdivideTo(int level, bool wholeSphere) {
 }
 
 // Creates a renderable for the SDOG at the given level
-void Sdog::createRenderable(Renderable& r, int level, bool wholeSphere) {
+void Sdog::createRenderable(Renderable& r, int level, float max, float min, bool wholeSphere) {
 
 	// Create more levels if needed
 	if (level > numLevels) {
@@ -297,12 +315,12 @@ void Sdog::createRenderable(Renderable& r, int level, bool wholeSphere) {
 
 	if (wholeSphere) {
 		for (int i = 0; i < 8; i++) {
-			octants[i]->createRenderable(r, level);
+			octants[i]->createRenderable(r, level, max, min);
 		}
 	}
 	// Only for one octant
 	else {
-		octants[2]->createRenderable(r, level);
+		octants[2]->createRenderable(r, level, max, min);
 	}
 }
 

@@ -33,7 +33,6 @@ void RenderEngine::render(const std::vector<Renderable*>& objects, glm::mat4 vie
 		glm::mat4 modelView = view * r->model;
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(r->colour));
 
 		glUniform1i(glGetUniformLocation(mainProgram, "fade"), fade && r->fade);
 		glUniform1f(glGetUniformLocation(mainProgram, "maxDist"), max);
@@ -55,9 +54,9 @@ void RenderEngine::assignBuffers(Renderable& renderable) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// Normal buffer
-	glGenBuffers(1, &renderable.normalBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, renderable.normalBuffer);
+	// Colour buffer
+	glGenBuffers(1, &renderable.colourBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, renderable.colourBuffer);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
 }
@@ -68,15 +67,15 @@ void RenderEngine::setBufferData(Renderable& renderable) {
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.verts.size(), renderable.verts.data(), GL_STATIC_DRAW);
 
-	// Normal buffer
-	glBindBuffer(GL_ARRAY_BUFFER, renderable.normalBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.normals.size(), renderable.normals.data(), GL_STATIC_DRAW);
+	// Colour buffer
+	glBindBuffer(GL_ARRAY_BUFFER, renderable.colourBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.colours.size(), renderable.colours.data(), GL_STATIC_DRAW);
 }
 
 // Deletes buffers for a renderable
 void RenderEngine::deleteBufferData(Renderable & renderable) {
 	glDeleteBuffers(1, &renderable.vertexBuffer);
-	glDeleteBuffers(1, &renderable.normalBuffer);
+	glDeleteBuffers(1, &renderable.colourBuffer);
 	glDeleteVertexArrays(1, &renderable.vao);
 }
 

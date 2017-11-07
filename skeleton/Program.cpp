@@ -30,13 +30,10 @@ void Program::start() {
 
 	// Create geometry for reference
 	ContentReadWrite::loadOBJ("models/octant.obj", referenceOctant);
-	referenceOctant.colour = glm::vec3(1.f, 1.f, 1.f);
 	RenderEngine::setBufferData(referenceOctant);
 
 	// Object data
-	cells.colour = glm::vec3(0.f, 0.f, 0.f);
 	cells.fade = true;
-	bounds.colour = glm::vec3(1.f, 0.f, 0.f);
 
 	// Objects to draw
 	objects.push_back(&referenceOctant);
@@ -50,8 +47,8 @@ void Program::start() {
 	// And renderable for it
 	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
 	bounds.verts.clear();
-	bounds.normals.clear();
-	b.createRenderable(bounds, 0);
+	bounds.colours.clear();
+	b.createRenderable(bounds, 0, 0, 0);
 	RenderEngine::setBufferData(bounds);
 
 	setScheme(Scheme::SDOG);
@@ -130,9 +127,21 @@ void Program::updateSubdivisionLevel(int add) {
 	}
 	level += add;
 
+	std::vector<float> volumes;
+	sdog->getVolumes(volumes, level);
+
+	float max = -FLT_MAX;
+	float min = FLT_MAX;
+
+	for (float v : volumes) {
+		max = (v > max) ? v : max;
+		min = (v < min) ? v : min;
+	}
+
+
 	cells.verts.clear();
-	cells.normals.clear();
-	sdog->createRenderable(cells, level);
+	cells.colours.clear();
+	sdog->createRenderable(cells, level, max, min);
 	RenderEngine::setBufferData(cells);
 }
 
@@ -173,8 +182,8 @@ void Program::updateBounds(BoundParam param, int inc) {
 
 	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
 	bounds.verts.clear();
-	bounds.normals.clear();
-	b.createRenderable(bounds, 0);
+	bounds.colours.clear();
+	b.createRenderable(bounds, 0, 0, 0);
 	RenderEngine::setBufferData(bounds);
 
 	updateSubdivisionLevel(0);

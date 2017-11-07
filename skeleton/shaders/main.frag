@@ -2,19 +2,17 @@
 
 out vec4 colour;
 
-uniform vec3 objColour;
-
 uniform bool fade;
 uniform float maxDist;
 uniform float minDist;
 
-in vec3 N;
+in vec3 C;
 in vec3 L;
 in vec3 V;
 
 void main(void) {    	
 
-	float diffuse =  (dot(N, L) + 1) / 2;
+	//float diffuse =  (dot(N, L) + 1) / 2;
 
 	// Calculate alpha if fading is needed
 	if (fade) {
@@ -27,9 +25,9 @@ void main(void) {
 		if (norm < 0.f) norm = 0.f;
 		if (norm > 1.f) norm = 1.f;
 
-		colour = vec4(objColour, norm);
+		colour = vec4(C, norm);
 	}
 	else {
-		colour = vec4(objColour, 1.0);
+		colour = vec4(C, 1.0);
 	}
 }

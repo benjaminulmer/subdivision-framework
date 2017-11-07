@@ -73,7 +73,7 @@ bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 
 		// Put the attributes in buffers
 		r.verts.push_back(vertex);
-		r.normals.push_back(normal);
+		r.colours.push_back(normal);
 	}
 	r.drawMode = GL_TRIANGLES;
 	fclose(file);

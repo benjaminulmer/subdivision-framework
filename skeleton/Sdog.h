@@ -25,7 +25,7 @@ public:
 	virtual ~SdogGrid();
 
 	void subdivideTo(int level);
-	void createRenderable(Renderable& r, int level);
+	void createRenderable(Renderable& r, int level, float max, float min);
 
 	void getVolumes(std::vector<float>& volumes, int level);
 
@@ -42,7 +42,7 @@ private:
 
 	void subdivide();
 	bool inRange();
-	void fillRenderable(Renderable& r);
+	void fillRenderable(Renderable& r, float max, float min);
 };
 
 class Sdog {
@@ -58,7 +58,7 @@ public:
 	static double maxRadius, minRadius, maxLat, minLat, maxLong, minLong;
 
 	void subdivideTo(int level, bool wholeSphere = false);
-	void createRenderable(Renderable& r, int level, bool wholeSphere = false);
+	void createRenderable(Renderable& r, int level, float max, float min, bool wholeSphere = false);
 	
 	void getVolumes(std::vector<float>& volumes, int level, bool wholeSphere = false);
 
