@@ -116,16 +116,16 @@ void SdogGrid::subdivide() {
 }
 
 // Recursive function for creating renderable at desired level
-void SdogGrid::createRenderable(Renderable & r, int level, float max, float min) {
+void SdogGrid::createRenderable(Renderable & r, int level, float max, float min, float avg, bool lines) {
 	
 	// If not at desired level recursively create renderables for children
 	if (level != 0) {
 		for (int i = 0; i < numChildren; i++) {
-			children[i]->createRenderable(r, level - 1, max, min);
+			children[i]->createRenderable(r, level - 1, max, min, avg, lines);
 		}
 	}
 	else if (inRange()){
-		fillRenderable(r, max, min);
+		fillRenderable(r, max, min, avg, lines);
 	}
 }
 
@@ -172,7 +172,7 @@ void SdogGrid::getVolumes(std::vector<float>& volumes, int level) {
 }
 
 // Fills a renderable with geometry for the grid
-void SdogGrid::fillRenderable(Renderable& r, float max, float min) {
+void SdogGrid::fillRenderable(Renderable& r, float max, float min, float avg, bool lines) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
 
 	// Find key points, same for all types of grids
@@ -188,39 +188,82 @@ void SdogGrid::fillRenderable(Renderable& r, float max, float min) {
 	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
-	// Outside and inside
-	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
-	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
+	if (!lines) {
 
-	r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
-	r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
 
-	// Sides
-	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
-	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
+		// Outside and inside
+		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
+		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
 
-	r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
-	r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
+		r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
+		r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
 
-	// Top and bottom
-	r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
-	r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
+		// Sides
+		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
+		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
 
-	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
-	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
+		r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
+		r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
 
-	r.drawMode = GL_TRIANGLES;
+		// Top and bottom
+		r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
+		r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
 
-	float volume = abs((maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
+		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
+		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
 
-	float norm = (volume - min) / (max - min);
 
-	if (abs(max - min) < 0.00001) {
-		norm = 1;
+		r.drawMode = GL_TRIANGLES;
+
+		float volume = abs((maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
+		float norm;
+
+		glm::vec3 colour;
+		if (volume / avg > 1.25) {
+
+			norm = (volume - avg) / (max - avg);
+			colour = glm::vec3(norm, 0.f, 0.f);
+		}
+		else if (volume / avg < 0.8) {
+
+			norm = (volume - min) / (avg - min);
+			colour = glm::vec3(0.f, 0.f, 1.f - norm);
+		}
+		else {
+
+			if (abs(max - min) < 0.00001) {
+				norm = 0.5f;
+			}
+			else {
+				norm = (volume - min) / (max - min);
+			}
+			colour = glm::vec3(norm, norm, norm);
+		}
+
+		for (int i = 0; i < 36; i++) {
+			r.colours.push_back(colour);
+		}
 	}
+	else {
+		r.drawMode = GL_TRIANGLES;
 
-	for (int i = 0; i < 36; i++) {
-		r.colours.push_back(glm::vec3(norm, 0.f, 0.f));
+		// Straight lines connect each inner point to coresponding outer point
+		Geometry::createLineR(i1, o1, r);
+		Geometry::createLineR(i2, o2, r);
+		Geometry::createLineR(i3, o3, r);
+		Geometry::createLineR(i4, o4, r);
+
+		// Great circle arcs connect points on same longtitude line
+		Geometry::createArcR(o1, o3, origin, r);
+		Geometry::createArcR(o2, o4, origin, r);
+		Geometry::createArcR(i1, i3, origin, r);
+		Geometry::createArcR(i2, i4, origin, r);
+
+		// Small circle arcs connect points on same latitude line
+		Geometry::createArcR(o1, o2, glm::vec3(0.f, sin(minLat), 0.f) * (float)maxRadius, r);
+		Geometry::createArcR(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)maxRadius, r);
+		Geometry::createArcR(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRadius, r);
+		Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRadius, r);
 	}
 
 }
@@ -306,7 +349,7 @@ void Sdog::subdivideTo(int level, bool wholeSphere) {
 }
 
 // Creates a renderable for the SDOG at the given level
-void Sdog::createRenderable(Renderable& r, int level, float max, float min, bool wholeSphere) {
+void Sdog::createRenderable(Renderable& r, int level, float max, float min, float avg, bool lines, bool wholeSphere) {
 
 	// Create more levels if needed
 	if (level > numLevels) {
@@ -315,12 +358,12 @@ void Sdog::createRenderable(Renderable& r, int level, float max, float min, bool
 
 	if (wholeSphere) {
 		for (int i = 0; i < 8; i++) {
-			octants[i]->createRenderable(r, level, max, min);
+			octants[i]->createRenderable(r, level, max, min, avg, lines);
 		}
 	}
 	// Only for one octant
 	else {
-		octants[2]->createRenderable(r, level, max, min);
+		octants[2]->createRenderable(r, level, max, min, avg, lines);
 	}
 }
 

@@ -48,11 +48,11 @@ void Program::start() {
 	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
 	bounds.verts.clear();
 	bounds.colours.clear();
-	b.createRenderable(bounds, 0, 0, 0);
+	b.createRenderable(bounds, 0, 0, 0, 0, true);
 	RenderEngine::setBufferData(bounds);
 
 	setScheme(Scheme::SDOG);
-	Sdog::cull = false;
+	Sdog::cull = true;
 
 	mainLoop();
 }
@@ -132,16 +132,19 @@ void Program::updateSubdivisionLevel(int add) {
 
 	float max = -FLT_MAX;
 	float min = FLT_MAX;
+	float avg = 0.f;
 
 	for (float v : volumes) {
+		avg += v;
 		max = (v > max) ? v : max;
 		min = (v < min) ? v : min;
 	}
+	avg /= volumes.size();
 
 
 	cells.verts.clear();
 	cells.colours.clear();
-	sdog->createRenderable(cells, level, max, min);
+	sdog->createRenderable(cells, level, max, min, avg);
 	RenderEngine::setBufferData(cells);
 }
 
@@ -183,7 +186,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
 	bounds.verts.clear();
 	bounds.colours.clear();
-	b.createRenderable(bounds, 0, 0, 0);
+	b.createRenderable(bounds, 0, 0, 0, 0, true);
 	RenderEngine::setBufferData(bounds);
 
 	updateSubdivisionLevel(0);
