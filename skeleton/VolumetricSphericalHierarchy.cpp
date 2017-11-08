@@ -2,10 +2,8 @@
 
 // Creates an SDOG with the given radius
 // Does not automatically subdivide
-VolumetricSphericalHierarchy::VolumetricSphericalHierarchy(GridInfo& info) {
-
-	this->info = info;
-	numLevels = 0;
+VolumetricSphericalHierarchy::VolumetricSphericalHierarchy(GridInfo& info) : 
+	info(info), numLevels(0) {
 
 	// Create starting octants of SDOG
 	if (info.scheme == Scheme::SDOG || info.scheme == Scheme::VOLUME_SDOG || info.scheme == Scheme::SDOG_OPT) {
@@ -32,6 +30,7 @@ VolumetricSphericalHierarchy::VolumetricSphericalHierarchy(GridInfo& info) {
 	}
 }
 
+// Delete all children (recursively)
 VolumetricSphericalHierarchy::~VolumetricSphericalHierarchy() {
 	for (int i = 0; i < 8; i++) {
 		delete octants[i];
@@ -59,7 +58,7 @@ void VolumetricSphericalHierarchy::subdivideTo(int level, bool wholeSphere) {
 }
 
 // Creates a renderable for the SDOG at the given level
-void VolumetricSphericalHierarchy::createRenderable(Renderable& r, int level, float max, float min, float avg, bool lines, bool wholeSphere) {
+void VolumetricSphericalHierarchy::createRenderable(Renderable& r, int level, bool lines, bool wholeSphere) {
 
 	// Create more levels if needed
 	if (level > numLevels) {
@@ -68,12 +67,12 @@ void VolumetricSphericalHierarchy::createRenderable(Renderable& r, int level, fl
 
 	if (wholeSphere) {
 		for (int i = 0; i < 8; i++) {
-			octants[i]->createRenderable(r, level, max, min, avg, lines);
+			octants[i]->createRenderable(r, level, lines);
 		}
 	}
 	// Only for one octant
 	else {
-		octants[2]->createRenderable(r, level, max, min, avg, lines);
+		octants[2]->createRenderable(r, level, lines);
 	}
 }
 

@@ -31,7 +31,7 @@ public:
 
 	void start();
 	void setScheme(Scheme scheme);
-	void updateSubdivisionLevel(int add);
+	void updateGrid(int levelInc);
 	void updateBounds(BoundParam param, int inc);
 	void toggleReference();
 	void setBoundsDrawing(bool state);
@@ -45,7 +45,7 @@ private:
 	Camera* camera;
 
 	GridInfo info;
-	VolumetricSphericalHierarchy* sdog;
+	VolumetricSphericalHierarchy* root;
 
 	Renderable referenceOctant;
 	Renderable cells;

@@ -44,6 +44,9 @@
     <ClInclude Include="SphericalGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SphericalData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Program.cpp">
@@ -74,6 +77,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SphericalGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SphericalData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

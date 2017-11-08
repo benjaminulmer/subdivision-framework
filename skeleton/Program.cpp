@@ -4,10 +4,10 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
-	sdog = nullptr;
+	root = nullptr;
 
 	level = 1;
-	referenceState = 0;
+	referenceState = 2;
 	width = height = 800;
 }
 
@@ -32,24 +32,24 @@ void Program::start() {
 	ContentReadWrite::loadOBJ("models/octant.obj", referenceOctant);
 	RenderEngine::setBufferData(referenceOctant);
 
-	// Object data
+	// Renderable data
 	cells.fade = true;
 
 	// Objects to draw
-	objects.push_back(&referenceOctant);
+	//objects.push_back(&referenceOctant);
 	objects.push_back(&cells);
 
 	// Set up GridInfo
 	info.radius = 4.0;
-	info.maxRadius = 4.0; info.minRadius = 0.0;
-	info.maxLat = M_PI / 2; info.minLat = 0.0;
-	info.maxLong = 0.0, info.minLong = -M_PI / 2;
+	info.cullMaxRadius = 4.0; info.cullMinRadius = 0.0;
+	info.cullMaxLat = M_PI / 2; info.cullMinLat = 0.0;
+	info.cullMaxLong = 0.0, info.cullMinLong = -M_PI / 2;
 
-	// And renderable for it
-	SphericalGrid b(GridType::NG, info, info.maxRadius, info.minRadius, info.maxLat, info.minLat, info.maxLong, info.minLong);
+	// Renderable for cull bounds
+	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
 	bounds.verts.clear();
 	bounds.colours.clear();
-	b.createRenderable(bounds, 0, 0, 0, 0, true);
+	b.createRenderable(bounds, 0, true);
 	RenderEngine::setBufferData(bounds);
 
 	setScheme(Scheme::SDOG);
@@ -116,37 +116,28 @@ void Program::mainLoop() {
 
 // Sets the scheme that will be used for octant subdivision
 void Program::setScheme(Scheme scheme) {
-	delete sdog;
+	delete root;
 	info.scheme = scheme;
-	sdog = new VolumetricSphericalHierarchy(info);
-	updateSubdivisionLevel(0);
+	root = new VolumetricSphericalHierarchy(info);
+	updateGrid(0);
 }
 
 // Updates the level of subdivision being shown
-void Program::updateSubdivisionLevel(int add) {
-	if (level + add < 0 || level + add > 6) {
+void Program::updateGrid(int levelInc) {
+	if (level + levelInc < 0 || level + levelInc > 6) {
 		return;
 	}
-	level += add;
+	level += levelInc;
 
+	// Calculate and update volumes in data
 	std::vector<float> volumes;
-	sdog->getVolumes(volumes, level);
-
-	float max = -FLT_MAX;
-	float min = FLT_MAX;
-	float avg = 0.f;
-
-	for (float v : volumes) {
-		avg += v;
-		max = (v > max) ? v : max;
-		min = (v < min) ? v : min;
-	}
-	avg /= volumes.size();
-
+	root->getVolumes(volumes, level);
+	info.data = SphericalData(volumes);
+	root->updateInfo(info);
 
 	cells.verts.clear();
 	cells.colours.clear();
-	sdog->createRenderable(cells, level, max, min, avg);
+	root->createRenderable(cells, level);
 	RenderEngine::setBufferData(cells);
 }
 
@@ -155,43 +146,43 @@ void Program::updateBounds(BoundParam param, int inc) {
 
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
-		info.maxRadius -= inc * 0.1;
-		if (info.maxRadius >= 4.0) info.maxRadius = 4.0;
-		if (info.maxRadius <= info.minRadius) info.maxRadius = info.minRadius;
+		info.cullMaxRadius -= inc * 0.1;
+		if (info.cullMaxRadius >= 4.0) info.cullMaxRadius = 4.0;
+		if (info.cullMaxRadius <= info.cullMinRadius) info.cullMaxRadius = info.cullMinRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
-		info.minRadius += inc * 0.1;
-		if (info.minRadius >= info.maxRadius) info.minRadius = info.maxRadius;
-		if (info.minRadius <= 0.0) info.minRadius = 0.0;
+		info.cullMinRadius += inc * 0.1;
+		if (info.cullMinRadius >= info.cullMaxRadius) info.cullMinRadius = info.cullMaxRadius;
+		if (info.cullMinRadius <= 0.0) info.cullMinRadius = 0.0;
 	}
 	else if (param == BoundParam::MAX_LAT) {
-		info.maxLat -= inc * M_PI / 180;
-		if (info.maxLat >= M_PI / 2) info.maxLat = M_PI / 2;
-		if (info.maxLat <= info.minLat) info.maxLat = info.minLat;
+		info.cullMaxLat -= inc * M_PI / 180;
+		if (info.cullMaxLat >= M_PI / 2) info.cullMaxLat = M_PI / 2;
+		if (info.cullMaxLat <= info.cullMinLat) info.cullMaxLat = info.cullMinLat;
 	}
 	else if (param == BoundParam::MIN_LAT) {
-		info.minLat += inc * M_PI / 180;
-		if (info.minLat >= info.maxLat) info.minLat = info.maxLat;
+		info.cullMinLat += inc * M_PI / 180;
+		if (info.cullMinLat >= info.cullMaxLat) info.cullMinLat = info.cullMaxLat;
 		//if (Sdog::minLat <= 0.0) Sdog::minLat = 0.0;
 	}
 	else if (param == BoundParam::MAX_LONG) {
-		info.maxLong -= inc * M_PI / 180;
+		info.cullMaxLong -= inc * M_PI / 180;
 		//if (Sdog::maxLong >= 0.0) Sdog::maxLong = 0.0;
-		if (info.maxLong <= info.minLong) info.maxLong = info.minLong;
+		if (info.cullMaxLong <= info.cullMinLong) info.cullMaxLong = info.cullMinLong;
 	}
 	else if (param == BoundParam::MIN_LONG) {
-		info.minLong += inc * M_PI / 180;
-		if (info.minLong >= info.maxLong) info.minLong = info.maxLong;
+		info.cullMinLong += inc * M_PI / 180;
+		if (info.cullMinLong >= info.cullMaxLong) info.cullMinLong = info.cullMaxLong;
 		//if (Sdog::minLong <= -M_PI / 2) Sdog::minLong = -M_PI / 2;
 	}
 
-	SphericalGrid b(GridType::NG, info, info.maxRadius, info.minRadius, info.maxLat, info.minLat, info.maxLong, info.minLong);
+	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
 	bounds.verts.clear();
 	bounds.colours.clear();
-	b.createRenderable(bounds, 0, 0, 0, 0, true);
+	b.createRenderable(bounds, 0, true);
 	RenderEngine::setBufferData(bounds);
 
-	updateSubdivisionLevel(0);
+	updateGrid(0);
 }
 
 // Toggles drawing of reference octant
@@ -227,5 +218,5 @@ void Program::setBoundsDrawing(bool state) {
 // Toggles bounds culling
 void Program::toggleCull() {
 	info.cull = !info.cull;
-	updateSubdivisionLevel(0);
+	updateGrid(0);
 }

@@ -21,7 +21,7 @@ SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadi
 	leaf = true;
 }
 
-// Deletes all children if has any
+// Deletes all children recursively (if has any)
 SphericalGrid::~SphericalGrid() {
 	if (!leaf) {
 		for (int i = 0; i < numChildren; i++) {
@@ -54,6 +54,7 @@ void SphericalGrid::subdivide() {
 	double midRadius;
 	double midLat;
 
+	// Set splitting parameters from subdivision scheme
 	if (info.scheme == Scheme::NAIVE || info.scheme == Scheme::SDOG) {
 		midRadius = (maxRadius + minRadius) / 2;
 		midLat = (maxLat + minLat) / 2;
@@ -113,16 +114,16 @@ void SphericalGrid::subdivide() {
 }
 
 // Recursive function for creating renderable at desired level
-void SphericalGrid::createRenderable(Renderable & r, int level, float max, float min, float avg, bool lines) {
+void SphericalGrid::createRenderable(Renderable & r, int level, bool lines) {
 	
 	// If not at desired level recursively create renderables for children
 	if (level != 0) {
 		for (int i = 0; i < numChildren; i++) {
-			children[i]->createRenderable(r, level - 1, max, min, avg, lines);
+			children[i]->createRenderable(r, level - 1, lines);
 		}
 	}
-	else {// if (inRange()) {
-		fillRenderable(r, max, min, avg, lines);
+	else if (inRange()) {
+		fillRenderable(r, lines);
 	}
 }
 
@@ -148,9 +149,9 @@ bool SphericalGrid::inRange() {
 		rMaxLong = maxLong;
 	}
 
-	return ((maxRadius <= info.maxRadius && minRadius >= info.minRadius &&
-	        rMaxLat <= info.maxLat && rMinLat >= info.minLat &&
-	        rMaxLong <= info.maxLong && rMinLong >= info.minLong)) || !info.cull;
+	return ((maxRadius <= info.cullMaxRadius && minRadius >= info.cullMinRadius &&
+	        rMaxLat <= info.cullMaxLat && rMinLat >= info.cullMinLat &&
+	        rMaxLong <= info.cullMaxLong && rMinLong >= info.cullMinLong)) || !info.cull;
 }
 
 // Recursive function for getting volumes at desired level
@@ -169,7 +170,7 @@ void SphericalGrid::getVolumes(std::vector<float>& volumes, int level) {
 }
 
 // Fills a renderable with geometry for the grid
-void SphericalGrid::fillRenderable(Renderable& r, float max, float min, float avg, bool lines) {
+void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
 
 	// Find key points, same for all types of grids
@@ -186,8 +187,6 @@ void SphericalGrid::fillRenderable(Renderable& r, float max, float min, float av
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
 	if (!lines) {
-
-
 		// Outside and inside
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
 		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
@@ -209,11 +208,15 @@ void SphericalGrid::fillRenderable(Renderable& r, float max, float min, float av
 		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
 
-
 		r.drawMode = GL_TRIANGLES;
 
+		// Stuff for colouring by data- will be changed
 		float volume = abs((maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
 		float norm;
+
+		float min = info.data.getMin();
+		float max = info.data.getMax();
+		float avg = info.data.getAvg();
 
 		glm::vec3 colour;
 		if (volume / avg > 1.25) {

@@ -46,10 +46,10 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 
 	if (e.state == SDL_PRESSED) {
 		if (key == SDLK_UP) {
-			program->updateSubdivisionLevel(1);
+			program->updateGrid(1);
 		}
 		else if (key == SDLK_DOWN) {
-			program->updateSubdivisionLevel(-1);
+			program->updateGrid(-1);
 		}
 		else if (key == SDLK_1) {
 			program->setScheme(Scheme::SDOG);

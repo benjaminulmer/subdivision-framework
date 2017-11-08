@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SphericalData.h"
 #include "Geometry.h"
 #include "RenderEngine.h"
 
@@ -21,7 +22,9 @@ struct GridInfo {
 	Scheme scheme;
 	bool cull;
 	double radius;
-	double maxRadius, minRadius, maxLat, minLat, maxLong, minLong;
+	double cullMaxRadius, cullMinRadius, cullMaxLat, cullMinLat, cullMaxLong, cullMinLong;
+
+	SphericalData data;
 };
 
 class SphericalGrid {
@@ -32,8 +35,7 @@ public:
 	virtual ~SphericalGrid();
 
 	void subdivideTo(int level);
-	void createRenderable(Renderable& r, int level, float max, float min, float avg, bool lines);
-
+	void createRenderable(Renderable& r, int level, bool lines);
 	void getVolumes(std::vector<float>& volumes, int level);
 
 private:
@@ -51,6 +53,6 @@ private:
 
 	void subdivide();
 	bool inRange();
-	void fillRenderable(Renderable& r, float max, float min, float avg, bool lines);
+	void fillRenderable(Renderable& r, bool lines);
 };
 
