@@ -45,6 +45,7 @@ void Program::start() {
 	info.cullMaxLat = M_PI / 2; info.cullMinLat = 0.0;
 	info.cullMaxLong = 0.0, info.cullMinLong = -M_PI / 2;
 
+
 	// Renderable for cull bounds
 	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
 	bounds.verts.clear();
@@ -52,8 +53,8 @@ void Program::start() {
 	b.createRenderable(bounds, 0, true);
 	RenderEngine::setBufferData(bounds);
 
-	setScheme(Scheme::SDOG);
 	info.cull = true;
+	setScheme(Scheme::SDOG);
 
 	mainLoop();
 }
@@ -129,15 +130,11 @@ void Program::updateGrid(int levelInc) {
 	}
 	level += levelInc;
 
-	// Calculate and update volumes in data
-	std::vector<float> volumes;
-	root->getVolumes(volumes, level);
-	info.data = SphericalData(volumes);
 	root->updateInfo(info);
 
 	cells.verts.clear();
 	cells.colours.clear();
-	root->createRenderable(cells, level);
+	root->createRenderable(cells, level, false, true);
 	RenderEngine::setBufferData(cells);
 }
 

@@ -149,9 +149,9 @@ bool SphericalGrid::inRange() {
 		rMaxLong = maxLong;
 	}
 
-	return ((maxRadius <= info.cullMaxRadius && minRadius >= info.cullMinRadius &&
+	return (maxRadius <= info.cullMaxRadius && minRadius >= info.cullMinRadius &&
 	        rMaxLat <= info.cullMaxLat && rMinLat >= info.cullMinLat &&
-	        rMaxLong <= info.cullMaxLong && rMinLong >= info.cullMinLong)) || !info.cull;
+	        rMaxLong <= info.cullMaxLong && rMinLong >= info.cullMinLong) || !info.cull;
 }
 
 // Recursive function for getting volumes at desired level
@@ -187,6 +187,45 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
 	if (!lines) {
+		r.drawMode = GL_TRIANGLES;
+
+		const std::vector<SphericalDatum>& data = info.data.getData();
+
+		float sum = 0.f;
+		int count = 0;
+
+		// Find and sum data contained in grid
+		for (SphericalDatum d : data) {
+
+			double rMinLat, rMaxLat, rMinLong, rMaxLong;
+			if (maxLat < 0.0) {
+				rMinLat = maxLat;
+				rMaxLat = minLat;
+			}
+			else {
+				rMinLat = minLat;
+				rMaxLat = maxLat;
+			}
+			if (maxLong < 0.0) {
+				rMinLong = maxLong;
+				rMaxLong = minLong;
+			}
+			else {
+				rMinLong = minLong;
+				rMaxLong = maxLong;
+			}
+
+			if (d.latitude <= rMaxLat && d.latitude > rMinLat && d.longitude <= rMaxLong && d.longitude > rMinLong &&
+			                                                     d.radius <= maxRadius && d.radius > minRadius) {
+				sum += d.datum;
+				count++;
+			}
+		}
+		// If no data in grid do not draw
+		if (count == 0) {
+			return;
+		}
+
 		// Outside and inside
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
 		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
@@ -208,10 +247,7 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
 
-		r.drawMode = GL_TRIANGLES;
-
-		// Stuff for colouring by data- will be changed
-		float volume = abs((maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
+		float selfValue = sum / count;
 		float norm;
 
 		float min = info.data.getMin();
@@ -219,14 +255,16 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 		float avg = info.data.getAvg();
 
 		glm::vec3 colour;
-		if (volume / avg > 1.25) {
 
-			norm = (volume - avg) / (max - avg);
+		// Set colour of cell - temporary - will probal
+		if (selfValue / avg > 1.25) {
+
+			norm = (selfValue - avg) / (max - avg);
 			colour = glm::vec3(norm, 0.f, 0.f);
 		}
-		else if (volume / avg < 0.8) {
+		else if (selfValue / avg < 0.8) {
 
-			norm = (volume - min) / (avg - min);
+			norm = (selfValue - min) / (avg - min);
 			colour = glm::vec3(0.f, 0.f, 1.f - norm);
 		}
 		else {
@@ -235,7 +273,7 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 				norm = 0.5f;
 			}
 			else {
-				norm = (volume - min) / (max - min);
+				norm = (selfValue - min) / (max - min);
 			}
 			colour = glm::vec3(norm, norm, norm);
 		}
@@ -265,5 +303,4 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 		Geometry::createArcR(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRadius, r);
 		Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRadius, r);
 	}
-
 }

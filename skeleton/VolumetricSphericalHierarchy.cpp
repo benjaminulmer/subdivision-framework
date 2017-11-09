@@ -81,7 +81,7 @@ void VolumetricSphericalHierarchy::getVolumes(std::vector<float>& volumes, int l
 
 	// Create more levels if needed
 	if (level > numLevels) {
-		subdivideTo(level);
+		subdivideTo(level, wholeSphere);
 	}
 
 	if (wholeSphere) {
