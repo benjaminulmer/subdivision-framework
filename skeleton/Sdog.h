@@ -20,7 +20,7 @@ enum class GridType {
 class SdogGrid {
 	
 public:
-	SdogGrid(GridType type, double maxRadius, double minRadius, 
+	SdogGrid(GridType type, int depth, double maxRadius, double minRadius, 
 	         double maxLat, double minLat, double maxLong, double minLong);
 	virtual ~SdogGrid();
 
@@ -32,6 +32,8 @@ public:
 private:
 	GridType type;
 
+	int depth;
+
 	double maxRadius, minRadius;
 	double maxLat, minLat;
 	double maxLong, minLong;
@@ -40,7 +42,7 @@ private:
 	int numChildren;
 	bool leaf;
 
-	void subdivide();
+	void subdivide(int level);
 	bool inRange();
 	void fillRenderable(Renderable& r);
 };

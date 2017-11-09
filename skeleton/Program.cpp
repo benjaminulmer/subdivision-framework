@@ -125,7 +125,7 @@ void Program::setScheme(Scheme scheme) {
 
 // Updates the level of subdivision being shown
 void Program::updateSubdivisionLevel(int add) {
-	if (level + add < 0 || level + add > 6) {
+	if (level + add < 0 || level + add > 8) {
 		return;
 	}
 	level += add;
