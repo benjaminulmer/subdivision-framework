@@ -11,10 +11,16 @@ enum class Scheme {
 	VOLUME
 };
 
+enum class BigSmall {
+	BIG,
+	SMALL,
+	BOTH
+};
+
 enum class GridType {
 	NG,
 	LG,
-	SG
+	SG,
 };
 
 class SdogGrid {
@@ -23,6 +29,11 @@ public:
 	SdogGrid(GridType type, int depth, double maxRadius, double minRadius, 
 	         double maxLat, double minLat, double maxLong, double minLong);
 	virtual ~SdogGrid();
+
+	void setBigSmall(BigSmall bigRad, BigSmall bigLat) {
+		this->bsRad = bigRad;
+		this->bsLat = bigLat;
+	}
 
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level);
@@ -33,6 +44,8 @@ private:
 	GridType type;
 
 	int depth;
+	BigSmall bsRad;
+	BigSmall bsLat;
 
 	double maxRadius, minRadius;
 	double maxLat, minLat;
@@ -42,7 +55,7 @@ private:
 	int numChildren;
 	bool leaf;
 
-	void subdivide(int level);
+	void subdivide();
 	bool inRange();
 	void fillRenderable(Renderable& r);
 };
