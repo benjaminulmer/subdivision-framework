@@ -21,6 +21,53 @@ SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadi
 	leaf = true;
 }
 
+// Recursive function for agregating data located inside grid
+// Separate function so calls can be batched after memory allocations (interweaving them is much slower)
+void SphericalGrid::fillData(int level) {
+
+	// If not at desired level recursively fill data on children
+	if (level != 0) {
+		for (int i = 0; i < numChildren; i++) {
+			children[i]->fillData(level - 1);
+		}
+	}
+	else {
+		// Find and sum data contained in grid
+		const std::vector<SphericalDatum>& data = info.data.getData();
+		dataSum = 0.f;
+		dataCount = 0;
+
+		for (SphericalDatum d : data) {
+
+			// Special cases for negative numbers
+			double rMinLat, rMaxLat, rMinLong, rMaxLong;
+			if (maxLat < 0.0) {
+				rMinLat = maxLat;
+				rMaxLat = minLat;
+			}
+			else {
+				rMinLat = minLat;
+				rMaxLat = maxLat;
+			}
+			if (maxLong < 0.0) {
+				rMinLong = maxLong;
+				rMaxLong = minLong;
+			}
+			else {
+				rMinLong = minLong;
+				rMaxLong = maxLong;
+			}
+
+			// Test if datum is located inside grid
+			if (d.latitude <= rMaxLat && d.latitude > rMinLat && d.longitude <= rMaxLong && d.longitude > rMinLong &&
+			                                                     d.radius <= maxRadius && d.radius > minRadius) {
+				dataSum += d.datum;
+				dataCount++;
+			}
+		}
+	}
+}
+
 // Deletes all children recursively (if has any)
 SphericalGrid::~SphericalGrid() {
 	if (!leaf) {
@@ -189,40 +236,8 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 	if (!lines) {
 		r.drawMode = GL_TRIANGLES;
 
-		const std::vector<SphericalDatum>& data = info.data.getData();
-
-		float sum = 0.f;
-		int count = 0;
-
-		// Find and sum data contained in grid
-		for (SphericalDatum d : data) {
-
-			double rMinLat, rMaxLat, rMinLong, rMaxLong;
-			if (maxLat < 0.0) {
-				rMinLat = maxLat;
-				rMaxLat = minLat;
-			}
-			else {
-				rMinLat = minLat;
-				rMaxLat = maxLat;
-			}
-			if (maxLong < 0.0) {
-				rMinLong = maxLong;
-				rMaxLong = minLong;
-			}
-			else {
-				rMinLong = minLong;
-				rMaxLong = maxLong;
-			}
-
-			if (d.latitude <= rMaxLat && d.latitude > rMinLat && d.longitude <= rMaxLong && d.longitude > rMinLong &&
-			                                                     d.radius <= maxRadius && d.radius > minRadius) {
-				sum += d.datum;
-				count++;
-			}
-		}
 		// If no data in grid do not draw
-		if (count == 0) {
+		if (dataCount == 0) {
 			return;
 		}
 
@@ -247,7 +262,7 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
 
-		float selfValue = sum / count;
+		float selfValue = dataSum / dataCount;
 		float norm;
 
 		float min = info.data.getMin();
@@ -256,13 +271,13 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 
 		glm::vec3 colour;
 
-		// Set colour of cell - temporary - will probal
-		if (selfValue / avg > 1.25) {
+		// Set colour of grid - temporary - will probaly change
+		if (selfValue > avg) {
 
 			norm = (selfValue - avg) / (max - avg);
 			colour = glm::vec3(norm, 0.f, 0.f);
 		}
-		else if (selfValue / avg < 0.8) {
+		else if (selfValue < avg) {
 
 			norm = (selfValue - min) / (avg - min);
 			colour = glm::vec3(0.f, 0.f, 1.f - norm);

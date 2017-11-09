@@ -48,11 +48,13 @@ void VolumetricSphericalHierarchy::subdivideTo(int level, bool wholeSphere) {
 	if (wholeSphere) {
 		for (int i = 0; i < 8; i++) {
 			octants[i]->subdivideTo(level);
+			octants[i]->fillData(level);
 		}
 	}
 	// Only for one octant
 	else {
 		octants[2]->subdivideTo(level);
+		octants[2]->fillData(level);
 	}
 	numLevels = level;
 }

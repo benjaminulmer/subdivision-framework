@@ -35,6 +35,7 @@ public:
 	virtual ~SphericalGrid();
 
 	void subdivideTo(int level);
+	void fillData(int level);
 	void createRenderable(Renderable& r, int level, bool lines);
 	void getVolumes(std::vector<float>& volumes, int level);
 
@@ -50,6 +51,12 @@ private:
 
 	int numChildren;
 	bool leaf;
+
+	float dataSum;
+	int dataCount;
+
+
+
 
 	void subdivide();
 	bool inRange();

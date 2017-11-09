@@ -21,6 +21,7 @@ class SphericalData {
 
 public:
 	SphericalData();
+	SphericalData(int dummy);
 	SphericalData(std::vector<float> volumes);
 
 	const std::vector<SphericalDatum>& getData() const {
