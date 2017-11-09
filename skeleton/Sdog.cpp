@@ -145,7 +145,7 @@ void SdogGrid::subdivide() {
 	}
 	else if (type == GridType::LG) {
 
-		if (bsLat == BigSmall::BOTH) {
+		if (bsRad == BigSmall::BOTH) {
 			children[0] = new SdogGrid(GridType::NG, depth + 1, maxRadius, midRadius, midLat, minLat, midLong, minLong);
 			children[0]->setBigSmall(BigSmall::BIG, BigSmall::SMALL);
 
@@ -153,26 +153,31 @@ void SdogGrid::subdivide() {
 			children[1]->setBigSmall(BigSmall::SMALL, BigSmall::SMALL);
 
 			children[2] = new SdogGrid(GridType::LG, depth + 1, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-			children[2]->setBigSmall(BigSmall::BIG, BigSmall::BIG);
+			children[2]->setBigSmall(BigSmall::BIG, BigSmall::BOTH);
 
 			children[3] = new SdogGrid(GridType::LG, depth + 1, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
-			children[3]->setBigSmall(BigSmall::SMALL, BigSmall::BIG);
+			children[3]->setBigSmall(BigSmall::SMALL, BigSmall::BOTH);
 
 			numChildren = 4;
 		}
-		else if (bsLat == BigSmall::BIG) {
-			children[0] = new SdogGrid(GridType::NG, depth + 1, bigRadius, smallRadius, bigLat, smallLat, maxLong, minLong);
-			children[0]->setBigSmall(bsRad, bsLat);
+		else if (bsRad == BigSmall::BIG) {
+			children[0] = new SdogGrid(GridType::NG, depth + 1, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+			children[0]->setBigSmall(BigSmall::BIG, BigSmall::SMALL);
 
-			numChildren = 1;
+			children[1] = new SdogGrid(GridType::LG, depth + 1, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+			children[1]->setBigSmall(BigSmall::BIG, BigSmall::BOTH);
+
+			numChildren = 2;
 		}
 		else {
-			children[0] = new SdogGrid(GridType::NG, depth + 1, bigRadius, smallRadius, bigLat, smallLat, midLong, minLong);
-			children[0]->setBigSmall(bsRad, bsLat);
+			children[0] = new SdogGrid(GridType::NG, depth + 1, midRadius, minRadius, midLat, minLat, midLong, minLong);
+			children[0]->setBigSmall(BigSmall::SMALL, BigSmall::SMALL);
 
-			numChildren = 1;
+			children[1] = new SdogGrid(GridType::LG, depth + 1, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
+			children[1]->setBigSmall(BigSmall::SMALL, BigSmall::BOTH);
+
+			numChildren = 2;
 		}
-
 
 		//children[0] = new SdogGrid(GridType::NG, depth + 1, maxRadius, midRadius, midLat, minLat, midLong, minLong);
 		//children[1] = new SdogGrid(GridType::NG, depth + 1, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
