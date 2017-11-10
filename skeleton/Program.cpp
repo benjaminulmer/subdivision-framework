@@ -135,6 +135,7 @@ void Program::updateGrid(int levelInc) {
 
 	cells.verts.clear();
 	cells.colours.clear();
+	root->fillData(level);
 	root->createRenderable(cells, level, false, true);
 	RenderEngine::setBufferData(cells);
 }

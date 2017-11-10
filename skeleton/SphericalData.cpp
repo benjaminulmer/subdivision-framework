@@ -10,13 +10,13 @@ SphericalData::SphericalData(int dummy) {
 
 	std::mt19937 gen;
 	gen.seed(5);
-	std::uniform_real_distribution<double> dist1(-M_PI / 2, M_PI / 2);
+	std::uniform_real_distribution<double> dist1(0, M_PI / 2);
 	std::normal_distribution<double> dist2(2, .1);
 	std::uniform_real_distribution<double> dist3(-0.3, 0.3);
 
 	for (int i = 0; i < 5000; i++) {
 		double latitude = dist1(gen);
-		double longitude = -2.0 * dist1(gen);
+		double longitude = -dist1(gen);
 		double raidus = dist2(gen);
 		double datum = (M_PI / 2 - latitude) + dist3(gen);
 

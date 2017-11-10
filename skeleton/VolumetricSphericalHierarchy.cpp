@@ -48,13 +48,11 @@ void VolumetricSphericalHierarchy::subdivideTo(int level, bool wholeSphere) {
 	if (wholeSphere) {
 		for (int i = 0; i < 8; i++) {
 			octants[i]->subdivideTo(level);
-			octants[i]->fillData(level);
 		}
 	}
 	// Only for one octant
 	else {
 		octants[2]->subdivideTo(level);
-		octants[2]->fillData(level);
 	}
 	numLevels = level;
 }
@@ -94,5 +92,26 @@ void VolumetricSphericalHierarchy::getVolumes(std::vector<float>& volumes, int l
 	// Only for one octant
 	else {
 		octants[2]->getVolumes(volumes, level);
+	}
+}
+
+// Propogates data down tree to maxLevel
+void VolumetricSphericalHierarchy::fillData(int level) {
+
+	// Create more levels if needed
+	if (level > numLevels) {
+		subdivideTo(level, true);
+	}
+
+	const std::vector<SphericalDatum>& data = info.data.getData();
+	for (const SphericalDatum& d : data) {
+		for (int i = 0; i < 8; i++) {
+
+			// If contained in octant no other octant can contain point
+			if (octants[i]->contains(d)) {
+				octants[i]->fillData(d, level);
+				break;
+			}
+		}
 	}
 }

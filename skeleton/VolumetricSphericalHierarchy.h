@@ -20,6 +20,8 @@ public:
 	void createRenderable(Renderable& r, int level, bool lines = false, bool wholeSphere = false);
 	void getVolumes(std::vector<float>& volumes, int level, bool wholeSphere = false);
 
+	void fillData(int level);
+
 private:
 	SphericalGrid* octants[8];
 	GridInfo info;

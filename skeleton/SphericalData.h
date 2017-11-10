@@ -28,6 +28,14 @@ public:
 		return data;
 	}
 
+	int size() {
+		return data.size();
+	}
+
+	void addDatum(const SphericalDatum& d) {
+		data.push_back(d);
+	}
+
 	float getMin() const {
 		return min;
 	}
@@ -38,10 +46,10 @@ public:
 		return avg;
 	}
 
+	void calculateStats();
+
 private:
 	std::vector<SphericalDatum> data;
 	float min, max, avg;
-
-	void calculateStats();
 };
 

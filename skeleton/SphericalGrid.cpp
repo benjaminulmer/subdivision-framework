@@ -21,50 +21,49 @@ SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadi
 	leaf = true;
 }
 
+bool SphericalGrid::contains(const SphericalDatum& d) {
+
+	// Special cases for negative numbers
+	double rMinLat, rMaxLat, rMinLong, rMaxLong;
+	if (maxLat < 0.0) {
+		rMinLat = maxLat;
+		rMaxLat = minLat;
+	}
+	else {
+		rMinLat = minLat;
+		rMaxLat = maxLat;
+	}
+	if (maxLong < 0.0) {
+		rMinLong = maxLong;
+		rMaxLong = minLong;
+	}
+	else {
+		rMinLong = minLong;
+		rMaxLong = maxLong;
+	}
+
+	// Test if datum is located inside grid
+	return (d.latitude <= rMaxLat && d.latitude > rMinLat && d.longitude <= rMaxLong && d.longitude > rMinLong &&
+			d.radius <= maxRadius && d.radius > minRadius);
+}
+
+
 // Recursive function for agregating data located inside grid
-// Separate function so calls can be batched after memory allocations (interweaving them is much slower)
-void SphericalGrid::fillData(int level) {
+void SphericalGrid::fillData(const SphericalDatum& d, int level) {
 
 	// If not at desired level recursively fill data on children
 	if (level != 0) {
 		for (int i = 0; i < numChildren; i++) {
-			children[i]->fillData(level - 1);
+
+			// If contained in child no other child can contain point
+			if (children[i]->contains(d)) {
+				children[i]->fillData(d, level - 1);
+				break;
+			}
 		}
 	}
 	else {
-		// Find and sum data contained in grid
-		const std::vector<SphericalDatum>& data = info.data.getData();
-		dataSum = 0.f;
-		dataCount = 0;
-
-		for (SphericalDatum d : data) {
-
-			// Special cases for negative numbers
-			double rMinLat, rMaxLat, rMinLong, rMaxLong;
-			if (maxLat < 0.0) {
-				rMinLat = maxLat;
-				rMaxLat = minLat;
-			}
-			else {
-				rMinLat = minLat;
-				rMaxLat = maxLat;
-			}
-			if (maxLong < 0.0) {
-				rMinLong = maxLong;
-				rMaxLong = minLong;
-			}
-			else {
-				rMinLong = minLong;
-				rMaxLong = maxLong;
-			}
-
-			// Test if datum is located inside grid
-			if (d.latitude <= rMaxLat && d.latitude > rMinLat && d.longitude <= rMaxLong && d.longitude > rMinLong &&
-			                                                     d.radius <= maxRadius && d.radius > minRadius) {
-				dataSum += d.datum;
-				dataCount++;
-			}
-		}
+		data.addDatum(d);
 	}
 }
 
@@ -237,9 +236,16 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 		r.drawMode = GL_TRIANGLES;
 
 		// If no data in grid do not draw
-		if (dataCount == 0) {
+		if (data.size() == 0) {
 			return;
 		}
+
+		const std::vector<SphericalDatum>& d = data.getData();
+		for (SphericalDatum m : d) {
+			
+		}
+
+		data.calculateStats();
 
 		// Outside and inside
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
@@ -262,7 +268,7 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
 
-		float selfValue = dataSum / dataCount;
+		float selfValue = data.getAvg();
 		float norm;
 
 		float min = info.data.getMin();
