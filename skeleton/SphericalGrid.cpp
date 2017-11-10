@@ -21,6 +21,7 @@ SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadi
 	leaf = true;
 }
 
+// Returns if given data point resides in grid
 bool SphericalGrid::contains(const SphericalDatum& d) {
 
 	// Special cases for negative numbers
@@ -42,7 +43,6 @@ bool SphericalGrid::contains(const SphericalDatum& d) {
 		rMaxLong = maxLong;
 	}
 
-	// Test if datum is located inside grid
 	return (d.latitude <= rMaxLat && d.latitude > rMinLat && d.longitude <= rMaxLong && d.longitude > rMinLong &&
 			d.radius <= maxRadius && d.radius > minRadius);
 }
@@ -58,6 +58,7 @@ void SphericalGrid::fillData(const SphericalDatum& d, int level) {
 			// If contained in child no other child can contain point
 			if (children[i]->contains(d)) {
 				children[i]->fillData(d, level - 1);
+				data.addDatum(d);
 				break;
 			}
 		}

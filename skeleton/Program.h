@@ -15,6 +15,12 @@
 #include "ContentReadWrite.h"
 #include "VolumetricSphericalHierarchy.h"
 
+enum class DisplayMode {
+	DATA,
+	VOLUMES,
+	LINES
+};
+
 enum class BoundParam {
 	MAX_RADIUS,
 	MIN_RADIUS,
@@ -30,14 +36,21 @@ public:
 	Program();
 
 	void start();
+
 	void setScheme(Scheme scheme);
 	void updateGrid(int levelInc);
 	void updateBounds(BoundParam param, int inc);
-	void toggleReference();
+
+	void toggleRefSize();
+	void toggleRefShape();
+	void toggleRef();
+
 	void setBoundsDrawing(bool state);
 	void toggleCull();
 
 private:
+	const int MAX_LEVEL;
+
 	SDL_Window* window;
 	int width, height;
 
@@ -47,15 +60,21 @@ private:
 	GridInfo info;
 	VolumetricSphericalHierarchy* root;
 
-	Renderable referenceOctant;
-	Renderable cells;
-	Renderable bounds;
+	Renderable referenceOct;
+	Renderable referenceSphere;
+	Renderable currRef;
+	Renderable grids;
+	Renderable cullBounds;
 
-	int level;
-	int referenceState;
+	int subdivLevel;
+	DisplayMode dispMode;
+	bool refOn;
+	bool fullSphereRef;
+	bool fullSizeRef;
 
 	std::vector<Renderable*> objects;
 
 	void setupWindow();
 	void mainLoop();
+	void updateReference();
 };

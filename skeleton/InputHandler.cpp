@@ -73,7 +73,13 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			renderEngine->toggleFade();
 		}
 		else if (key == SDLK_r) {
-			program->toggleReference();
+			program->toggleRef();
+		}
+		else if (key == SDLK_e) {
+			program->toggleRefSize();
+		}
+		else if (key == SDLK_w) {
+			program->toggleRefShape();
 		}
 		else if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
 		         key == SDLK_j || key == SDLK_k || key == SDLK_l) {

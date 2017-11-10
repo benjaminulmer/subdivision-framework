@@ -1,13 +1,18 @@
 #include "Program.h"
 
-Program::Program() {
+Program::Program() : MAX_LEVEL(6) {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
 	root = nullptr;
 
-	level = 1;
-	referenceState = 2;
+	subdivLevel = 1;
+	dispMode = DisplayMode::DATA;
+
+	refOn = false;
+	fullSphereRef = false;
+	fullSizeRef = false;
+
 	width = height = 800;
 }
 
@@ -24,38 +29,46 @@ void Program::start() {
 	InputHandler::setUp(camera, renderEngine, this);
 
 	// Assign buffers
-	RenderEngine::assignBuffers(referenceOctant);
-	RenderEngine::assignBuffers(cells);
-	RenderEngine::assignBuffers(bounds);
+	RenderEngine::assignBuffers(referenceOct);
+	RenderEngine::assignBuffers(referenceSphere);
+	RenderEngine::assignBuffers(grids);
+	RenderEngine::assignBuffers(cullBounds);
 
-	// Create geometry for reference
-	ContentReadWrite::loadOBJ("models/octant.obj", referenceOctant);
-	RenderEngine::setBufferData(referenceOctant);
+	// Create geometry for references
+	ContentReadWrite::loadOBJ("models/octant.obj", referenceOct);
+	RenderEngine::setBufferData(referenceOct);
+
+	ContentReadWrite::loadOBJ("models/sphere.obj", referenceSphere);
+	RenderEngine::setBufferData(referenceSphere);
 
 	// Renderable data
-	cells.fade = true;
+	grids.fade = true;
 
 	// Objects to draw
 	//objects.push_back(&referenceOctant);
-	objects.push_back(&cells);
+	objects.push_back(&grids);
 
 	// Set up GridInfo
 	info.radius = 4.0;
 	info.cullMaxRadius = 4.0; info.cullMinRadius = 0.0;
 	info.cullMaxLat = M_PI / 2; info.cullMinLat = 0.0;
 	info.cullMaxLong = 0.0, info.cullMinLong = -M_PI / 2;
+	info.cull = true;
 
 	info.data = SphericalData(0);
 
 	// Renderable for cull bounds
 	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
-	bounds.verts.clear();
-	bounds.colours.clear();
-	b.createRenderable(bounds, 0, true);
-	RenderEngine::setBufferData(bounds);
+	cullBounds.verts.clear();
+	cullBounds.colours.clear();
+	b.createRenderable(cullBounds, 0, true);
+	RenderEngine::setBufferData(cullBounds);
 
-	info.cull = true;
 	setScheme(Scheme::SDOG);
+	root->fillData(MAX_LEVEL);
+	updateGrid(0);
+
+	updateReference();
 
 	mainLoop();
 }
@@ -105,7 +118,7 @@ void Program::mainLoop() {
 		float min = FLT_MAX;
 
 		glm::vec3 cameraPos = camera->getPosition();
-		for (glm::vec3 v : cells.verts) {
+		for (glm::vec3 v : grids.verts) {
 			float dist = glm::length(cameraPos - v);
 
 			max = (dist > max) ? dist : max;
@@ -126,18 +139,17 @@ void Program::setScheme(Scheme scheme) {
 
 // Updates the level of subdivision being shown
 void Program::updateGrid(int levelInc) {
-	if (level + levelInc < 0 || level + levelInc > 6) {
+	if (subdivLevel + levelInc < 0 || subdivLevel + levelInc > MAX_LEVEL) {
 		return;
 	}
-	level += levelInc;
+	subdivLevel += levelInc;
 
 	root->updateInfo(info);
 
-	cells.verts.clear();
-	cells.colours.clear();
-	root->fillData(level);
-	root->createRenderable(cells, level, false, true);
-	RenderEngine::setBufferData(cells);
+	grids.verts.clear();
+	grids.colours.clear();
+	root->createRenderable(grids, subdivLevel, false, true);
+	RenderEngine::setBufferData(grids);
 }
 
 // Updates bounds of which cells to show
@@ -176,41 +188,88 @@ void Program::updateBounds(BoundParam param, int inc) {
 	}
 
 	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
-	bounds.verts.clear();
-	bounds.colours.clear();
-	b.createRenderable(bounds, 0, true);
-	RenderEngine::setBufferData(bounds);
+	cullBounds.verts.clear();
+	cullBounds.colours.clear();
+	b.createRenderable(cullBounds, 0, true);
+	RenderEngine::setBufferData(cullBounds);
 
 	updateGrid(0);
 }
 
-// Toggles drawing of reference octant
-void Program::toggleReference() {
-	if (referenceState == 0) {
-		referenceOctant.model = glm::scale(glm::vec3(2.f, 2.f, 2.f));
-		referenceState++;
-	}
-	else if (referenceState == 1) {
-		auto pos = std::find(objects.begin(), objects.end(), &referenceOctant);
+// Toggles between full size and half (real) size reference
+void Program::toggleRefSize() {
+	fullSizeRef = !fullSizeRef;
+	updateReference();
+}
+
+// Toggles between octant and full sphere reference
+void Program::toggleRefShape() {
+	fullSphereRef = !fullSphereRef;
+	updateReference();
+}
+
+// Toggles drawing of reference
+void Program::toggleRef() {
+
+	if (refOn) {
+		auto pos = std::find(objects.begin(), objects.end(), &currRef);
 		objects.erase(pos);
-		referenceState++;
 	}
 	else {
-		objects.push_back(&referenceOctant);
-		referenceOctant.model = glm::mat4();
-		referenceState = 0;
+		objects.push_back(&currRef);
+	}
+	refOn = !refOn;
+}
+
+// Updates reference to draw
+void Program::updateReference() {
+
+	// Set size
+	if (fullSizeRef) {
+		referenceOct.model = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+		referenceSphere.model = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+	}
+	else {
+		referenceOct.model = glm::mat4();
+		referenceSphere.model = glm::mat4();
+	}
+
+	// Set shape
+	if (fullSphereRef) {
+		currRef = referenceSphere;
+	}
+	else {
+		currRef = referenceOct;
 	}
 }
 
+//// Toggles drawing of reference octant
+//void Program::setReferenceMode(bool fullSphere, bool fullSize) {
+//	if (referenceState == 0) {
+//		referenceOct.model = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+//		referenceState++;
+//	}
+//	else if (referenceState == 1) {
+//		auto pos = std::find(objects.begin(), objects.end(), &referenceOct);
+//		objects.erase(pos);
+//		referenceState++;
+//	}
+//	else {
+//		objects.push_back(&referenceOct);
+//		referenceOct.model = glm::mat4();
+//		referenceState = 0;
+//	}
+//}
+
 // Turn bounds box drawing on or off
 void Program::setBoundsDrawing(bool state) {
-	auto pos = std::find(objects.begin(), objects.end(), &bounds);
+	auto pos = std::find(objects.begin(), objects.end(), &cullBounds);
 
 	if (!state && pos != objects.end()) {
 		objects.erase(pos);
 	}
 	else if (state && pos == objects.end()) {
-		objects.push_back(&bounds);
+		objects.push_back(&cullBounds);
 	}
 }
 
