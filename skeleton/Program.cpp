@@ -30,18 +30,21 @@ void Program::start() {
 	InputHandler::setUp(camera, renderEngine, this);
 
 	// Assign buffers
-	RenderEngine::assignBuffers(referenceOct);
-	RenderEngine::assignBuffers(referenceSphere);
-	RenderEngine::assignBuffers(grids);
-	RenderEngine::assignBuffers(cullBounds);
+	RenderEngine::assignBuffers(referenceOct, true);
+	RenderEngine::assignBuffers(referenceSphere, true);
+	referenceOct.textureID = RenderEngine::loadTexture("textures/sphere.png");
+	referenceSphere.textureID = RenderEngine::loadTexture("textures/sphere.png");
+
+	RenderEngine::assignBuffers(grids, false);
+	RenderEngine::assignBuffers(cullBounds, false);
 	cullBounds.lineColour = glm::vec3(0.f, 1.f, 0.f);
 
 	// Create geometry for references
 	ContentReadWrite::loadOBJ("models/octant.obj", referenceOct);
-	RenderEngine::setBufferData(referenceOct);
+	RenderEngine::setBufferData(referenceOct, true);
 
-	ContentReadWrite::loadOBJ("models/sphere.obj", referenceSphere);
-	RenderEngine::setBufferData(referenceSphere);
+	ContentReadWrite::loadOBJ("models/sphereTex.obj", referenceSphere);
+	RenderEngine::setBufferData(referenceSphere, true);
 
 	// Renderable data
 	grids.fade = true;
@@ -65,7 +68,7 @@ void Program::start() {
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
-	RenderEngine::setBufferData(cullBounds);
+	RenderEngine::setBufferData(cullBounds, false);
 
 	setScheme(Scheme::SDOG);
 	updateGrid(0);
@@ -155,7 +158,7 @@ void Program::updateGrid(int levelInc) {
 	}
 
 	root->createRenderable(grids, subdivLevel, dispMode);
-	RenderEngine::setBufferData(grids);
+	RenderEngine::setBufferData(grids, false);
 }
 
 // Updates bounds of which cells to show
@@ -197,7 +200,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
-	RenderEngine::setBufferData(cullBounds);
+	RenderEngine::setBufferData(cullBounds, false);
 
 	updateGrid(0);
 }

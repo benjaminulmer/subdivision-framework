@@ -23,6 +23,7 @@ public:
 
 	std::vector<glm::vec3> verts;
 	std::vector<glm::vec3> colours;
+	std::vector<glm::vec2> uvs;
 
 	glm::mat4 model;
 	glm::vec3 lineColour;
@@ -30,6 +31,8 @@ public:
 	GLuint vao;
 	GLuint vertexBuffer;
 	GLuint colourBuffer;
+	GLuint uvBuffer;
+	GLuint textureID;
 
 	bool fade;
 

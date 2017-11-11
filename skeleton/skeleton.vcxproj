@@ -159,12 +159,14 @@
     <ClInclude Include="ContentReadWrite.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="InputHandler.h" />
+    <ClInclude Include="lodepng.h" />
     <ClInclude Include="Program.h" />
     <ClInclude Include="Renderable.h" />
     <ClInclude Include="RenderEngine.h" />
     <ClInclude Include="SphericalData.h" />
     <ClInclude Include="SphericalGrid.h" />
     <ClInclude Include="ShaderTools.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="VolumetricSphericalHierarchy.h" />
   </ItemGroup>
   <ItemGroup>
@@ -172,12 +174,14 @@
     <ClCompile Include="ContentReadWrite.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="InputHandler.cpp" />
+    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="RenderEngine.cpp" />
     <ClCompile Include="SphericalData.cpp" />
     <ClCompile Include="SphericalGrid.cpp" />
     <ClCompile Include="ShaderTools.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VolumetricSphericalHierarchy.cpp" />
   </ItemGroup>
   <ItemGroup>

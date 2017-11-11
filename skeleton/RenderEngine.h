@@ -7,9 +7,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
+#include "lodepng.h"
+
 #include "Renderable.h"
 #include "ShaderTools.h"
 #include "Camera.h"
+#include "Texture.h"
 
 class RenderEngine {
 
@@ -18,9 +21,10 @@ public:
 
 	void render(const std::vector<Renderable*>& objects, glm::mat4 view, float max, float min);
 
-	static void assignBuffers(Renderable& renderable);
-	static void setBufferData(Renderable& renderable);
-	static void deleteBufferData(Renderable& renderable);
+	static void assignBuffers(Renderable& renderable, bool texture);
+	static void setBufferData(Renderable& renderable, bool texture);
+	static void deleteBufferData(Renderable& renderable, bool texture);
+	static GLuint loadTexture(std::string filename);
 
 	void setWindowSize(int newWidth, int newHeight);
 	void toggleFade() { fade = !fade; }

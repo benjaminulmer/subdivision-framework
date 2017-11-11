@@ -14,9 +14,11 @@ bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 
 	std::vector<unsigned int> vertIndices;
 	std::vector<unsigned int> normalIndices;
+	std::vector<unsigned int> uvIndices;
 
 	std::vector<glm::vec3> verts;
 	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> uvs;
 
 	while(true){
 
@@ -36,7 +38,7 @@ bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 			glm::vec2 uv;
 			fscanf(file, "%f %f\n", &uv.x, &uv.y );
 			uv.y = -uv.y; 
-			//uvs.push_back(uv);
+			uvs.push_back(uv);
 		}else if ( strcmp( lineHeader, "vn" ) == 0 ){
 			glm::vec3 normal;
 			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
@@ -52,6 +54,9 @@ bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 			normalIndices.push_back(normalIndex[0]-1);
 			normalIndices.push_back(normalIndex[1]-1);
 			normalIndices.push_back(normalIndex[2]-1);
+			uvIndices.push_back(uvIndex[0] - 1);
+			uvIndices.push_back(uvIndex[1] - 1);
+			uvIndices.push_back(uvIndex[2] - 1);
 
 		}else{
 			// Probably a comment, eat up the rest of the line
@@ -66,14 +71,17 @@ bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 		// Get the indices of its attributes
 		unsigned int vertexIndex = vertIndices[i];
 		unsigned int normalIndex = normalIndices[i];
+		unsigned int uvIndex = uvIndices[i];
 
 		// Get the attributes thanks to the index
 		glm::vec3 vertex = verts[ vertexIndex ];
 		glm::vec3 normal = normals[ normalIndex ];
+		glm::vec2 uv = uvs[ uvIndex ];
 
 		// Put the attributes in buffers
 		r.verts.push_back(vertex);
 		r.colours.push_back(normal);
+		r.uvs.push_back(uv);
 	}
 	r.drawMode = GL_TRIANGLES;
 	fclose(file);

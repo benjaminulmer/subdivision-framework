@@ -39,13 +39,21 @@ void RenderEngine::render(const std::vector<Renderable*>& objects, glm::mat4 vie
 		glUniform1f(glGetUniformLocation(mainProgram, "maxDist"), max);
 		glUniform1f(glGetUniformLocation(mainProgram, "minDist"), min);
 
+		if (r->textureID != 0) {
+			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), true);
+			Texture::bind2DTexture(mainProgram, r->textureID, "imTexture");
+		}
+		else {
+			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), false);
+		}
+
 		glDrawArrays(r->drawMode, 0, r->verts.size());
 		glBindVertexArray(0);
 	}
 }
 
 // Assigns buffers for a renderable
-void RenderEngine::assignBuffers(Renderable& renderable) {
+void RenderEngine::assignBuffers(Renderable& renderable, bool texture) {
 	glGenVertexArrays(1, &renderable.vao);
 	glBindVertexArray(renderable.vao);
 
@@ -60,10 +68,18 @@ void RenderEngine::assignBuffers(Renderable& renderable) {
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.colourBuffer);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
+
+	if (texture) {
+		// UV buffer
+		glGenBuffers(1, &renderable.uvBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, renderable.uvBuffer);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+		glEnableVertexAttribArray(2);
+	}
 }
 
 // Sets buffer data for a renderable
-void RenderEngine::setBufferData(Renderable& renderable) {
+void RenderEngine::setBufferData(Renderable& renderable, bool texture) {
 	// Vertex buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.verts.size(), renderable.verts.data(), GL_STATIC_DRAW);
@@ -71,13 +87,38 @@ void RenderEngine::setBufferData(Renderable& renderable) {
 	// Colour buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.colourBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.colours.size(), renderable.colours.data(), GL_STATIC_DRAW);
+
+	if (texture) {
+		// UV buffer
+		glBindBuffer(GL_ARRAY_BUFFER, renderable.uvBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*renderable.uvs.size(), renderable.uvs.data(), GL_STATIC_DRAW);
+	}
 }
 
 // Deletes buffers for a renderable
-void RenderEngine::deleteBufferData(Renderable & renderable) {
+void RenderEngine::deleteBufferData(Renderable & renderable, bool texture) {
 	glDeleteBuffers(1, &renderable.vertexBuffer);
 	glDeleteBuffers(1, &renderable.colourBuffer);
+	if (texture) {
+		glDeleteBuffers(1, &renderable.uvBuffer);
+	}
 	glDeleteVertexArrays(1, &renderable.vao);
+}
+
+// Creates a 2D texture
+GLuint RenderEngine::loadTexture(std::string filename) {
+
+	// Read in file (png only)
+	std::vector<unsigned char> _image;
+	unsigned int _imageWidth, _imageHeight;
+
+	unsigned int error = lodepng::decode(_image, _imageWidth, _imageHeight, filename.c_str());
+	if (error) {
+		std::cout << "reading error" << error << ":" << lodepng_error_text(error) << std::endl;
+	}
+
+	GLuint id = Texture::create2DTexture(_image, _imageWidth, _imageHeight);
+	return id;
 }
 
 // Sets projection and viewport for new width and height
