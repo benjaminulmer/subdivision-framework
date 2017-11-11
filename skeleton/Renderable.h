@@ -25,6 +25,7 @@ public:
 	std::vector<glm::vec3> colours;
 
 	glm::mat4 model;
+	glm::vec3 lineColour;
 
 	GLuint vao;
 	GLuint vertexBuffer;

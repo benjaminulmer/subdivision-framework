@@ -27,8 +27,8 @@ void Geometry::createArcR(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderab
 	if (angleDeg == 0) {
 		r.verts.push_back(p1);
 		r.verts.push_back(p2);
-		r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
-		r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
+		r.colours.push_back(r.lineColour);
+		r.colours.push_back(r.lineColour);
 	}
 
 	// #num line segments ~= angle of arc in degrees / 4
@@ -40,10 +40,10 @@ void Geometry::createArcR(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderab
 		glm::vec3 result = geomSlerp(v1, v2, t);
 
 		r.verts.push_back(centre + result);
-		r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
+		r.colours.push_back(r.lineColour);
 		if (i != 0 && i != angleDeg) {
 			r.verts.push_back(centre + result);
-			r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
+			r.colours.push_back(r.lineColour);
 		}
 	}
 }
@@ -52,8 +52,8 @@ void Geometry::createArcR(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderab
 void Geometry::createLineR(glm::vec3 p1, glm::vec3 p2, Renderable & r) {
 	r.verts.push_back(p1);
 	r.verts.push_back(p2);
-	r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
-	r.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
+	r.colours.push_back(r.lineColour);
+	r.colours.push_back(r.lineColour);
 }
 
 // Creates vector of points on an arc defined by p1, p2, and centre points

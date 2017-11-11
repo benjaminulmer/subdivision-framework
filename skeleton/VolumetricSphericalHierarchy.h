@@ -16,9 +16,9 @@ public:
 		this->info = info;
 	}
 
-	void subdivideTo(int level, bool wholeSphere = false);
-	void createRenderable(Renderable& r, int level, bool lines = false, bool wholeSphere = false);
-	void getVolumes(std::vector<float>& volumes, int level, bool wholeSphere = false);
+	void subdivideTo(int level);
+	void createRenderable(Renderable& r, int level, DisplayMode mode);
+	void getVolumes(std::vector<float>& volumes, int level);
 
 	void fillData(int level);
 

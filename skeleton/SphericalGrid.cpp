@@ -161,16 +161,16 @@ void SphericalGrid::subdivide() {
 }
 
 // Recursive function for creating renderable at desired level
-void SphericalGrid::createRenderable(Renderable & r, int level, bool lines) {
+void SphericalGrid::createRenderable(Renderable & r, int level, DisplayMode mode) {
 	
 	// If not at desired level recursively create renderables for children
 	if (level != 0) {
 		for (int i = 0; i < numChildren; i++) {
-			children[i]->createRenderable(r, level - 1, lines);
+			children[i]->createRenderable(r, level - 1, mode);
 		}
 	}
 	else if (inRange()) {
-		fillRenderable(r, lines);
+		fillRenderable(r, mode);
 	}
 }
 
@@ -217,7 +217,7 @@ void SphericalGrid::getVolumes(std::vector<float>& volumes, int level) {
 }
 
 // Fills a renderable with geometry for the grid
-void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
+void SphericalGrid::fillRenderable(Renderable& r, DisplayMode mode) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
 
 	// Find key points, same for all types of grids
@@ -233,19 +233,13 @@ void SphericalGrid::fillRenderable(Renderable& r, bool lines) {
 	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
-	if (!lines) {
+	if (mode == DisplayMode::DATA) {
 		r.drawMode = GL_TRIANGLES;
 
 		// If no data in grid do not draw
 		if (data.size() == 0) {
 			return;
 		}
-
-		const std::vector<SphericalDatum>& d = data.getData();
-		for (SphericalDatum m : d) {
-			
-		}
-
 		data.calculateStats();
 
 		// Outside and inside

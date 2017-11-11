@@ -4,6 +4,12 @@
 #include "Geometry.h"
 #include "RenderEngine.h"
 
+enum class DisplayMode {
+	DATA,
+	VOLUMES,
+	LINES
+};
+
 enum class Scheme {
 	SDOG,
 	SDOG_OPT,
@@ -37,7 +43,7 @@ public:
 	void subdivideTo(int level);
 	bool contains(const SphericalDatum& d);
 	void fillData(const SphericalDatum& d, int level);
-	void createRenderable(Renderable& r, int level, bool lines);
+	void createRenderable(Renderable& r, int level, DisplayMode mode);
 	void getVolumes(std::vector<float>& volumes, int level);
 
 private:
@@ -57,6 +63,6 @@ private:
 
 	void subdivide();
 	bool inRange();
-	void fillRenderable(Renderable& r, bool lines);
+	void fillRenderable(Renderable& r, DisplayMode mode);
 };
 

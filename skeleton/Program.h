@@ -15,12 +15,6 @@
 #include "ContentReadWrite.h"
 #include "VolumetricSphericalHierarchy.h"
 
-enum class DisplayMode {
-	DATA,
-	VOLUMES,
-	LINES
-};
-
 enum class BoundParam {
 	MAX_RADIUS,
 	MIN_RADIUS,

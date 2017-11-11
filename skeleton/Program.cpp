@@ -33,6 +33,7 @@ void Program::start() {
 	RenderEngine::assignBuffers(referenceSphere);
 	RenderEngine::assignBuffers(grids);
 	RenderEngine::assignBuffers(cullBounds);
+	cullBounds.lineColour = glm::vec3(0.f, 1.f, 0.f);
 
 	// Create geometry for references
 	ContentReadWrite::loadOBJ("models/octant.obj", referenceOct);
@@ -61,11 +62,10 @@ void Program::start() {
 	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
-	b.createRenderable(cullBounds, 0, true);
+	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds);
 
 	setScheme(Scheme::SDOG);
-	root->fillData(MAX_LEVEL);
 	updateGrid(0);
 
 	updateReference();
@@ -134,6 +134,7 @@ void Program::setScheme(Scheme scheme) {
 	delete root;
 	info.scheme = scheme;
 	root = new VolumetricSphericalHierarchy(info);
+	root->fillData(MAX_LEVEL);
 	updateGrid(0);
 }
 
@@ -144,11 +145,9 @@ void Program::updateGrid(int levelInc) {
 	}
 	subdivLevel += levelInc;
 
-	root->updateInfo(info);
-
 	grids.verts.clear();
 	grids.colours.clear();
-	root->createRenderable(grids, subdivLevel, false, true);
+	root->createRenderable(grids, subdivLevel, DisplayMode::LINES);
 	RenderEngine::setBufferData(grids);
 }
 
@@ -190,7 +189,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
-	b.createRenderable(cullBounds, 0, true);
+	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds);
 
 	updateGrid(0);
@@ -242,24 +241,6 @@ void Program::updateReference() {
 		currRef = referenceOct;
 	}
 }
-
-//// Toggles drawing of reference octant
-//void Program::setReferenceMode(bool fullSphere, bool fullSize) {
-//	if (referenceState == 0) {
-//		referenceOct.model = glm::scale(glm::vec3(2.f, 2.f, 2.f));
-//		referenceState++;
-//	}
-//	else if (referenceState == 1) {
-//		auto pos = std::find(objects.begin(), objects.end(), &referenceOct);
-//		objects.erase(pos);
-//		referenceState++;
-//	}
-//	else {
-//		objects.push_back(&referenceOct);
-//		referenceOct.model = glm::mat4();
-//		referenceState = 0;
-//	}
-//}
 
 // Turn bounds box drawing on or off
 void Program::setBoundsDrawing(bool state) {
