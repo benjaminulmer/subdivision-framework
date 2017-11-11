@@ -32,7 +32,7 @@ void Program::start() {
 	// Assign buffers
 	RenderEngine::assignBuffers(referenceOct, true);
 	RenderEngine::assignBuffers(referenceSphere, true);
-	referenceOct.textureID = RenderEngine::loadTexture("textures/sphere.png");
+	referenceOct.textureID = RenderEngine::loadTexture("textures/oct.png");
 	referenceSphere.textureID = RenderEngine::loadTexture("textures/sphere.png");
 
 	RenderEngine::assignBuffers(grids, false);
@@ -40,7 +40,7 @@ void Program::start() {
 	cullBounds.lineColour = glm::vec3(0.f, 1.f, 0.f);
 
 	// Create geometry for references
-	ContentReadWrite::loadOBJ("models/octant.obj", referenceOct);
+	ContentReadWrite::loadOBJ("models/octTex.obj", referenceOct);
 	RenderEngine::setBufferData(referenceOct, true);
 
 	ContentReadWrite::loadOBJ("models/sphereTex.obj", referenceSphere);
