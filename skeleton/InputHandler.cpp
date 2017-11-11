@@ -57,14 +57,33 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		else if (key == SDLK_2) {
 			program->setScheme(Scheme::SDOG_OPT);
 		}
-		else if (key == SDLK_3) {
-			program->setScheme(Scheme::NAIVE);
-		}
+		// Do not care about these options right now
+		//else if (key == SDLK_3) {
+		//	program->setScheme(Scheme::NAIVE);
+		//}
+		//else if (key == SDLK_4) {
+		//	program->setScheme(Scheme::VOLUME_SDOG);
+		//}
+		//else if (key == SDLK_5) {
+		//	program->setScheme(Scheme::VOLUME);
+		//}
 		else if (key == SDLK_4) {
-			program->setScheme(Scheme::VOLUME_SDOG);
+			program->setSubdivisionMode(SubdivisionMode::OCTANT);
 		}
 		else if (key == SDLK_5) {
-			program->setScheme(Scheme::VOLUME);
+			program->setSubdivisionMode(SubdivisionMode::FULL);
+		}
+		else if (key == SDLK_6) {
+			program->setSubdivisionMode(SubdivisionMode::REP_SLICE);
+		}
+		else if (key == SDLK_7) {
+			program->setDisplayMode(DisplayMode::DATA);
+		}
+		else if (key == SDLK_8) {
+			program->setDisplayMode(DisplayMode::LINES);
+		}
+		else if (key == SDLK_9) {
+			program->setDisplayMode(DisplayMode::VOLUMES);
 		}
 		else if (key == SDLK_c) {
 			program->toggleCull();

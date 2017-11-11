@@ -4,6 +4,12 @@
 #include "Geometry.h"
 #include "RenderEngine.h"
 
+enum class SubdivisionMode {
+	FULL,
+	OCTANT,
+	REP_SLICE
+};
+
 enum class DisplayMode {
 	DATA,
 	VOLUMES,
@@ -26,6 +32,7 @@ enum class GridType {
 
 struct GridInfo {
 	Scheme scheme;
+	SubdivisionMode mode;
 	bool cull;
 	double radius;
 	double cullMaxRadius, cullMinRadius, cullMaxLat, cullMinLat, cullMaxLong, cullMinLong;

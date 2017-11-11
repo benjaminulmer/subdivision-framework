@@ -1,11 +1,12 @@
 #include "Program.h"
 
-Program::Program() : MAX_LEVEL(6) {
+Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
 	root = nullptr;
 
+	maxSubdivLevel = 6;
 	subdivLevel = 1;
 	dispMode = DisplayMode::DATA;
 
@@ -51,6 +52,7 @@ void Program::start() {
 
 	// Set up GridInfo
 	info.radius = 4.0;
+	info.mode = SubdivisionMode::OCTANT;
 	info.cullMaxRadius = 4.0; info.cullMinRadius = 0.0;
 	info.cullMaxLat = M_PI / 2; info.cullMinLat = 0.0;
 	info.cullMaxLong = 0.0, info.cullMinLong = -M_PI / 2;
@@ -129,25 +131,25 @@ void Program::mainLoop() {
 	}
 }
 
-// Sets the scheme that will be used for octant subdivision
+// Sets the scheme that will be used for subdivision
 void Program::setScheme(Scheme scheme) {
 	delete root;
 	info.scheme = scheme;
 	root = new VolumetricSphericalHierarchy(info);
-	root->fillData(MAX_LEVEL);
+	root->fillData(maxSubdivLevel);
 	updateGrid(0);
 }
 
 // Updates the level of subdivision being shown
 void Program::updateGrid(int levelInc) {
-	if (subdivLevel + levelInc < 0 || subdivLevel + levelInc > MAX_LEVEL) {
+	if (subdivLevel + levelInc < 0 || subdivLevel + levelInc > maxSubdivLevel) {
 		return;
 	}
 	subdivLevel += levelInc;
 
 	grids.verts.clear();
 	grids.colours.clear();
-	root->createRenderable(grids, subdivLevel, DisplayMode::LINES);
+	root->createRenderable(grids, subdivLevel, dispMode);
 	RenderEngine::setBufferData(grids);
 }
 
@@ -257,5 +259,27 @@ void Program::setBoundsDrawing(bool state) {
 // Toggles bounds culling
 void Program::toggleCull() {
 	info.cull = !info.cull;
+	updateGrid(0);
+}
+
+// Sets subdivision mode to be used by the grids
+void Program::setSubdivisionMode(SubdivisionMode mode) {
+	info.mode = mode;
+
+	if (mode == SubdivisionMode::REP_SLICE) {
+		maxSubdivLevel = 8;
+	}
+	else {
+		maxSubdivLevel = 6;
+		if (subdivLevel > maxSubdivLevel) {
+			subdivLevel = maxSubdivLevel;
+		}
+	}
+	setScheme(info.scheme);
+}
+
+// Sets display mode for rendering
+void Program::setDisplayMode(DisplayMode mode) {
+	dispMode = mode;
 	updateGrid(0);
 }

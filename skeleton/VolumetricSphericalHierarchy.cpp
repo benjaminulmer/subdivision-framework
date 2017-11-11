@@ -44,9 +44,16 @@ void VolumetricSphericalHierarchy::subdivideTo(int level) {
 	if (level <= numLevels || level <= 0) {
 		return;
 	}
-	for (int i = 0; i < 8; i++) {
-		octants[i]->subdivideTo(level);
+
+	if (info.mode == SubdivisionMode::FULL) {
+		for (int i = 0; i < 8; i++) {
+			octants[i]->subdivideTo(level);
+		}
 	}
+	else {
+		octants[2]->subdivideTo(level);
+	}
+
 }
 
 // Creates a renderable for the SDOG at the given level
@@ -56,8 +63,13 @@ void VolumetricSphericalHierarchy::createRenderable(Renderable& r, int level, Di
 	if (level > numLevels) {
 		subdivideTo(level);
 	}
-	for (int i = 0; i < 8; i++) {
-		octants[i]->createRenderable(r, level, mode);
+	if (info.mode == SubdivisionMode::FULL) {
+		for (int i = 0; i < 8; i++) {
+			octants[i]->createRenderable(r, level, mode);
+		}
+	}
+	else {
+		octants[2]->createRenderable(r, level, mode);
 	}
 }
 

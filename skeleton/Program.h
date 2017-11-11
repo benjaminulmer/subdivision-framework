@@ -42,9 +42,10 @@ public:
 	void setBoundsDrawing(bool state);
 	void toggleCull();
 
-private:
-	const int MAX_LEVEL;
+	void setSubdivisionMode(SubdivisionMode mode);
+	void setDisplayMode(DisplayMode mode);
 
+private:
 	SDL_Window* window;
 	int width, height;
 
@@ -60,6 +61,7 @@ private:
 	Renderable grids;
 	Renderable cullBounds;
 
+	int maxSubdivLevel;
 	int subdivLevel;
 	DisplayMode dispMode;
 	bool refOn;
