@@ -37,7 +37,13 @@ struct GridInfo {
 	double radius;
 	double cullMaxRadius, cullMinRadius, cullMaxLat, cullMinLat, cullMaxLong, cullMinLong;
 
+	float volMin, volMax, volAvg;
+
 	SphericalData data;
+};
+
+struct volInfo {
+	float max, min, avg;
 };
 
 class SphericalGrid {
@@ -46,6 +52,8 @@ public:
 	SphericalGrid(GridType type, const GridInfo& info, double maxRadius, double minRadius, 
 	              double maxLat, double minLat, double maxLong, double minLong);
 	virtual ~SphericalGrid();
+
+	static std::vector<volInfo> volInfos;
 
 	void subdivideTo(int level);
 	bool contains(const SphericalDatum& d);

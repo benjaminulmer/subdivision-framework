@@ -1,5 +1,7 @@
 #include "SphericalGrid.h"
 
+std::vector<volInfo> SphericalGrid::volInfos;
+
 // Creats an SdogGrid with given bounds in each (spherical) direction
 SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadius, double minRadius,
                              double maxLat, double minLat, double maxLong, double minLong) :
@@ -247,11 +249,11 @@ void SphericalGrid::fillRenderable(Renderable& r, DisplayMode mode) {
 	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
-	if (mode == DisplayMode::DATA) {
+	if (mode == DisplayMode::DATA || mode == DisplayMode::VOLUMES) {
 		r.drawMode = GL_TRIANGLES;
 
 		// If no data in grid do not draw
-		if (data.size() == 0) {
+		if (data.size() == 0 && mode == DisplayMode::DATA) {
 			return;
 		}
 		data.calculateStats();
@@ -283,6 +285,21 @@ void SphericalGrid::fillRenderable(Renderable& r, DisplayMode mode) {
 		float min = info.data.getMin();
 		float max = info.data.getMax();
 		float avg = info.data.getAvg();
+
+		if (mode == DisplayMode::DATA) {
+			selfValue = data.getAvg();
+
+			min = info.data.getMin();
+			max = info.data.getMax();
+			avg = info.data.getAvg();
+		}
+		else {
+			selfValue = abs((maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
+
+			min = info.volMin;
+			max = info.volMax;
+			avg = info.volAvg;
+		}
 
 		glm::vec3 colour;
 

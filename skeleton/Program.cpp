@@ -149,6 +149,11 @@ void Program::updateGrid(int levelInc) {
 
 	grids.verts.clear();
 	grids.colours.clear();
+
+	if (dispMode == DisplayMode::VOLUMES) {
+		calculateVolumes(subdivLevel);
+	}
+
 	root->createRenderable(grids, subdivLevel, dispMode);
 	RenderEngine::setBufferData(grids);
 }
@@ -175,17 +180,17 @@ void Program::updateBounds(BoundParam param, int inc) {
 	else if (param == BoundParam::MIN_LAT) {
 		info.cullMinLat += inc * M_PI / 180;
 		if (info.cullMinLat >= info.cullMaxLat) info.cullMinLat = info.cullMaxLat;
-		//if (Sdog::minLat <= 0.0) Sdog::minLat = 0.0;
+		if (info.cullMinLat <= -M_PI / 2) info.cullMinLat = -M_PI / 2;
 	}
 	else if (param == BoundParam::MAX_LONG) {
 		info.cullMaxLong -= inc * M_PI / 180;
-		//if (Sdog::maxLong >= 0.0) Sdog::maxLong = 0.0;
+		if (info.cullMaxLong >= M_PI) info.cullMaxLong = M_PI;
 		if (info.cullMaxLong <= info.cullMinLong) info.cullMaxLong = info.cullMinLong;
 	}
 	else if (param == BoundParam::MIN_LONG) {
 		info.cullMinLong += inc * M_PI / 180;
 		if (info.cullMinLong >= info.cullMaxLong) info.cullMinLong = info.cullMaxLong;
-		//if (Sdog::minLong <= -M_PI / 2) Sdog::minLong = -M_PI / 2;
+		if (info.cullMinLong <= -M_PI) info.cullMinLong = -M_PI;
 	}
 
 	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
@@ -269,11 +274,14 @@ void Program::setSubdivisionMode(SubdivisionMode mode) {
 	if (mode == SubdivisionMode::REP_SLICE) {
 		maxSubdivLevel = 8;
 	}
-	else {
+	else if (mode == SubdivisionMode::OCTANT) {
 		maxSubdivLevel = 6;
-		if (subdivLevel > maxSubdivLevel) {
-			subdivLevel = maxSubdivLevel;
-		}
+	}
+	else {
+		maxSubdivLevel = 5;
+	}
+	if (subdivLevel > maxSubdivLevel) {
+		subdivLevel = maxSubdivLevel;
 	}
 	setScheme(info.scheme);
 }
@@ -282,4 +290,36 @@ void Program::setSubdivisionMode(SubdivisionMode mode) {
 void Program::setDisplayMode(DisplayMode mode) {
 	dispMode = mode;
 	updateGrid(0);
+}
+
+// Calculate volume of grids at current level
+void Program::calculateVolumes(int level) {
+
+	SubdivisionMode old = info.mode;
+
+	// Representative slice for speed
+	std::vector<float> volumes;
+	info.mode = SubdivisionMode::REP_SLICE;
+	VolumetricSphericalHierarchy* temp = new VolumetricSphericalHierarchy(info);
+	root->getVolumes(volumes, level);
+
+	// Find max, min, and avg
+	float max = -FLT_MAX;
+	float min = FLT_MAX;
+	float avg = 0.f;
+
+	for (float v : volumes) {
+		avg += v;
+
+		if (v > max) max = v;
+		if (v < min) min = v;
+	}
+	avg /= volumes.size();
+
+	// Stor results for grids to use
+	info.volMax = max;
+	info.volMin = min;
+	info.volAvg = avg;
+	info.mode = old;
+	root->updateInfo(info);
 }
