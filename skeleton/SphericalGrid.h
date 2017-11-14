@@ -49,7 +49,7 @@ struct volInfo {
 class SphericalGrid {
 	
 public:
-	SphericalGrid(GridType type, const GridInfo& info, double maxRadius, double minRadius, 
+	SphericalGrid(GridType type, int depth, const GridInfo& info, double maxRadius, double minRadius, 
 	              double maxLat, double minLat, double maxLong, double minLong);
 	virtual ~SphericalGrid();
 
@@ -63,6 +63,7 @@ public:
 
 private:
 	GridType type;
+	int depth;
 
 	double maxRadius, minRadius;
 	double maxLat, minLat;

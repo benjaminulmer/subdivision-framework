@@ -64,7 +64,7 @@ void Program::start() {
 	info.data = SphericalData(0);
 
 	// Renderable for cull bounds
-	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
+	SphericalGrid b(GridType::NG, -1, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
@@ -196,7 +196,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 		if (info.cullMinLong <= -M_PI) info.cullMinLong = -M_PI;
 	}
 
-	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
+	SphericalGrid b(GridType::NG, -1, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);

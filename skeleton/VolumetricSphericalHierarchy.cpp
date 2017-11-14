@@ -7,26 +7,26 @@ VolumetricSphericalHierarchy::VolumetricSphericalHierarchy(GridInfo& info) :
 
 	// Create starting octants of SDOG
 	if (info.scheme == Scheme::SDOG || info.scheme == Scheme::VOLUME_SDOG || info.scheme == Scheme::SDOG_OPT) {
-		octants[0] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[1] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[3] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
+		octants[0] = new SphericalGrid(GridType::SG, 1, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[1] = new SphericalGrid(GridType::SG, 1, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
+		octants[2] = new SphericalGrid(GridType::SG, 1, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[3] = new SphericalGrid(GridType::SG, 1, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
 
-		octants[4] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[5] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
-		octants[6] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[7] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
+		octants[4] = new SphericalGrid(GridType::SG, 1, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+		octants[5] = new SphericalGrid(GridType::SG, 1, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
+		octants[6] = new SphericalGrid(GridType::SG, 1, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+		octants[7] = new SphericalGrid(GridType::SG, 1, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
 	}
 	else { // scheme == Scheme::NAIVE || scheme == Scheme::VOLUME
-		octants[0] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[1] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[3] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
+		octants[0] = new SphericalGrid(GridType::NG, 1, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[1] = new SphericalGrid(GridType::NG, 1, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
+		octants[2] = new SphericalGrid(GridType::NG, 1, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
+		octants[3] = new SphericalGrid(GridType::NG, 1, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
 
-		octants[4] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[5] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
-		octants[6] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[7] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
+		octants[4] = new SphericalGrid(GridType::NG, 1, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+		octants[5] = new SphericalGrid(GridType::NG, 1, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
+		octants[6] = new SphericalGrid(GridType::NG, 1, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
+		octants[7] = new SphericalGrid(GridType::NG, 1, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
 	}
 }
 
