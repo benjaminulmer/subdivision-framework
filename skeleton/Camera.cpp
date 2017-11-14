@@ -77,5 +77,5 @@ void Camera::reset() {
 	longitudeRotRad = 0;
 	latitudeRotRad = 0;
 
-	translation = glm::vec3(-1.f, 1.f, 1.f);
+	translation = glm::vec3(0.f, 0.f, 0.f);
 }
