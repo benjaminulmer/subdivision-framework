@@ -270,7 +270,7 @@ Sdog::Sdog(Scheme scheme, double radius) :
 	if (scheme == Scheme::SDOG || scheme == Scheme::VOLUME_SDOG || scheme == Scheme::SDOG_OPT) {
 		octants[0] = new SdogGrid(GridType::SG, 1, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SdogGrid(GridType::SG, 1, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SdogGrid(GridType::SG, 1, radius, 0.0, M_PI / 2, 0.0, 0.0, -M_PI / 2);
+		octants[2] = new SdogGrid(GridType::SG, 1, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[3] = new SdogGrid(GridType::SG, 1, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
 
 		octants[4] = new SdogGrid(GridType::SG, 1, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
@@ -281,7 +281,7 @@ Sdog::Sdog(Scheme scheme, double radius) :
 	else { // scheme == Scheme::NAIVE || scheme == Scheme::VOLUME
 		octants[0] = new SdogGrid(GridType::NG, 1, radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SdogGrid(GridType::NG, 1, radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SdogGrid(GridType::NG, 1, radius, 0.0, M_PI / 2, 0.0, 0.0, -M_PI / 2);
+		octants[2] = new SdogGrid(GridType::NG, 1, radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[3] = new SdogGrid(GridType::NG, 1, radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
 
 		octants[4] = new SdogGrid(GridType::NG, 1, radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
