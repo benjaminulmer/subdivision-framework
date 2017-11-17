@@ -275,7 +275,7 @@ void Program::setSubdivisionMode(SubdivisionMode mode) {
 	info.mode = mode;
 
 	if (mode == SubdivisionMode::REP_SLICE) {
-		maxSubdivLevel = 8;
+		maxSubdivLevel = 9;
 	}
 	else if (mode == SubdivisionMode::OCTANT) {
 		maxSubdivLevel = 6;

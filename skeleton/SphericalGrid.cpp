@@ -296,7 +296,7 @@ void SphericalGrid::fillRenderable(Renderable& r, DisplayMode mode) {
 		}
 		else {
 
-			if (abs(max - min) < 0.00001) {
+			if (abs(max/min) < 1.001) {
 				norm = 0.5f;
 			}
 			else {
