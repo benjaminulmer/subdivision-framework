@@ -41,6 +41,7 @@ public:
 
 	void setBoundsDrawing(bool state);
 	void toggleCull();
+	void toggleRotation();
 
 	void setSubdivisionMode(SubdivisionMode mode);
 	void setDisplayMode(DisplayMode mode);
@@ -63,6 +64,8 @@ private:
 
 	int maxSubdivLevel;
 	int subdivLevel;
+
+	bool rotation;
 	DisplayMode dispMode;
 	bool refOn;
 	bool fullSphereRef;

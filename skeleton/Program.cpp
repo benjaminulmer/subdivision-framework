@@ -8,6 +8,7 @@ Program::Program() {
 
 	maxSubdivLevel = 6;
 	subdivLevel = 1;
+	rotation = false;
 	dispMode = DisplayMode::DATA;
 
 	refOn = false;
@@ -23,6 +24,8 @@ void Program::start() {
 	GLenum err = glewInit();
 	if (glewInit() != GLEW_OK) {
 		std::cerr << glewGetErrorString(err) << std::endl;
+		system("pause");
+		exit(EXIT_FAILURE);
 	}
 
 	camera = new Camera();
@@ -81,7 +84,8 @@ void Program::start() {
 // Creates SDL window for the program and sets callbacks for input
 void Program::setupWindow() {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0){
-		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
+		std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
+		system("pause");
 		exit(EXIT_FAILURE);
 	}
 
@@ -129,6 +133,14 @@ void Program::mainLoop() {
 			max = (dist > max) ? dist : max;
 			min = (dist < min) ? dist : min;
 		}
+		if (rotation) {
+			grids.rot = glm::rotate(grids.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
+			referenceOct.rot = glm::rotate(referenceOct.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
+			referenceSphere.rot = glm::rotate(referenceSphere.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
+			currRef.rot = glm::rotate(currRef.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
+			cullBounds.rot = glm::rotate(cullBounds.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
+		}
+
 		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
 	}
@@ -235,12 +247,12 @@ void Program::updateReference() {
 
 	// Set size
 	if (fullSizeRef) {
-		referenceOct.model = glm::scale(glm::vec3(2.f, 2.f, 2.f));
-		referenceSphere.model = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+		referenceOct.scale = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+		referenceSphere.scale = glm::scale(glm::vec3(2.f, 2.f, 2.f));
 	}
 	else {
-		referenceOct.model = glm::mat4();
-		referenceSphere.model = glm::mat4();
+		referenceOct.scale = glm::mat4();
+		referenceSphere.scale = glm::mat4();
 	}
 
 	// Set shape
@@ -268,6 +280,11 @@ void Program::setBoundsDrawing(bool state) {
 void Program::toggleCull() {
 	info.cull = !info.cull;
 	updateGrid(0);
+}
+
+// Toggles auto rotation
+void Program::toggleRotation() {
+	rotation = !rotation;
 }
 
 // Sets subdivision mode to be used by the grids
