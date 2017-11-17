@@ -48,7 +48,7 @@ void Program::start() {
 	Sdog::maxLong = 0.0, Sdog::minLong = -M_PI / 2;
 
 	// And renderable for it
-	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
+	SdogGrid b(GridType::NG, -1, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
 	bounds.verts.clear();
 	bounds.normals.clear();
 	b.createRenderable(bounds, 0);
@@ -125,7 +125,7 @@ void Program::setScheme(Scheme scheme) {
 
 // Updates the level of subdivision being shown
 void Program::updateSubdivisionLevel(int add) {
-	if (level + add < 0 || level + add > 8) {
+	if (level + add < 0 || level + add > 9) {
 		return;
 	}
 	level += add;
@@ -171,7 +171,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 		if (Sdog::minLong <= -M_PI / 2) Sdog::minLong = -M_PI / 2;
 	}
 
-	SdogGrid b(GridType::NG, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
+	SdogGrid b(GridType::NG, -1, Sdog::maxRadius, Sdog::minRadius, Sdog::maxLat, Sdog::minLat, Sdog::maxLong, Sdog::minLong);
 	bounds.verts.clear();
 	bounds.normals.clear();
 	b.createRenderable(bounds, 0);

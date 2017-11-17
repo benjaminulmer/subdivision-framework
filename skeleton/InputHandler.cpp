@@ -57,15 +57,15 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		else if (key == SDLK_2) {
 			program->setScheme(Scheme::SDOG_OPT);
 		}
-		else if (key == SDLK_3) {
-			program->setScheme(Scheme::NAIVE);
-		}
-		else if (key == SDLK_4) {
-			program->setScheme(Scheme::VOLUME_SDOG);
-		}
-		else if (key == SDLK_5) {
-			program->setScheme(Scheme::VOLUME);
-		}
+		//else if (key == SDLK_3) {
+		//	program->setScheme(Scheme::NAIVE);
+		//}
+		//else if (key == SDLK_4) {
+		//	program->setScheme(Scheme::VOLUME_SDOG);
+		//}
+		//else if (key == SDLK_5) {
+		//	program->setScheme(Scheme::VOLUME);
+		//}
 		else if (key == SDLK_c) {
 			program->toggleCull();
 		}

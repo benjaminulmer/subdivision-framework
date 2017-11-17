@@ -26,7 +26,7 @@ enum class GridType {
 class SdogGrid {
 	
 public:
-	SdogGrid(GridType type, double maxRadius, double minRadius, 
+	SdogGrid(GridType type, int depth, double maxRadius, double minRadius, 
 	         double maxLat, double minLat, double maxLong, double minLong);
 	virtual ~SdogGrid();
 
@@ -45,6 +45,8 @@ private:
 
 	BigSmall bsRad;
 	BigSmall bsLat;
+
+	int depth;
 
 	double maxRadius, minRadius;
 	double maxLat, minLat;
