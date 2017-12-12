@@ -55,12 +55,11 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			program->setScheme(Scheme::SDOG);
 		}
 		else if (key == SDLK_2) {
-			program->setScheme(Scheme::SDOG_OPT);
+			program->setScheme(Scheme::NAIVE);
 		}
-		// Do not care about these options right now
-		//else if (key == SDLK_3) {
-		//	program->setScheme(Scheme::NAIVE);
-		//}
+		else if (key == SDLK_3) {
+			program->setScheme(Scheme::VOLUME);
+		}
 		//else if (key == SDLK_4) {
 		//	program->setScheme(Scheme::VOLUME_SDOG);
 		//}
@@ -102,6 +101,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		}
 		else if (key == SDLK_q) {
 			program->toggleRotation();
+		}
+		else if (key == SDLK_s) {
+			program->toggleSurfaceLocation();
 		}
 		else if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
 		         key == SDLK_j || key == SDLK_k || key == SDLK_l) {

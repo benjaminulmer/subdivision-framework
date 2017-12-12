@@ -6,14 +6,13 @@ SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadi
 	type(type),
 	maxRadius(maxRadius), minRadius(minRadius),
 	maxLat(maxLat), minLat(minLat),
-	maxLong(maxLong), minLong(minLong), info(info), leaf(true) {}
+	maxLong(maxLong), minLong(minLong),
+	children(0), info(info) {}
 
 // Deletes all children recursively (if has any)
 SphericalGrid::~SphericalGrid() {
-	if (!leaf) {
-		for (int i = 0; i < numChildren; i++) {
-			delete children[i];
-		}
+	for (SphericalGrid* g : children) {
+		delete g;
 	}
 }
 
@@ -49,11 +48,11 @@ void SphericalGrid::fillData(const SphericalDatum& d, int level) {
 
 	// If not at desired level recursively fill data on children
 	if (level != 0) {
-		for (int i = 0; i < numChildren; i++) {
+		for (SphericalGrid* g : children) {
 
 			// If contained in child no other child can contain point
-			if (children[i]->contains(d)) {
-				children[i]->fillData(d, level - 1);
+			if (g->contains(d)) {
+				g->fillData(d, level - 1);
 				data.addDatum(d);
 				break;
 			}
@@ -68,14 +67,13 @@ void SphericalGrid::fillData(const SphericalDatum& d, int level) {
 void SphericalGrid::subdivideTo(int level) {
 
 	// Only subdivide if a leaf (children already exist otherwise)
-	if (leaf) {
+	if (children.size() == 0) {
 		subdivide();
-		leaf = false;
 	}
 	// If more leveles need to be created recursively subdivide children
 	if (level > 0) {
-		for (int i = 0; i < numChildren; i++) {
-			children[i]->subdivideTo(level - 1);
+		for (SphericalGrid* g : children) {
+			g->subdivideTo(level - 1);
 		}
 	}
 }
@@ -88,7 +86,7 @@ void SphericalGrid::subdivide() {
 	double midRadius;
 	double midLat;
 
-	// Set splitting parameters from subdivision scheme
+	// Set splitting parameters 
 	if (info.scheme == Scheme::NAIVE || info.scheme == Scheme::SDOG) {
 		midRadius = (maxRadius + minRadius) / 2;
 		midLat = (maxLat + minLat) / 2;
@@ -115,58 +113,74 @@ void SphericalGrid::subdivide() {
 	}
 
 	if (info.mode != SubdivisionMode::REP_SLICE) {
-		if (type == GridType::NG) {
-			children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
-			children[2] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, maxLat, midLat, maxLong, midLong);
-			children[3] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-
-			children[4] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
-			children[5] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, maxLat, midLat, midLong, minLong);
-			children[6] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, maxLat, midLat, maxLong, midLong);
-			children[7] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, maxLong, midLong);
-			numChildren = 8;
-		}
-		else if (type == GridType::LG) {
-			children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-			children[2] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
-			children[3] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, maxLong, midLong);
-
-			children[4] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-			children[5] = new SphericalGrid(GridType::LG, info, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
-			numChildren = 6;
-		}
-		else {//(type == GridType::SG)
-			children[0] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-			children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[2] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
-			children[3] = new SphericalGrid(GridType::SG, info, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
-			numChildren = 4;
-		}
+		repSliceSubdivision(midRadius, midLat, midLong);
 	}
 	else {
-		if (type == GridType::NG) {
-			children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
-			children[2] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
-			children[3] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, maxLat, midLat, midLong, minLong);
-			numChildren = 4;
-		}
-		else if (type == GridType::LG) {
-			children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[1] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		fullSubdivision(midRadius, midLat, midLong);
+	}
+}
 
-			children[2] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-			children[3] = new SphericalGrid(GridType::LG, info, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
-			numChildren = 4;
-		}
-		else {//(type == GridType::SG)
-			children[0] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-			children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-			children[2] = new SphericalGrid(GridType::SG, info, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
-			numChildren = 3;
-		}
+// Only does representative subdivision for grid
+void SphericalGrid::repSliceSubdivision(double midRadius, double midLat, double midLong) {
+	if (type == GridType::NG) {
+		children = std::vector<SphericalGrid*>(8);
+
+		children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
+		children[2] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, maxLat, midLat, maxLong, midLong);
+		children[3] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+
+		children[4] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		children[5] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, maxLat, midLat, midLong, minLong);
+		children[6] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, maxLat, midLat, maxLong, midLong);
+		children[7] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, maxLong, midLong);
+	}
+	else if (type == GridType::LG) {
+		children = std::vector<SphericalGrid*>(6);
+
+		children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+		children[2] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		children[3] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, maxLong, midLong);
+
+		children[4] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[5] = new SphericalGrid(GridType::LG, info, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
+	}
+	else {//(type == GridType::SG)
+		children = std::vector<SphericalGrid*>(4);
+
+		children[0] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[2] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
+		children[3] = new SphericalGrid(GridType::SG, info, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
+	}
+}
+
+// Fully subdivides grid
+void SphericalGrid::fullSubdivision(double midRadius, double midLat, double midLong) {
+	if (type == GridType::NG) {
+		children = std::vector<SphericalGrid*>(4);
+
+		children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
+		children[2] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
+		children[3] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, maxLat, midLat, midLong, minLong);
+	}
+	else if (type == GridType::LG) {
+		children = std::vector<SphericalGrid*>(4);
+
+		children[0] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
+
+		children[2] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[3] = new SphericalGrid(GridType::LG, info, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
+	}
+	else {//(type == GridType::SG)
+		children = std::vector<SphericalGrid*>(3);
+
+		children[0] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
+		children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
+		children[2] = new SphericalGrid(GridType::SG, info, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
 	}
 }
 
@@ -175,8 +189,8 @@ void SphericalGrid::createRenderable(Renderable & r, int level, DisplayMode mode
 	
 	// If not at desired level recursively create renderables for children
 	if (level != 0) {
-		for (int i = 0; i < numChildren; i++) {
-			children[i]->createRenderable(r, level - 1, mode);
+		for (SphericalGrid* g : children) {
+			g->createRenderable(r, level - 1, mode);
 		}
 	}
 	else if (inRange()) {
@@ -216,8 +230,8 @@ void SphericalGrid::getVolumes(std::vector<float>& volumes, int level) {
 
 	// If not at desired level recursively get volumes for children
 	if (level != 0) {
-		for (int i = 0; i < numChildren; i++) {
-			children[i]->getVolumes(volumes, level - 1);
+		for (SphericalGrid* g : children) {
+			g->getVolumes(volumes, level - 1);
 		}
 	}
 	else {

@@ -42,6 +42,7 @@ public:
 	void setBoundsDrawing(bool state);
 	void toggleCull();
 	void toggleRotation();
+	void toggleSurfaceLocation();
 
 	void setSubdivisionMode(SubdivisionMode mode);
 	void setDisplayMode(DisplayMode mode);

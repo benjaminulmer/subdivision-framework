@@ -59,7 +59,7 @@ void Program::start() {
 	info.cullMaxRadius = 8.0 / 3.0; info.cullMinRadius = 0.0;
 	info.cullMaxLat = M_PI / 2; info.cullMinLat = 0.0;
 	info.cullMaxLong = 0.0, info.cullMinLong = -M_PI / 2;
-	info.cull = true;
+	info.cull = false;
 	info.data = SphericalData(0);
 
 	// Renderable for cull bounds
@@ -69,7 +69,7 @@ void Program::start() {
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds, false);
 
-	setScheme(Scheme::VOLUME);
+	setScheme(Scheme::SDOG);
 	updateGrid(0);
 	updateReference();
 
@@ -240,8 +240,15 @@ void Program::updateReference() {
 
 	// Set size
 	if (fullSizeRef) {
-		referenceOct.scale = glm::scale(glm::vec3(2.f, 2.f, 2.f));
-		referenceSphere.scale = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+		if (info.radius == 4.0) {
+			referenceOct.scale = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+			referenceSphere.scale = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+		}
+		else {
+			float scale = info.radius / 2.0f;
+			referenceOct.scale = glm::scale(glm::vec3(scale, scale, scale));
+			referenceSphere.scale = glm::scale(glm::vec3(scale, scale, scale));
+		}
 	}
 	else {
 		referenceOct.scale = glm::mat4();
@@ -279,6 +286,18 @@ void Program::toggleRotation() {
 	rotation = !rotation;
 }
 
+// Toggles location of surface between 0.5 and 0.75
+void Program::toggleSurfaceLocation() {
+	if (info.radius == 4.0) {
+		info.radius = 8.0 / 3.0;
+	}
+	else {
+		info.radius = 4.0;
+	}
+	setScheme(info.scheme);
+	updateReference();
+}
+
 // Sets subdivision mode to be used by the grids
 void Program::setSubdivisionMode(SubdivisionMode mode) {
 	info.mode = mode;
@@ -289,7 +308,7 @@ void Program::setSubdivisionMode(SubdivisionMode mode) {
 	else if (mode == SubdivisionMode::OCTANT) {
 		maxSubdivLevel = 6;
 	}
-	else { // (mode == SubdivisionMode::FULL)
+	else {//(mode == SubdivisionMode::FULL)
 		maxSubdivLevel = 5;
 	}
 	if (subdivLevel > maxSubdivLevel) {

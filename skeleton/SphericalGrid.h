@@ -59,16 +59,14 @@ private:
 	double maxLat, minLat;
 	double maxLong, minLong;
 
-	SphericalGrid* children[8];
+	std::vector<SphericalGrid*> children;
 	const GridInfo& info;
-
-	int numChildren;
-	bool leaf;
 
 	SphericalData data;
 
 	void subdivide();
+	void repSliceSubdivision(double midRadius, double midLat, double midLong);
+	void fullSubdivision(double midRadius, double midLat, double midLong);
 	bool inRange();
 	void fillRenderable(Renderable& r, DisplayMode mode);
 };
-
