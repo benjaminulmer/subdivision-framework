@@ -6,7 +6,7 @@ VolumetricSphericalHierarchy::VolumetricSphericalHierarchy(GridInfo& info) :
 	info(info), numLevels(0) {
 
 	// Create starting octants of SDOG
-	if (info.scheme == Scheme::SDOG || info.scheme == Scheme::VOLUME_SDOG || info.scheme == Scheme::SDOG_OPT) {
+	if (info.scheme == Scheme::SDOG) {
 		octants[0] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
 		octants[2] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
@@ -17,7 +17,7 @@ VolumetricSphericalHierarchy::VolumetricSphericalHierarchy(GridInfo& info) :
 		octants[6] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
 		octants[7] = new SphericalGrid(GridType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
 	}
-	else { // scheme == Scheme::NAIVE || scheme == Scheme::VOLUME
+	else {//(scheme == Scheme::NAIVE || scheme == Scheme::VOLUME)
 		octants[0] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
 		octants[2] = new SphericalGrid(GridType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);

@@ -39,6 +39,7 @@ void Program::start() {
 	referenceSphere.textureID = RenderEngine::loadTexture("textures/sphere.png");
 
 	RenderEngine::assignBuffers(grids, false);
+	grids.fade = true;
 	RenderEngine::assignBuffers(cullBounds, false);
 	cullBounds.lineColour = glm::vec3(0.f, 1.f, 0.f);
 
@@ -49,21 +50,16 @@ void Program::start() {
 	ContentReadWrite::loadOBJ("models/sphereTex.obj", referenceSphere);
 	RenderEngine::setBufferData(referenceSphere, true);
 
-	// Renderable data
-	grids.fade = true;
-
-	// Objects to draw
-	//objects.push_back(&referenceOctant);
+	// Objects to draw initially
 	objects.push_back(&grids);
 
 	// Set up GridInfo
-	info.radius = 4.0;
+	info.radius = 8.0 / 3.0;
 	info.mode = SubdivisionMode::OCTANT;
-	info.cullMaxRadius = 4.0; info.cullMinRadius = 0.0;
+	info.cullMaxRadius = 8.0 / 3.0; info.cullMinRadius = 0.0;
 	info.cullMaxLat = M_PI / 2; info.cullMinLat = 0.0;
 	info.cullMaxLong = 0.0, info.cullMinLong = -M_PI / 2;
 	info.cull = true;
-
 	info.data = SphericalData(0);
 
 	// Renderable for cull bounds
@@ -73,9 +69,8 @@ void Program::start() {
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds, false);
 
-	setScheme(Scheme::SDOG);
+	setScheme(Scheme::VOLUME);
 	updateGrid(0);
-
 	updateReference();
 
 	mainLoop();
@@ -94,7 +89,6 @@ void Program::setupWindow() {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
 	window = SDL_CreateWindow("sudivision framework", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
@@ -121,7 +115,7 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		// Find min and max distance for cell renderable
+		// Find min and max distance from camera to cell renderable
 		// Used for fading
 		float max = -FLT_MAX;
 		float min = FLT_MAX;
@@ -179,7 +173,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
 		info.cullMaxRadius -= inc * 0.1;
-		if (info.cullMaxRadius >= 4.0) info.cullMaxRadius = 4.0;
+		if (info.cullMaxRadius >= info.radius) info.cullMaxRadius = info.radius;
 		if (info.cullMaxRadius <= info.cullMinRadius) info.cullMaxRadius = info.cullMinRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
@@ -231,7 +225,6 @@ void Program::toggleRefShape() {
 
 // Toggles drawing of reference
 void Program::toggleRef() {
-
 	if (refOn) {
 		auto pos = std::find(objects.begin(), objects.end(), &currRef);
 		objects.erase(pos);
@@ -254,7 +247,6 @@ void Program::updateReference() {
 		referenceOct.scale = glm::mat4();
 		referenceSphere.scale = glm::mat4();
 	}
-
 	// Set shape
 	if (fullSphereRef) {
 		currRef = referenceSphere;
@@ -297,7 +289,7 @@ void Program::setSubdivisionMode(SubdivisionMode mode) {
 	else if (mode == SubdivisionMode::OCTANT) {
 		maxSubdivLevel = 6;
 	}
-	else {
+	else { // (mode == SubdivisionMode::FULL)
 		maxSubdivLevel = 5;
 	}
 	if (subdivLevel > maxSubdivLevel) {
@@ -314,7 +306,6 @@ void Program::setDisplayMode(DisplayMode mode) {
 
 // Calculate volume of grids at current level
 void Program::calculateVolumes(int level) {
-
 	SubdivisionMode old = info.mode;
 
 	// Representative slice for speed
@@ -336,7 +327,7 @@ void Program::calculateVolumes(int level) {
 	}
 	avg /= volumes.size();
 
-	// Stor results for grids to use
+	// Store results for grids to use
 	info.volMax = max;
 	info.volMin = min;
 	info.volAvg = avg;

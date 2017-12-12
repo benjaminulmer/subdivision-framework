@@ -18,9 +18,7 @@ enum class DisplayMode {
 
 enum class Scheme {
 	SDOG,
-	SDOG_OPT,
 	NAIVE,
-	VOLUME_SDOG,
 	VOLUME
 };
 
@@ -38,12 +36,7 @@ struct GridInfo {
 	double cullMaxRadius, cullMinRadius, cullMaxLat, cullMinLat, cullMaxLong, cullMinLong;
 
 	float volMin, volMax, volAvg;
-
 	SphericalData data;
-};
-
-struct volInfo {
-	float max, min, avg;
 };
 
 class SphericalGrid {
@@ -53,11 +46,9 @@ public:
 	              double maxLat, double minLat, double maxLong, double minLong);
 	virtual ~SphericalGrid();
 
-	static std::vector<volInfo> volInfos;
-
-	void subdivideTo(int level);
 	bool contains(const SphericalDatum& d);
 	void fillData(const SphericalDatum& d, int level);
+	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level, DisplayMode mode);
 	void getVolumes(std::vector<float>& volumes, int level);
 

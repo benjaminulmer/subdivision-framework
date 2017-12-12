@@ -62,6 +62,8 @@ private:
 	Renderable grids;
 	Renderable cullBounds;
 
+	std::vector<Renderable*> objects;
+
 	int maxSubdivLevel;
 	int subdivLevel;
 
@@ -71,11 +73,9 @@ private:
 	bool fullSphereRef;
 	bool fullSizeRef;
 
-	std::vector<Renderable*> objects;
-
 	void setupWindow();
 	void mainLoop();
-	void updateReference();
 
+	void updateReference();
 	void calculateVolumes(int level);
 };

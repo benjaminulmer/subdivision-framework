@@ -1,7 +1,5 @@
 #include "SphericalGrid.h"
 
-std::vector<volInfo> SphericalGrid::volInfos;
-
 // Creats an SdogGrid with given bounds in each (spherical) direction
 SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadius, double minRadius,
                              double maxLat, double minLat, double maxLong, double minLong) :
@@ -9,6 +7,15 @@ SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadi
 	maxRadius(maxRadius), minRadius(minRadius),
 	maxLat(maxLat), minLat(minLat),
 	maxLong(maxLong), minLong(minLong), info(info), leaf(true) {}
+
+// Deletes all children recursively (if has any)
+SphericalGrid::~SphericalGrid() {
+	if (!leaf) {
+		for (int i = 0; i < numChildren; i++) {
+			delete children[i];
+		}
+	}
+}
 
 // Returns if given data point resides in grid
 bool SphericalGrid::contains(const SphericalDatum& d) {
@@ -57,15 +64,6 @@ void SphericalGrid::fillData(const SphericalDatum& d, int level) {
 	}
 }
 
-// Deletes all children recursively (if has any)
-SphericalGrid::~SphericalGrid() {
-	if (!leaf) {
-		for (int i = 0; i < numChildren; i++) {
-			delete children[i];
-		}
-	}
-}
-
 // Recursive function for subdiving the tree to given level
 void SphericalGrid::subdivideTo(int level) {
 
@@ -95,11 +93,7 @@ void SphericalGrid::subdivide() {
 		midRadius = (maxRadius + minRadius) / 2;
 		midLat = (maxLat + minLat) / 2;
 	}
-	else if (info.scheme == Scheme::SDOG_OPT) {
-		midRadius = 0.51 * maxRadius + 0.49 * minRadius;
-		midLat = 0.49 * maxLat + 0.51 * minLat;
-	}
-	else { // info.scheme == Scheme::VOLUME || info.scheme == Scheme::VOLUME_SDOG
+	else {//(info.scheme == Scheme::VOLUME)
 		if (type == GridType::SG) {
 			midRadius = (0.629960524 * maxRadius) + ((1.0 - 0.629960524) * minRadius);
 			midLat = (0.464559054 * maxLat) + ((1.0 - 0.464559054) * minLat);
@@ -111,7 +105,7 @@ void SphericalGrid::subdivide() {
 			midRadius = num / denom;
 			midLat = asin((sin(maxLat) + sin(minLat)) / 2);
 		}
-		else { // (type == GridType::LG)
+		else {//(type == GridType::LG)
 			double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
 			double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
 
@@ -143,7 +137,7 @@ void SphericalGrid::subdivide() {
 			children[5] = new SphericalGrid(GridType::LG, info, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
 			numChildren = 6;
 		}
-		else { // (type == GridType::SG)
+		else {//(type == GridType::SG)
 			children[0] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
 			children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
 			children[2] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
@@ -167,7 +161,7 @@ void SphericalGrid::subdivide() {
 			children[3] = new SphericalGrid(GridType::LG, info, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
 			numChildren = 4;
 		}
-		else { // (type == GridType::SG)
+		else {//(type == GridType::SG)
 			children[0] = new SphericalGrid(GridType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
 			children[1] = new SphericalGrid(GridType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
 			children[2] = new SphericalGrid(GridType::SG, info, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
@@ -227,7 +221,7 @@ void SphericalGrid::getVolumes(std::vector<float>& volumes, int level) {
 		}
 	}
 	else {
-		float volume = (maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0;
+		float volume = (maxLong - minLong) * (pow(maxRadius, 3) - pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0;
 		volumes.push_back(abs(volume));
 	}
 }
@@ -294,7 +288,7 @@ void SphericalGrid::fillRenderable(Renderable& r, DisplayMode mode) {
 			avg = info.data.getAvg();
 		}
 		else {
-			selfValue = abs((maxLong - minLong) * (pow(maxRadius, 3) - powf(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
+			selfValue = abs((maxLong - minLong) * (pow(maxRadius, 3) - pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
 
 			min = info.volMin;
 			max = info.volMax;

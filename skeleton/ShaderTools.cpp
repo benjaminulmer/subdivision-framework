@@ -156,7 +156,7 @@ unsigned long ShaderTools::getFileLength(std::ifstream& file) {
 	if (!file.good()) return 0;
 
 	file.seekg(0, std::ios::end);
-	unsigned long len = file.tellg();
+	unsigned long len = (unsigned long) file.tellg();
 	file.seekg(std::ios::beg);
 
 	return len;

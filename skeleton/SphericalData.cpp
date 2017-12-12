@@ -18,7 +18,7 @@ SphericalData::SphericalData(int dummy) {
 		double latitude = dist1(gen);
 		double longitude = -dist1(gen);
 		double raidus = dist2(gen);
-		double datum = (M_PI / 2 - latitude) + dist3(gen);
+		float datum = (M_PI / 2 - latitude) + dist3(gen);
 
 		data.push_back(SphericalDatum(latitude, longitude, raidus, datum));
 	}
@@ -41,7 +41,7 @@ void SphericalData::calculateStats() {
 
 	for (SphericalDatum d : data) {
 
-		double v = d.datum;
+		float v = d.datum;
 
 		avg += v;
 		max = (v > max) ? v : max;
