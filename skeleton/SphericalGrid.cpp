@@ -42,7 +42,6 @@ bool SphericalGrid::contains(const SphericalDatum& d) {
 			d.radius <= maxRadius && d.radius > minRadius);
 }
 
-
 // Recursive function for agregating data located inside grid
 void SphericalGrid::fillData(const SphericalDatum& d, int level) {
 
@@ -80,38 +79,24 @@ void SphericalGrid::subdivideTo(int level) {
 
 // Subdivides grid into children grids
 void SphericalGrid::subdivide() {
-
-	// Midpoints
 	double midLong = (maxLong + minLong) / 2;
 	double midRadius;
 	double midLat;
 
-	// Set splitting parameters 
+	// Set radius and latitude splitting points 
 	if (info.scheme == Scheme::NAIVE || info.scheme == Scheme::SDOG) {
 		midRadius = (maxRadius + minRadius) / 2;
 		midLat = (maxLat + minLat) / 2;
 	}
 	else {//(info.scheme == Scheme::VOLUME)
-		if (type == GridType::SG) {
-			midRadius = (0.629960524 * maxRadius) + ((1.0 - 0.629960524) * minRadius);
-			midLat = (0.464559054 * maxLat) + ((1.0 - 0.464559054) * minLat);
-		}
-		else if (type == GridType::NG) {
-			double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
-			double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
+		double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
+		double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
 
-			midRadius = num / denom;
-			midLat = asin((sin(maxLat) + sin(minLat)) / 2);
-		}
-		else {//(type == GridType::LG)
-			double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
-			double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
-
-			midRadius = num / denom;
-			midLat = asin((2 * sin(maxLat) + sin(minLat)) / 3);
-		}
+		midRadius = num / denom;
+		midLat = asin((sin(maxLat) + sin(minLat)) / 2);
 	}
 
+	// Subdivision if different if only showing a representative slice
 	if (info.mode != SubdivisionMode::REP_SLICE) {
 		repSliceSubdivision(midRadius, midLat, midLong);
 	}
@@ -387,13 +372,7 @@ glm::vec3 SphericalGrid::getVolumeColour() {
 		colour = glm::vec3(0.f, 0.f, 1.f);
 	}
 	else {
-		float norm = 0.f;
-		if ((max / min) == 1.f) {
-			norm = 0.5f;
-		}
-		else {
-			norm = (selfValue - min) / (max - min);
-		}
+		float norm = (selfValue - min) / (max - min);
 		colour = glm::vec3(norm, norm, norm);
 	}
 	return colour;
