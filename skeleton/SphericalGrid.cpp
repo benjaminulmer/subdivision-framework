@@ -242,9 +242,28 @@ void SphericalGrid::getVolumes(std::vector<float>& volumes, int level) {
 
 // Fills a renderable with geometry for the grid
 void SphericalGrid::fillRenderable(Renderable& r, DisplayMode mode) {
-	glm::vec3 origin(0.f, 0.f, 0.f);
 
-	// Find key points, same for all types of grids
+	// Different rendering for data, volumes, and lines
+	if ((mode == DisplayMode::DATA && data.size() != 0) || mode == DisplayMode::VOLUMES) {
+		r.drawMode = GL_TRIANGLES;
+		faceRenderable(r);
+
+		// Colour is different for data and volume modes
+		glm::vec3 colour = (mode == DisplayMode::DATA) ? getDataColour() : getVolumeColour();
+
+		for (int i = 0; i < 36; i++) {
+			r.colours.push_back(colour);
+		}
+	}
+	else if (mode == DisplayMode::LINES) {
+		r.drawMode = GL_LINES;
+		lineRenderable(r);
+	}
+}
+
+// Fill renderable as faces
+void SphericalGrid::faceRenderable(Renderable& r) {
+
 	// Outer points
 	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRadius;
 	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRadius;
@@ -257,105 +276,125 @@ void SphericalGrid::fillRenderable(Renderable& r, DisplayMode mode) {
 	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
-	if (mode == DisplayMode::DATA || mode == DisplayMode::VOLUMES) {
-		r.drawMode = GL_TRIANGLES;
+	// Outside and inside
+	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
+	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
 
-		// If no data in grid do not draw
-		if (data.size() == 0 && mode == DisplayMode::DATA) {
-			return;
-		}
-		data.calculateStats();
+	r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
+	r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
 
-		// Outside and inside
-		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
-		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
+	// Sides
+	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
+	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
 
-		r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
-		r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
+	r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
+	r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
 
-		// Sides
-		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
-		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
+	// Top and bottom
+	r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
+	r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
 
-		r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
-		r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
+	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
+	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
+}
 
-		// Top and bottom
-		r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
-		r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
+// Fill renderable as wireframe outline
+void SphericalGrid::lineRenderable(Renderable& r) {
+	glm::vec3 origin(0.f, 0.f, 0.f);
 
-		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
-		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
+	// Outer points
+	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRadius;
+	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRadius;
+	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRadius;
+	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRadius;
 
-		float selfValue = data.getAvg();
-		float norm;
+	// Inner points
+	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRadius;
+	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRadius;
+	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
+	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
 
-		float min = info.data.getMin();
-		float max = info.data.getMax();
-		float avg = info.data.getAvg();
+	// Straight lines connect each inner point to coresponding outer point
+	Geometry::createLineR(i1, o1, r);
+	Geometry::createLineR(i2, o2, r);
+	Geometry::createLineR(i3, o3, r);
+	Geometry::createLineR(i4, o4, r);
 
-		if (mode == DisplayMode::DATA) {
-			selfValue = data.getAvg();
+	// Great circle arcs connect points on same longtitude line
+	Geometry::createArcR(o1, o3, origin, r);
+	Geometry::createArcR(o2, o4, origin, r);
+	Geometry::createArcR(i1, i3, origin, r);
+	Geometry::createArcR(i2, i4, origin, r);
 
-			min = info.data.getMin();
-			max = info.data.getMax();
-			avg = info.data.getAvg();
-		}
-		else {
-			selfValue = abs((maxLong - minLong) * (pow(maxRadius, 3) - pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
+	// Small circle arcs connect points on same latitude line
+	Geometry::createArcR(o1, o2, glm::vec3(0.f, sin(minLat), 0.f) * (float)maxRadius, r);
+	Geometry::createArcR(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)maxRadius, r);
+	Geometry::createArcR(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRadius, r);
+	Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRadius, r);
+}
 
-			min = info.volMin;
-			max = info.volMax;
-			avg = info.volAvg;
-		}
+// Get colour of grid for displaying data
+glm::vec3 SphericalGrid::getDataColour() {
+	glm::vec3 colour;
 
-		glm::vec3 colour;
+	data.calculateStats();
+	float selfValue = data.getAvg();
+	float min = info.data.getMin();
+	float max = info.data.getMax();
+	float avg = info.data.getAvg();
 
-		// Set colour of grid - temporary - will probaly change
-		if (selfValue > avg) {
-
-			norm = (selfValue - avg) / (max - avg);
-			colour = glm::vec3(norm, 0.f, 0.f);
-		}
-		else if (selfValue < avg) {
-
-			norm = (selfValue - min) / (avg - min);
-			colour = glm::vec3(0.f, 0.f, 1.f - norm);
-		}
-		else {
-
-			if (abs(max - min) < 0.00001) {
-				norm = 0.5f;
-			}
-			else {
-				norm = (selfValue - min) / (max - min);
-			}
-			colour = glm::vec3(norm, norm, norm);
-		}
-
-		for (int i = 0; i < 36; i++) {
-			r.colours.push_back(colour);
-		}
+	// Set colour
+	if (selfValue > avg) {
+		float norm = (selfValue - avg) / (max - avg);
+		colour = glm::vec3(norm, 0.f, 0.f);
+	}
+	else if (selfValue < avg) {
+		float norm = (selfValue - min) / (avg - min);
+		colour = glm::vec3(0.f, 0.f, 1.f - norm);
 	}
 	else {
-		r.drawMode = GL_LINES;
-
-		// Straight lines connect each inner point to coresponding outer point
-		Geometry::createLineR(i1, o1, r);
-		Geometry::createLineR(i2, o2, r);
-		Geometry::createLineR(i3, o3, r);
-		Geometry::createLineR(i4, o4, r);
-
-		// Great circle arcs connect points on same longtitude line
-		Geometry::createArcR(o1, o3, origin, r);
-		Geometry::createArcR(o2, o4, origin, r);
-		Geometry::createArcR(i1, i3, origin, r);
-		Geometry::createArcR(i2, i4, origin, r);
-
-		// Small circle arcs connect points on same latitude line
-		Geometry::createArcR(o1, o2, glm::vec3(0.f, sin(minLat), 0.f) * (float)maxRadius, r);
-		Geometry::createArcR(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)maxRadius, r);
-		Geometry::createArcR(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRadius, r);
-		Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRadius, r);
+		float norm = 0.f;
+		if (abs(max - min) < 0.00001) {
+			norm = 0.5f;
+		}
+		else {
+			norm = (selfValue - min) / (max - min);
+		}
+		colour = glm::vec3(norm, norm, norm);
 	}
+	return colour;
+}
+
+// Get colour of grid for displaying volumes
+glm::vec3 SphericalGrid::getVolumeColour() {
+	glm::vec3 colour;
+
+	float selfValue = abs((maxLong - minLong) * (pow(maxRadius, 3) - pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
+	float min = info.volMin;
+	float max = info.volMax;
+	float avg = info.volAvg;
+
+	// If all volumes the same return grey
+	if (max == min) {
+		return glm::vec3(0.5f, 0.5f, 0.5f);
+	}
+
+	// Set colour
+	if (selfValue == max) {
+		colour = glm::vec3(1.f, 0.f, 0.f);
+	}
+	else if (selfValue == min) {
+		colour = glm::vec3(0.f, 0.f, 1.f);
+	}
+	else {
+		float norm = 0.f;
+		if ((max / min) == 1.f) {
+			norm = 0.5f;
+		}
+		else {
+			norm = (selfValue - min) / (max - min);
+		}
+		colour = glm::vec3(norm, norm, norm);
+	}
+	return colour;
 }

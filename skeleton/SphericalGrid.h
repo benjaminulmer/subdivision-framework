@@ -68,5 +68,9 @@ private:
 	void repSliceSubdivision(double midRadius, double midLat, double midLong);
 	void fullSubdivision(double midRadius, double midLat, double midLong);
 	bool inRange();
+	void faceRenderable(Renderable& r);
+	void lineRenderable(Renderable& r);
+	glm::vec3 getDataColour();
+	glm::vec3 getVolumeColour();
 	void fillRenderable(Renderable& r, DisplayMode mode);
 };
