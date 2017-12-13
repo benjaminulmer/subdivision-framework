@@ -56,14 +56,20 @@ void Program::start() {
 	// Set up GridInfo
 	info.radius = 8.0 / 3.0;
 	info.mode = SubdivisionMode::OCTANT;
-	info.cullMaxRadius = 8.0 / 3.0; info.cullMinRadius = 0.0;
-	info.cullMaxLat = M_PI / 2; info.cullMinLat = 0.0;
-	info.cullMaxLong = 0.0, info.cullMinLong = -M_PI / 2;
-	info.cull = false;
+
+	info.cull.maxRadius = 8.0 / 3.0; info.cull.minRadius = 0.0;
+	info.cull.maxLat = M_PI / 2;     info.cull.minLat = 0.0;
+	info.cull.maxLong = 0.0,         info.cull.minLong = -M_PI / 2;
+
+	info.selection.maxRadius = 8.0 / 3.0; info.selection.minRadius = 0.0;
+	info.selection.maxLat = M_PI / 2;     info.selection.minLat = 0.0;
+	info.selection.maxLong = 0.0,         info.selection.minLong = -M_PI / 2;
+
+	info.culling = false;
 	info.data = SphericalData(0);
 
 	// Renderable for cull bounds
-	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
+	SphericalGrid b(GridType::NG, info, info.cull.maxRadius, info.cull.minRadius, info.cull.maxLat, info.cull.minLat, info.cull.maxLong, info.cull.minLong);
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds, false);
 
@@ -168,37 +174,37 @@ void Program::updateBounds(BoundParam param, int inc) {
 
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
-		info.cullMaxRadius -= inc * 0.1;
-		if (info.cullMaxRadius >= info.radius) info.cullMaxRadius = info.radius;
-		if (info.cullMaxRadius <= info.cullMinRadius) info.cullMaxRadius = info.cullMinRadius;
+		info.cull.maxRadius -= inc * 0.1;
+		if (info.cull.maxRadius >= info.radius) info.cull.maxRadius = info.radius;
+		if (info.cull.maxRadius <= info.cull.minRadius) info.cull.maxRadius = info.cull.minRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
-		info.cullMinRadius += inc * 0.1;
-		if (info.cullMinRadius >= info.cullMaxRadius) info.cullMinRadius = info.cullMaxRadius;
-		if (info.cullMinRadius <= 0.0) info.cullMinRadius = 0.0;
+		info.cull.minRadius += inc * 0.1;
+		if (info.cull.minRadius >= info.cull.maxRadius) info.cull.minRadius = info.cull.maxRadius;
+		if (info.cull.minRadius <= 0.0) info.cull.minRadius = 0.0;
 	}
 	else if (param == BoundParam::MAX_LAT) {
-		info.cullMaxLat -= inc * M_PI / 180;
-		if (info.cullMaxLat >= M_PI / 2) info.cullMaxLat = M_PI / 2;
-		if (info.cullMaxLat <= info.cullMinLat) info.cullMaxLat = info.cullMinLat;
+		info.cull.maxLat -= inc * M_PI / 180;
+		if (info.cull.maxLat >= M_PI / 2) info.cull.maxLat = M_PI / 2;
+		if (info.cull.maxLat <= info.cull.minLat) info.cull.maxLat = info.cull.minLat;
 	}
 	else if (param == BoundParam::MIN_LAT) {
-		info.cullMinLat += inc * M_PI / 180;
-		if (info.cullMinLat >= info.cullMaxLat) info.cullMinLat = info.cullMaxLat;
-		if (info.cullMinLat <= -M_PI / 2) info.cullMinLat = -M_PI / 2;
+		info.cull.minLat += inc * M_PI / 180;
+		if (info.cull.minLat >= info.cull.maxLat) info.cull.minLat = info.cull.maxLat;
+		if (info.cull.minLat <= -M_PI / 2) info.cull.minLat = -M_PI / 2;
 	}
 	else if (param == BoundParam::MAX_LONG) {
-		info.cullMaxLong -= inc * M_PI / 180;
-		if (info.cullMaxLong >= M_PI) info.cullMaxLong = M_PI;
-		if (info.cullMaxLong <= info.cullMinLong) info.cullMaxLong = info.cullMinLong;
+		info.cull.maxLong -= inc * M_PI / 180;
+		if (info.cull.maxLong >= M_PI) info.cull.maxLong = M_PI;
+		if (info.cull.maxLong <= info.cull.minLong) info.cull.maxLong = info.cull.minLong;
 	}
 	else if (param == BoundParam::MIN_LONG) {
-		info.cullMinLong += inc * M_PI / 180;
-		if (info.cullMinLong >= info.cullMaxLong) info.cullMinLong = info.cullMaxLong;
-		if (info.cullMinLong <= -M_PI) info.cullMinLong = -M_PI;
+		info.cull.minLong += inc * M_PI / 180;
+		if (info.cull.minLong >= info.cull.maxLong) info.cull.minLong = info.cull.maxLong;
+		if (info.cull.minLong <= -M_PI) info.cull.minLong = -M_PI;
 	}
 
-	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
+	SphericalGrid b(GridType::NG, info, info.cull.maxRadius, info.cull.minRadius, info.cull.maxLat, info.cull.minLat, info.cull.maxLong, info.cull.minLong);
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
@@ -273,7 +279,7 @@ void Program::setBoundsDrawing(bool state) {
 
 // Toggles bounds culling
 void Program::toggleCull() {
-	info.cull = !info.cull;
+	info.culling = !info.culling;
 	updateGrid(0);
 }
 
@@ -325,7 +331,7 @@ void Program::calculateVolumes(int level) {
 
 	// Representative slice for speed
 	std::vector<float> volumes;
-	info.mode = SubdivisionMode::REP_SLICE;
+	info.mode = SubdivisionMode::OCTANT;
 	VolumetricSphericalHierarchy* temp = new VolumetricSphericalHierarchy(info);
 	temp->getVolumes(volumes, level);
 	delete temp;
@@ -334,6 +340,9 @@ void Program::calculateVolumes(int level) {
 	float max = -FLT_MAX;
 	float min = FLT_MAX;
 	float avg = 0.f;
+
+	std::cout << volumes.size() << std::endl;
+	std::cout << VolumetricSphericalHierarchy::numberOfCells(level) << std::endl;
 
 	for (float v : volumes) {
 		avg += v;
@@ -349,5 +358,4 @@ void Program::calculateVolumes(int level) {
 	info.volMin = min;
 	info.volAvg = avg;
 	info.mode = old;
-	root->updateInfo(info);
 }

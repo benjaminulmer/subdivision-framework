@@ -84,6 +84,18 @@ void SphericalGrid::subdivide() {
 	else {
 		binarySubdivide();
 	}
+
+	// Remove all children that are not in the selection
+	auto it = children.begin();
+	while (it != children.end()) {
+		if ((*it)->outsideBounds(info.cull)) {
+			children.erase(it);
+			it = children.begin();
+		}
+		else {
+			it++;
+		}
+	}
 }
 
 // Subdivision for binary schemes
@@ -275,13 +287,13 @@ void SphericalGrid::createRenderable(Renderable & r, int level, DisplayMode mode
 			g->createRenderable(r, level - 1, mode);
 		}
 	}
-	else if (inRange()) {
+	else if (!info.culling || outsideBounds(info.cull)) {
 		fillRenderable(r, mode);
 	}
 }
 
 // Return true if grid is in bounds and culling is on
-bool SphericalGrid::inRange() {
+bool SphericalGrid::outsideBounds(GridBounds b) {
 
 	// Special cases for negative numbers
 	double rMinLat, rMaxLat, rMinLong, rMaxLong;
@@ -301,9 +313,8 @@ bool SphericalGrid::inRange() {
 		rMinLong = minLong;
 		rMaxLong = maxLong;
 	}
-	return (maxRadius <= info.cullMaxRadius && minRadius >= info.cullMinRadius &&
-	        rMaxLat <= info.cullMaxLat && rMinLat >= info.cullMinLat &&
-	        rMaxLong <= info.cullMaxLong && rMinLong >= info.cullMinLong) || !info.cull;
+	return minRadius > b.maxRadius || rMinLat > b.maxLat || rMinLong > b.maxLong ||
+	       maxRadius < b.minRadius || rMaxLat < b.minLat || rMaxLong < b.minLong;
 }
 
 // Recursive function for getting volumes at desired level

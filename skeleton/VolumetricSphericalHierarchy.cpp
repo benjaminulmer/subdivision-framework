@@ -103,3 +103,24 @@ void VolumetricSphericalHierarchy::fillData(int level) {
 		}
 	}
 }
+
+int VolumetricSphericalHierarchy::numberOfCells(int depth) {
+	if (depth == 1) {
+		return 4;
+	}
+	else if (depth == 0) {
+		return 1;
+	}
+	else {
+		return 2 * pow(8, depth - 1) + 2 * numCellsHelper(depth) + numberOfCells(depth - 1);
+	}
+}
+
+int VolumetricSphericalHierarchy::numCellsHelper(int depth) {
+	if (depth == 1) {
+		return 1;
+	}
+	else {
+		return 4 * pow(8, depth - 2) + 2 * numCellsHelper(depth - 1);
+	}
+}

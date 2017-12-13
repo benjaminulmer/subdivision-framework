@@ -12,9 +12,7 @@ public:
 	//Sdog(const Sdog& other);
 	//Sdog& operator= (const Sdog& other);
 
-	void updateInfo(GridInfo& info) {
-		this->info = info;
-	}
+	static int numberOfCells(int depth);
 
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level, DisplayMode mode);
@@ -26,4 +24,6 @@ private:
 	SphericalGrid* octants[8];
 	GridInfo info;
 	int numLevels;
+
+	static int numCellsHelper(int depth);
 };

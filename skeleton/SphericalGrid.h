@@ -29,12 +29,19 @@ enum class GridType {
 	SG
 };
 
+struct GridBounds {
+	double maxRadius, minRadius;
+	double maxLat, minLat;
+	double maxLong, minLong;
+};
+
 struct GridInfo {
 	Scheme scheme;
 	SubdivisionMode mode;
-	bool cull;
+	bool culling;
 	double radius;
-	double cullMaxRadius, cullMinRadius, cullMaxLat, cullMinLat, cullMaxLong, cullMinLong;
+	GridBounds cull;
+	GridBounds selection;
 
 	float volMin, volMax, volAvg;
 	SphericalData data;
@@ -71,7 +78,7 @@ private:
 	void repSliceSubdivision(double midRadius, double midLat, double midLong);
 	void fullSubdivision(double midRadius, double midLat, double midLong);
 
-	bool inRange();
+	bool outsideBounds(GridBounds b);
 
 	void fillRenderable(Renderable& r, DisplayMode mode);
 	void faceRenderable(Renderable& r);
