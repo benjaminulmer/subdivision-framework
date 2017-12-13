@@ -9,7 +9,7 @@ Program::Program() {
 	maxSubdivLevel = 6;
 	subdivLevel = 1;
 	rotation = false;
-	dispMode = DisplayMode::DATA;
+	dispMode = DisplayMode::LINES;
 
 	refOn = false;
 	fullSphereRef = false;
@@ -69,7 +69,7 @@ void Program::start() {
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds, false);
 
-	setScheme(Scheme::SDOG);
+	setScheme(Scheme::TERNARY);
 	updateGrid(0);
 	updateReference();
 
@@ -145,7 +145,7 @@ void Program::setScheme(Scheme scheme) {
 	delete root;
 	info.scheme = scheme;
 	root = new VolumetricSphericalHierarchy(info);
-	root->fillData(maxSubdivLevel);
+	//root->fillData(maxSubdivLevel);
 	updateGrid(0);
 }
 
@@ -331,7 +331,8 @@ void Program::calculateVolumes(int level) {
 	std::vector<float> volumes;
 	info.mode = SubdivisionMode::REP_SLICE;
 	VolumetricSphericalHierarchy* temp = new VolumetricSphericalHierarchy(info);
-	root->getVolumes(volumes, level);
+	temp->getVolumes(volumes, level);
+	delete temp;
 
 	// Find max, min, and avg
 	float max = -FLT_MAX;
@@ -345,6 +346,7 @@ void Program::calculateVolumes(int level) {
 		if (v < min) min = v;
 	}
 	avg /= volumes.size();
+	std::cout << max / min << std::endl;
 
 	// Store results for grids to use
 	info.volMax = max;

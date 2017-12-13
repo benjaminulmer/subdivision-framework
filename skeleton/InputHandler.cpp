@@ -58,7 +58,7 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			program->setScheme(Scheme::NAIVE);
 		}
 		else if (key == SDLK_3) {
-			program->setScheme(Scheme::VOLUME);
+			program->setScheme(Scheme::TERNARY);
 		}
 		//else if (key == SDLK_4) {
 		//	program->setScheme(Scheme::VOLUME_SDOG);

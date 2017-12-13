@@ -19,7 +19,8 @@ enum class DisplayMode {
 enum class Scheme {
 	SDOG,
 	NAIVE,
-	VOLUME
+	VOLUME,
+	TERNARY
 };
 
 enum class GridType {
@@ -67,10 +68,13 @@ private:
 	void subdivide();
 	void repSliceSubdivision(double midRadius, double midLat, double midLong);
 	void fullSubdivision(double midRadius, double midLat, double midLong);
+	void ternarySubdivide();
+
 	bool inRange();
+
+	void fillRenderable(Renderable& r, DisplayMode mode);
 	void faceRenderable(Renderable& r);
 	void lineRenderable(Renderable& r);
 	glm::vec3 getDataColour();
 	glm::vec3 getVolumeColour();
-	void fillRenderable(Renderable& r, DisplayMode mode);
 };
