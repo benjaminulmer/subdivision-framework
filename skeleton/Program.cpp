@@ -19,7 +19,7 @@ Program::Program() {
 }
 
 // Called to start the program. Conducts set up then enters the main loop
-void Program::start() {
+void Program::start() {	
 	setupWindow();
 	GLenum err = glewInit();
 	if (glewInit() != GLEW_OK) {
@@ -64,13 +64,10 @@ void Program::start() {
 
 	// Renderable for cull bounds
 	SphericalGrid b(GridType::NG, info, info.cullMaxRadius, info.cullMinRadius, info.cullMaxLat, info.cullMinLat, info.cullMaxLong, info.cullMinLong);
-	cullBounds.verts.clear();
-	cullBounds.colours.clear();
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds, false);
 
-	setScheme(Scheme::TERNARY);
-	updateGrid(0);
+	setScheme(Scheme::SDOG);
 	updateReference();
 
 	mainLoop();
@@ -103,7 +100,6 @@ void Program::setupWindow() {
 	if (context == NULL) {
 		std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
 	}
-
 	SDL_GL_SetSwapInterval(1); // Vsync on
 }
 

@@ -66,9 +66,10 @@ private:
 	SphericalData data;
 
 	void subdivide();
+	void binarySubdivide();
+	void ternarySubdivide();
 	void repSliceSubdivision(double midRadius, double midLat, double midLong);
 	void fullSubdivision(double midRadius, double midLat, double midLong);
-	void ternarySubdivide();
 
 	bool inRange();
 

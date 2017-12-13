@@ -12,9 +12,9 @@ SphericalData::SphericalData(int dummy) {
 	gen.seed(5);
 	std::uniform_real_distribution<double> dist1(0, M_PI / 2);
 	std::normal_distribution<double> dist2(2, .1);
-	std::uniform_real_distribution<double> dist3(-0.3, 0.3);
+	std::uniform_real_distribution<float> dist3(-0.3, 0.3);
 
-	for (int i = 0; i < 100000; i++) {
+	for (int i = 0; i < 1; i++) {
 		double latitude = dist1(gen);
 		double longitude = -dist1(gen);
 		double raidus = dist2(gen);

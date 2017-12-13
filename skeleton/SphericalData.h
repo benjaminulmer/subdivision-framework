@@ -29,7 +29,7 @@ public:
 	}
 
 	int size() {
-		return data.size();
+		return (int) data.size();
 	}
 
 	void addDatum(const SphericalDatum& d) {
