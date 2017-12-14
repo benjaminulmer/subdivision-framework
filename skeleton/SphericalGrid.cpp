@@ -88,7 +88,7 @@ void SphericalGrid::subdivide() {
 	// Remove all children that are not in the selection
 	auto it = children.begin();
 	while (it != children.end()) {
-		if ((*it)->outsideBounds(info.cull)) {
+		if ((*it)->outsideBounds(info.selection)) {
 			children.erase(it);
 			it = children.begin();
 		}
@@ -287,7 +287,7 @@ void SphericalGrid::createRenderable(Renderable & r, int level, DisplayMode mode
 			g->createRenderable(r, level - 1, mode);
 		}
 	}
-	else if (!info.culling || outsideBounds(info.cull)) {
+	else if (!info.culling || !outsideBounds(info.cull)) {
 		fillRenderable(r, mode);
 	}
 }
@@ -313,8 +313,8 @@ bool SphericalGrid::outsideBounds(GridBounds b) {
 		rMinLong = minLong;
 		rMaxLong = maxLong;
 	}
-	return minRadius > b.maxRadius || rMinLat > b.maxLat || rMinLong > b.maxLong ||
-	       maxRadius < b.minRadius || rMaxLat < b.minLat || rMaxLong < b.minLong;
+	return minRadius >= b.maxRadius || rMinLat >= b.maxLat || rMinLong >= b.maxLong ||
+	       maxRadius <= b.minRadius || rMaxLat <= b.minLat || rMaxLong <= b.minLong;
 }
 
 // Recursive function for getting volumes at desired level

@@ -52,13 +52,13 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			program->updateGrid(-1);
 		}
 		else if (key == SDLK_1) {
-			program->setScheme(Scheme::SDOG);
+			program->createGrid(Scheme::SDOG);
 		}
 		else if (key == SDLK_2) {
-			program->setScheme(Scheme::NAIVE);
+			program->createGrid(Scheme::NAIVE);
 		}
 		else if (key == SDLK_3) {
-			program->setScheme(Scheme::TERNARY);
+			program->createGrid(Scheme::TERNARY);
 		}
 		//else if (key == SDLK_4) {
 		//	program->setScheme(Scheme::VOLUME_SDOG);
@@ -67,7 +67,7 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		//	program->setScheme(Scheme::VOLUME);
 		//}
 		else if (key == SDLK_4) {
-			program->setSubdivisionMode(SubdivisionMode::OCTANT);
+			program->setSubdivisionMode(SubdivisionMode::SELECTION);
 		}
 		else if (key == SDLK_5) {
 			program->setSubdivisionMode(SubdivisionMode::FULL);
@@ -108,6 +108,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		else if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
 		         key == SDLK_j || key == SDLK_k || key == SDLK_l) {
 			program->setBoundsDrawing(true);
+		}
+		else if (key == SDLK_RETURN) {
+			program->toggleMakingSelection();
 		}
 		else if (key == SDLK_ESCAPE) {
 			SDL_Quit();

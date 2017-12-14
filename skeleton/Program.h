@@ -31,7 +31,7 @@ public:
 
 	void start();
 
-	void setScheme(Scheme scheme);
+	void createGrid(Scheme scheme);
 	void updateGrid(int levelInc);
 	void updateBounds(BoundParam param, int inc);
 
@@ -46,6 +46,8 @@ public:
 
 	void setSubdivisionMode(SubdivisionMode mode);
 	void setDisplayMode(DisplayMode mode);
+
+	void toggleMakingSelection();
 
 private:
 	SDL_Window* window;
@@ -67,6 +69,8 @@ private:
 
 	int maxSubdivLevel;
 	int subdivLevel;
+
+	bool makingSelection;
 
 	bool rotation;
 	DisplayMode dispMode;

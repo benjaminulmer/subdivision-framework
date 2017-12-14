@@ -6,6 +6,8 @@ Program::Program() {
 	camera = nullptr;
 	root = nullptr;
 
+	makingSelection = false;
+
 	maxSubdivLevel = 6;
 	subdivLevel = 1;
 	rotation = false;
@@ -41,7 +43,6 @@ void Program::start() {
 	RenderEngine::assignBuffers(grids, false);
 	grids.fade = true;
 	RenderEngine::assignBuffers(cullBounds, false);
-	cullBounds.lineColour = glm::vec3(0.f, 1.f, 0.f);
 
 	// Create geometry for references
 	ContentReadWrite::loadOBJ("models/octTex.obj", referenceOct);
@@ -55,7 +56,7 @@ void Program::start() {
 
 	// Set up GridInfo
 	info.radius = 8.0 / 3.0;
-	info.mode = SubdivisionMode::OCTANT;
+	info.mode = SubdivisionMode::FULL;
 
 	info.cull.maxRadius = 8.0 / 3.0; info.cull.minRadius = 0.0;
 	info.cull.maxLat = M_PI / 2;     info.cull.minLat = 0.0;
@@ -73,7 +74,7 @@ void Program::start() {
 	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds, false);
 
-	setScheme(Scheme::SDOG);
+	createGrid(Scheme::SDOG);
 	updateReference();
 
 	mainLoop();
@@ -143,7 +144,7 @@ void Program::mainLoop() {
 }
 
 // Sets the scheme that will be used for subdivision
-void Program::setScheme(Scheme scheme) {
+void Program::createGrid(Scheme scheme) {
 	delete root;
 	info.scheme = scheme;
 	root = new VolumetricSphericalHierarchy(info);
@@ -171,43 +172,54 @@ void Program::updateGrid(int levelInc) {
 
 // Updates bounds of which cells to show
 void Program::updateBounds(BoundParam param, int inc) {
+	GridBounds& b = (makingSelection) ? info.selection : info.cull;
 
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
-		info.cull.maxRadius -= inc * 0.1;
-		if (info.cull.maxRadius >= info.radius) info.cull.maxRadius = info.radius;
-		if (info.cull.maxRadius <= info.cull.minRadius) info.cull.maxRadius = info.cull.minRadius;
+		b.maxRadius -= inc * 0.1;
+		if (b.maxRadius >= info.radius) b.maxRadius = info.radius;
+		if (b.maxRadius <= b.minRadius) b.maxRadius = b.minRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
-		info.cull.minRadius += inc * 0.1;
-		if (info.cull.minRadius >= info.cull.maxRadius) info.cull.minRadius = info.cull.maxRadius;
-		if (info.cull.minRadius <= 0.0) info.cull.minRadius = 0.0;
+		b.minRadius += inc * 0.1;
+		if (b.minRadius >= b.maxRadius) b.minRadius = b.maxRadius;
+		if (b.minRadius <= 0.0) b.minRadius = 0.0;
 	}
 	else if (param == BoundParam::MAX_LAT) {
-		info.cull.maxLat -= inc * M_PI / 180;
-		if (info.cull.maxLat >= M_PI / 2) info.cull.maxLat = M_PI / 2;
-		if (info.cull.maxLat <= info.cull.minLat) info.cull.maxLat = info.cull.minLat;
+		b.maxLat -= inc * M_PI / 180;
+		if (b.maxLat >= M_PI / 2) b.maxLat = M_PI / 2;
+		if (b.maxLat <= b.minLat) b.maxLat = b.minLat;
 	}
 	else if (param == BoundParam::MIN_LAT) {
-		info.cull.minLat += inc * M_PI / 180;
-		if (info.cull.minLat >= info.cull.maxLat) info.cull.minLat = info.cull.maxLat;
-		if (info.cull.minLat <= -M_PI / 2) info.cull.minLat = -M_PI / 2;
+		b.minLat += inc * M_PI / 180;
+		if (b.minLat >= b.maxLat) b.minLat = b.maxLat;
+		if (b.minLat <= -M_PI / 2) b.minLat = -M_PI / 2;
 	}
 	else if (param == BoundParam::MAX_LONG) {
-		info.cull.maxLong -= inc * M_PI / 180;
-		if (info.cull.maxLong >= M_PI) info.cull.maxLong = M_PI;
-		if (info.cull.maxLong <= info.cull.minLong) info.cull.maxLong = info.cull.minLong;
+		b.maxLong -= inc * M_PI / 180;
+		if (b.maxLong >= M_PI) b.maxLong = M_PI;
+		if (b.maxLong <= b.minLong) b.maxLong = b.minLong;
 	}
 	else if (param == BoundParam::MIN_LONG) {
-		info.cull.minLong += inc * M_PI / 180;
-		if (info.cull.minLong >= info.cull.maxLong) info.cull.minLong = info.cull.maxLong;
-		if (info.cull.minLong <= -M_PI) info.cull.minLong = -M_PI;
+		b.minLong += inc * M_PI / 180;
+		if (b.minLong >= b.maxLong) b.minLong = b.maxLong;
+		if (b.minLong <= -M_PI) b.minLong = -M_PI;
 	}
 
-	SphericalGrid b(GridType::NG, info, info.cull.maxRadius, info.cull.minRadius, info.cull.maxLat, info.cull.minLat, info.cull.maxLong, info.cull.minLong);
+	if (makingSelection) {
+		cullBounds.lineColour = glm::vec3(0.8f, 0.f, 0.f);
+	}
+	else if (info.culling) {
+		cullBounds.lineColour = glm::vec3(0.05f, 0.05f, 1.0f);
+	}
+	else {
+		cullBounds.lineColour = glm::vec3(0.14, 0.f, 0.48f);
+	}
+
+	SphericalGrid r(GridType::NG, info, b.maxRadius, b.minRadius, b.maxLat, b.minLat, b.maxLong, b.minLong);
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
-	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
+	r.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds, false);
 
 	updateGrid(0);
@@ -267,6 +279,10 @@ void Program::updateReference() {
 
 // Turn bounds box drawing on or off
 void Program::setBoundsDrawing(bool state) {
+	if (makingSelection && !state) {
+		return;
+	}
+
 	auto pos = std::find(objects.begin(), objects.end(), &cullBounds);
 
 	if (!state && pos != objects.end()) {
@@ -280,6 +296,7 @@ void Program::setBoundsDrawing(bool state) {
 // Toggles bounds culling
 void Program::toggleCull() {
 	info.culling = !info.culling;
+	updateBounds(BoundParam::MAX_RADIUS, 0);
 	updateGrid(0);
 }
 
@@ -296,7 +313,7 @@ void Program::toggleSurfaceLocation() {
 	else {
 		info.radius = 4.0;
 	}
-	setScheme(info.scheme);
+	createGrid(info.scheme);
 	updateReference();
 }
 
@@ -307,7 +324,7 @@ void Program::setSubdivisionMode(SubdivisionMode mode) {
 	if (mode == SubdivisionMode::REP_SLICE) {
 		maxSubdivLevel = 8;
 	}
-	else if (mode == SubdivisionMode::OCTANT) {
+	else if (mode == SubdivisionMode::SELECTION) {
 		maxSubdivLevel = 6;
 	}
 	else {//(mode == SubdivisionMode::FULL)
@@ -316,7 +333,7 @@ void Program::setSubdivisionMode(SubdivisionMode mode) {
 	if (subdivLevel > maxSubdivLevel) {
 		subdivLevel = maxSubdivLevel;
 	}
-	setScheme(info.scheme);
+	createGrid(info.scheme);
 }
 
 // Sets display mode for rendering
@@ -325,13 +342,29 @@ void Program::setDisplayMode(DisplayMode mode) {
 	updateGrid(0);
 }
 
+// Turns selection mode on or off
+void Program::toggleMakingSelection() {
+	if (!makingSelection) {
+		makingSelection = true;
+		updateBounds(BoundParam::MAX_RADIUS, 0);
+		setBoundsDrawing(true);
+	}
+	else {
+		makingSelection = false;
+		updateBounds(BoundParam::MAX_RADIUS, 0);
+		setBoundsDrawing(false);
+		createGrid(info.scheme);
+	}
+}
+
+
 // Calculate volume of grids at current level
 void Program::calculateVolumes(int level) {
 	SubdivisionMode old = info.mode;
 
 	// Representative slice for speed
 	std::vector<float> volumes;
-	info.mode = SubdivisionMode::OCTANT;
+	info.mode = SubdivisionMode::REP_SLICE;
 	VolumetricSphericalHierarchy* temp = new VolumetricSphericalHierarchy(info);
 	temp->getVolumes(volumes, level);
 	delete temp;

@@ -6,7 +6,7 @@
 
 enum class SubdivisionMode {
 	FULL,
-	OCTANT,
+	SELECTION,
 	REP_SLICE
 };
 
