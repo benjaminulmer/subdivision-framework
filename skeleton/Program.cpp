@@ -58,13 +58,13 @@ void Program::start() {
 	info.radius = 8.0 / 3.0;
 	info.mode = SubdivisionMode::FULL;
 
-	info.cull.maxRadius = 8.0 / 3.0; info.cull.minRadius = 0.0;
-	info.cull.maxLat = M_PI / 2;     info.cull.minLat = 0.0;
-	info.cull.maxLong = 0.0,         info.cull.minLong = -M_PI / 2;
+	info.cull.maxRadius = 4.0;   info.cull.minRadius = 0.0;
+	info.cull.maxLat = M_PI / 2; info.cull.minLat = 0.0;
+	info.cull.maxLong = 0.0,     info.cull.minLong = -M_PI / 2;
 
-	info.selection.maxRadius = 8.0 / 3.0; info.selection.minRadius = 0.0;
-	info.selection.maxLat = M_PI / 2;     info.selection.minLat = 0.0;
-	info.selection.maxLong = 0.0,         info.selection.minLong = -M_PI / 2;
+	info.selection.maxRadius = 4.0;   info.selection.minRadius = 0.0;
+	info.selection.maxLat = M_PI / 2; info.selection.minLat = 0.0;
+	info.selection.maxLong = 0.0,     info.selection.minLong = -M_PI / 2;
 
 	info.culling = false;
 	info.data = SphericalData(0);
@@ -148,13 +148,33 @@ void Program::createGrid(Scheme scheme) {
 	delete root;
 	info.scheme = scheme;
 	root = new VolumetricSphericalHierarchy(info);
+
+	int max = (scheme == Scheme::TERNARY) ? 50000 : 400000;
+
+	int level = 0;
+	while (true) {
+		int numGrids = root->getNumGrids();
+		std::cout << numGrids << std::endl;
+		if (numGrids < max) {
+			level++;
+			root->subdivideTo(level);
+		}
+		else {
+			maxSubdivLevel = level;
+			break;
+		}
+	}
+	if (subdivLevel > maxSubdivLevel) {
+		subdivLevel = maxSubdivLevel;
+	}
+
 	//root->fillData(maxSubdivLevel);
 	updateGrid(0);
 }
 
 // Updates the level of subdivision being shown
 void Program::updateGrid(int levelInc) {
-	if (subdivLevel + levelInc < 0 || subdivLevel + levelInc > maxSubdivLevel) {
+	if (subdivLevel + levelInc < 1 || subdivLevel + levelInc > maxSubdivLevel) {
 		return;
 	}
 	subdivLevel += levelInc;
@@ -177,7 +197,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
 		b.maxRadius -= inc * 0.1;
-		if (b.maxRadius >= info.radius) b.maxRadius = info.radius;
+		if (b.maxRadius >= 4.0) b.maxRadius = 4.0;
 		if (b.maxRadius <= b.minRadius) b.maxRadius = b.minRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
@@ -320,19 +340,6 @@ void Program::toggleSurfaceLocation() {
 // Sets subdivision mode to be used by the grids
 void Program::setSubdivisionMode(SubdivisionMode mode) {
 	info.mode = mode;
-
-	if (mode == SubdivisionMode::REP_SLICE) {
-		maxSubdivLevel = 8;
-	}
-	else if (mode == SubdivisionMode::SELECTION) {
-		maxSubdivLevel = 6;
-	}
-	else {//(mode == SubdivisionMode::FULL)
-		maxSubdivLevel = 5;
-	}
-	if (subdivLevel > maxSubdivLevel) {
-		subdivLevel = maxSubdivLevel;
-	}
 	createGrid(info.scheme);
 }
 
@@ -364,7 +371,7 @@ void Program::calculateVolumes(int level) {
 
 	// Representative slice for speed
 	std::vector<float> volumes;
-	info.mode = SubdivisionMode::REP_SLICE;
+	info.mode = SubdivisionMode::SELECTION;
 	VolumetricSphericalHierarchy* temp = new VolumetricSphericalHierarchy(info);
 	temp->getVolumes(volumes, level);
 	delete temp;
@@ -373,9 +380,6 @@ void Program::calculateVolumes(int level) {
 	float max = -FLT_MAX;
 	float min = FLT_MAX;
 	float avg = 0.f;
-
-	std::cout << volumes.size() << std::endl;
-	std::cout << VolumetricSphericalHierarchy::numberOfCells(level) << std::endl;
 
 	for (float v : volumes) {
 		avg += v;

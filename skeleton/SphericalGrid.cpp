@@ -69,7 +69,7 @@ void SphericalGrid::subdivideTo(int level) {
 		subdivide();
 	}
 	// If more leveles need to be created recursively subdivide children
-	if (level > 0) {
+	if (level > 1) {
 		for (SphericalGrid* g : children) {
 			g->subdivideTo(level - 1);
 		}
@@ -87,13 +87,18 @@ void SphericalGrid::subdivide() {
 
 	// Remove all children that are not in the selection
 	auto it = children.begin();
-	while (it != children.end()) {
-		if ((*it)->outsideBounds(info.selection)) {
-			children.erase(it);
-			it = children.begin();
-		}
-		else {
-			it++;
+
+	if (info.mode == SubdivisionMode::SELECTION) {
+
+		// Remove all children outside of selection
+		while (it != children.end()) {
+			if ((*it)->outsideBounds(info.selection)) {
+				children.erase(it);
+				it = children.begin();
+			}
+			else {
+				it++;
+			}
 		}
 	}
 }
@@ -329,6 +334,20 @@ void SphericalGrid::getVolumes(std::vector<float>& volumes, int level) {
 	else {
 		float volume = (maxLong - minLong) * (pow(maxRadius, 3) - pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0;
 		volumes.push_back(abs(volume));
+	}
+}
+
+// Recursive function for getting number of grids at desired level
+int SphericalGrid::getNumGrids() {
+	int toReturn = 0;
+	if (children.size() != 0) {
+		for (SphericalGrid* g : children) {
+			toReturn += g->getNumGrids();
+		}
+		return toReturn;
+	}
+	else {
+		return 1;
 	}
 }
 

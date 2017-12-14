@@ -45,7 +45,7 @@ void VolumetricSphericalHierarchy::subdivideTo(int level) {
 		return;
 	}
 
-	if (info.mode == SubdivisionMode::FULL) {
+	if (info.mode != SubdivisionMode::REP_SLICE) {
 		for (int i = 0; i < 8; i++) {
 			octants[i]->subdivideTo(level);
 		}
@@ -63,7 +63,7 @@ void VolumetricSphericalHierarchy::createRenderable(Renderable& r, int level, Di
 	if (level > numLevels) {
 		subdivideTo(level);
 	}
-	if (info.mode == SubdivisionMode::FULL) {
+	if (info.mode != SubdivisionMode::REP_SLICE) {
 		for (int i = 0; i < 8; i++) {
 			octants[i]->createRenderable(r, level, mode);
 		}
@@ -81,6 +81,15 @@ void VolumetricSphericalHierarchy::getVolumes(std::vector<float>& volumes, int l
 		subdivideTo(level);
 	}
 	octants[2]->getVolumes(volumes, level);
+}
+
+// Returns the total number of grids currently in the hierarchy
+int VolumetricSphericalHierarchy::getNumGrids() {
+	int toReturn = 0;
+	for (int i = 0; i < 8; i++) {
+		toReturn += octants[i]->getNumGrids();
+	}
+	return toReturn;
 }
 
 // Propogates data down tree to maxLevel

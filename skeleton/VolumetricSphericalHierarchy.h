@@ -17,6 +17,7 @@ public:
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level, DisplayMode mode);
 	void getVolumes(std::vector<float>& volumes, int level);
+	int getNumGrids();
 
 	void fillData(int level);
 
