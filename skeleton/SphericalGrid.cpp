@@ -110,9 +110,16 @@ void SphericalGrid::binarySubdivide() {
 	double midLat;
 
 	// Set radius and latitude splitting points 
-	if (info.scheme == Scheme::NAIVE || info.scheme == Scheme::SDOG) {
+	if (info.scheme == Scheme::NAIVE || info.scheme == Scheme::SDOG || info.scheme == Scheme::OPT_SDOG) {
+
 		midRadius = (maxRadius + minRadius) / 2;
-		midLat = (maxLat + minLat) / 2;
+		if (info.scheme == Scheme::OPT_SDOG && type == GridType::SG) {
+			midLat = 0.57 * maxLat + 0.43 * minLat;
+		}
+		else {
+			midLat = (maxLat + minLat) / 2;
+		}
+
 	}
 	else {//(info.scheme == Scheme::VOLUME)
 		double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));

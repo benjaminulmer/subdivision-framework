@@ -55,12 +55,15 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			program->createGrid(Scheme::SDOG);
 		}
 		else if (key == SDLK_2) {
-			program->createGrid(Scheme::NAIVE);
+			program->createGrid(Scheme::OPT_SDOG);
 		}
 		else if (key == SDLK_3) {
-			program->createGrid(Scheme::VOLUME);
+			program->createGrid(Scheme::NAIVE);
 		}
 		else if (key == SDLK_4) {
+			program->createGrid(Scheme::VOLUME);
+		}
+		else if (key == SDLK_t) {
 			program->createGrid(Scheme::TERNARY);
 		}
 		else if (key == SDLK_5) {

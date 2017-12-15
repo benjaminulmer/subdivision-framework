@@ -18,6 +18,7 @@ enum class DisplayMode {
 
 enum class Scheme {
 	SDOG,
+	OPT_SDOG,
 	NAIVE,
 	VOLUME,
 	TERNARY
