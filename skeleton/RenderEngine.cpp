@@ -20,7 +20,7 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPointSize(30.f);
-	glClearColor(1.f, 1.f, 1.f, 1.f);
+	glClearColor(0.4f, 0.4f, 0.4f, 1.f);
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render

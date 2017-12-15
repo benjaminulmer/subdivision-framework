@@ -19,7 +19,7 @@ struct IndexedLists {
 class Renderable {
 
 public:
-	Renderable() : vao(0), vertexBuffer(0), colourBuffer(0), fade(false), drawMode(0) {}
+	Renderable() : lineColour(glm::vec3(1.f, 1.f, 1.f)), vao(0), vertexBuffer(0), colourBuffer(0), fade(false), drawMode(0) {}
 
 	glm::mat4 model() const {
 		return trans * rot * scale;

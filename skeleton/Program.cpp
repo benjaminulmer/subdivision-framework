@@ -69,12 +69,8 @@ void Program::start() {
 	info.culling = false;
 	info.data = SphericalData(0);
 
-	// Renderable for cull bounds
-	SphericalGrid b(GridType::NG, info, info.cull.maxRadius, info.cull.minRadius, info.cull.maxLat, info.cull.minLat, info.cull.maxLong, info.cull.minLong);
-	b.createRenderable(cullBounds, 0, DisplayMode::LINES);
-	RenderEngine::setBufferData(cullBounds, false);
-
 	createGrid(Scheme::SDOG);
+	updateBounds(BoundParam::MAX_RADIUS, 0);
 	updateReference();
 
 	mainLoop();
@@ -149,12 +145,23 @@ void Program::createGrid(Scheme scheme) {
 	info.scheme = scheme;
 	root = new VolumetricSphericalHierarchy(info);
 
-	int max = (scheme == Scheme::TERNARY) ? 50000 : 400000;
+	// Set max number of grids depending on subdivision scheme
+	// These might need to be tweaked
+	int max = 0;
+	if (scheme == Scheme::TERNARY) {
+		max = 50000;
+	}
+	else if (scheme == Scheme::SDOG) {
+		max = 400000;
+	}
+	else {
+		max = 200000;
+	}
 
+	// Determine max number of subdivision levels that can be reasonably supported
 	int level = 0;
 	while (true) {
 		int numGrids = root->getNumGrids();
-		std::cout << numGrids << std::endl;
 		if (numGrids < max) {
 			level++;
 			root->subdivideTo(level);
@@ -168,7 +175,7 @@ void Program::createGrid(Scheme scheme) {
 		subdivLevel = maxSubdivLevel;
 	}
 
-	//root->fillData(maxSubdivLevel);
+	root->fillData(maxSubdivLevel);
 	updateGrid(0);
 }
 
@@ -371,7 +378,7 @@ void Program::calculateVolumes(int level) {
 
 	// Representative slice for speed
 	std::vector<float> volumes;
-	info.mode = SubdivisionMode::SELECTION;
+	info.mode = SubdivisionMode::REP_SLICE;
 	VolumetricSphericalHierarchy* temp = new VolumetricSphericalHierarchy(info);
 	temp->getVolumes(volumes, level);
 	delete temp;

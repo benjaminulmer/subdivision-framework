@@ -58,31 +58,28 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			program->createGrid(Scheme::NAIVE);
 		}
 		else if (key == SDLK_3) {
+			program->createGrid(Scheme::VOLUME);
+		}
+		else if (key == SDLK_4) {
 			program->createGrid(Scheme::TERNARY);
 		}
-		//else if (key == SDLK_4) {
-		//	program->setScheme(Scheme::VOLUME_SDOG);
-		//}
-		//else if (key == SDLK_5) {
-		//	program->setScheme(Scheme::VOLUME);
-		//}
-		else if (key == SDLK_4) {
+		else if (key == SDLK_5) {
 			program->setSubdivisionMode(SubdivisionMode::SELECTION);
 		}
-		else if (key == SDLK_5) {
+		else if (key == SDLK_6) {
 			program->setSubdivisionMode(SubdivisionMode::FULL);
 		}
-		else if (key == SDLK_6) {
-			program->setSubdivisionMode(SubdivisionMode::REP_SLICE);
-		}
 		else if (key == SDLK_7) {
-			program->setDisplayMode(DisplayMode::DATA);
+			program->setSubdivisionMode(SubdivisionMode::REP_SLICE);
 		}
 		else if (key == SDLK_8) {
 			program->setDisplayMode(DisplayMode::LINES);
 		}
 		else if (key == SDLK_9) {
 			program->setDisplayMode(DisplayMode::VOLUMES);
+		}
+		else if (key == SDLK_0) {
+			program->setDisplayMode(DisplayMode::DATA);
 		}
 		else if (key == SDLK_c) {
 			program->toggleCull();
@@ -117,7 +114,7 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			exit(0);
 		}
 	}
-	else { // (e.state == SDL_RELEASED)
+	else {//(e.state == SDL_RELEASED)
 		if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
 		    key == SDLK_j || key == SDLK_k || key == SDLK_l) {
 			program->setBoundsDrawing(false);
