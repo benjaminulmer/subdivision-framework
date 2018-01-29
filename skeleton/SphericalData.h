@@ -1,5 +1,6 @@
 #pragma once
 
+#include <rapidjson/document.h>
 #include <vector>
 #include <random>
 
@@ -22,6 +23,7 @@ class SphericalData {
 public:
 	SphericalData();
 	SphericalData(int dummy);
+	SphericalData(rapidjson::Document& d);
 	SphericalData(std::vector<float> volumes);
 
 	const std::vector<SphericalDatum>& getData() const {

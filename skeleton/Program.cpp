@@ -67,7 +67,11 @@ void Program::start() {
 	info.selection.maxLong = 0.0,     info.selection.minLong = -M_PI / 2;
 
 	info.culling = false;
-	info.data = SphericalData(0);
+
+	rapidjson::Document eq = ContentReadWrite::readJSON("data/eq-2017-1.json");
+
+	//info.data = SphericalData(0);
+	info.data = SphericalData(eq);
 
 	createGrid(Scheme::SDOG);
 	updateBounds(BoundParam::MAX_RADIUS, 0);
