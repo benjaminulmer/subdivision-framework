@@ -70,8 +70,7 @@ void Program::start() {
 
 	info.culling = false;
 
-	rapidjson::Document eq = ContentReadWrite::readJSON("data/eq-2017-1.json");
-
+	rapidjson::Document eq = ContentReadWrite::readJSON("data/eq-2017.json");
 	info.data = SphericalData(eq);
 
 	createGrid(Scheme::SDOG);

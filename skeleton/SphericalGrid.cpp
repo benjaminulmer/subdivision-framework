@@ -461,19 +461,39 @@ glm::vec3 SphericalGrid::getDataColour() {
 	float max = info.data.getMax();
 	float avg = info.data.getAvg();
 
-	// Set colour
-	if (selfValue > avg) {
-		float norm = (selfValue - avg) / (max - avg);
-		colour = glm::vec3(norm, 0.f, 0.f);
+	float step = (max - min) / 6.f;
+
+	if (selfValue >= min && selfValue <= min + step) {
+		colour = glm::vec3(254.f/255, 229.f/255, 217.f/255);
 	}
-	else if (selfValue < avg) {
-		float norm = (selfValue - min) / (avg - min);
-		colour = glm::vec3(0.f, 0.f, 1.f - norm);
+	else if (selfValue >= min + step && selfValue <= min + 2.f * step) {
+		colour = glm::vec3(252.f/255, 187.f/255, 161.f/255);
+	}
+	else if (selfValue >= min + 2.f * step && selfValue <= min + 3.f * step) {
+		colour = glm::vec3(252.f/255, 146.f/255, 114.f/255);
+	}
+	else if (selfValue >= min + 3.f * step && selfValue <= min + 4.f * step) {
+		colour = glm::vec3(251.f/255, 106.f/255, 74.f/255);
+	}
+	else if (selfValue >= min + 4.f * step && selfValue <= min + 5.f * step) {
+		colour = glm::vec3(222.f/255, 45.f/255, 38.f/255);
 	}
 	else {
-		float norm = (selfValue - min) / (max - min);
-		colour = glm::vec3(norm, norm, norm);
+		colour = glm::vec3(165.f/255, 15.f/255, 21.f/255);
 	}
+	// Set colour
+	//if (selfValue > avg) {
+	//	float norm = (selfValue - avg) / (max - avg);
+	//	colour = glm::vec3(norm, 0.f, 0.f);
+	//}
+	//else if (selfValue < avg) {
+	//	float norm = (selfValue - min) / (avg - min);
+	//	colour = glm::vec3(0.f, 0.f, 1.f - norm);
+	//}
+	//else {
+	//	float norm = (selfValue - min) / (max - min);
+	//	colour = glm::vec3(norm, norm, norm);
+	//}
 	return colour;
 }
 
