@@ -1,6 +1,7 @@
 #include "SphericalData.h"
 
 #include "Geometry.h"
+#include "Constants.h"
 
 // Default constructor
 SphericalData::SphericalData() {}
@@ -24,21 +25,23 @@ SphericalData::SphericalData(int dummy) {
 	}
 	calculateStats();
 }
-#include <iostream>
-//
+
+// Load data from GeoJson document
 SphericalData::SphericalData(rapidjson::Document & d) {
 
 	rapidjson::Value& featuresArray = d["features"];
 
+	// Loop over all earthquakes in data file
 	for (rapidjson::SizeType i = 0; i < featuresArray.Size(); i++) {
-		double latitude = featuresArray[i]["geometry"]["coordinates"][0].GetDouble() * M_PI / 180.0;
-		double longitude = featuresArray[i]["geometry"]["coordinates"][1].GetDouble() * M_PI / 180.0;
-		double depth = 2.0; //featuresArray[i]["geometry"]["coordinates"][2].GetDouble();
+		double longitude = featuresArray[i]["geometry"]["coordinates"][0].GetDouble() * M_PI / 180.0;
+		double latitude = featuresArray[i]["geometry"]["coordinates"][1].GetDouble() * M_PI / 180.0;
+		double radius = RADIUS_EARTH_KM - featuresArray[i]["geometry"]["coordinates"][2].GetDouble();
+		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
+
 		float datum = featuresArray[i]["properties"]["mag"].GetDouble();
 
-		data.push_back(SphericalDatum(latitude, longitude, depth, datum));
+		data.push_back(SphericalDatum(latitude, longitude, radius, datum));
 	}
-	std::cout << data.size() << std::endl;
 	calculateStats();
 }
 

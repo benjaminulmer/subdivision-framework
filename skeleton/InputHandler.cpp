@@ -166,10 +166,10 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 
 	const Uint8 *state = SDL_GetKeyboardState(0);
 	if (state[SDL_SCANCODE_U]) {
-		program->updateBounds(BoundParam::MAX_RADIUS, dy);
+		program->updateBounds(BoundParam::MAX_RADIUS, dy * 20.0);
 	}
 	else if (state[SDL_SCANCODE_J]) {
-		program->updateBounds(BoundParam::MIN_RADIUS, dy);
+		program->updateBounds(BoundParam::MIN_RADIUS, dy * 20.0);
 	}
 	else if (state[SDL_SCANCODE_I]) {
 		program->updateBounds(BoundParam::MAX_LAT, dy);

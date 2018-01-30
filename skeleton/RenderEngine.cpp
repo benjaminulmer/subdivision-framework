@@ -7,7 +7,7 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 
 	mainProgram = ShaderTools::compileShaders("./shaders/main.vert", "./shaders/main.frag");
 
-	projection = glm::perspective(45.f, (float)width/height, 0.01f, 1000.f);
+	projection = glm::perspective(45.f, (float)width/height, 0.01f, 10000.f);
 
 	// Default openGL state
 	// If you change state you must change back to default after

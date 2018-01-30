@@ -70,7 +70,7 @@ void Camera::translate(glm::vec3 planeTranslation) {
 
 // Reset camera to starting position
 void Camera::reset() {
-	eye = glm::vec3(0.f, 0.f, 10.f);
+	eye = glm::vec3(0.f, 0.f, 1000.f);
 	up = glm::vec3(0.f, 1.f, 0.f);
 	centre = glm::vec3(0.f, 0.f, 0.f);
 

@@ -1,5 +1,7 @@
 #include "Program.h"
 
+#include "Constants.h"
+
 Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
@@ -55,14 +57,14 @@ void Program::start() {
 	objects.push_back(&grids);
 
 	// Set up GridInfo
-	info.radius = 8.0 / 3.0;
+	info.radius = MODEL_SCALE * 4.0 / 3.0;
 	info.mode = SubdivisionMode::FULL;
 
-	info.cull.maxRadius = 4.0;   info.cull.minRadius = 0.0;
+	info.cull.maxRadius = MODEL_SCALE * 2.0;   info.cull.minRadius = 0.0;
 	info.cull.maxLat = M_PI / 2; info.cull.minLat = 0.0;
 	info.cull.maxLong = 0.0,     info.cull.minLong = -M_PI / 2;
 
-	info.selection.maxRadius = 4.0;   info.selection.minRadius = 0.0;
+	info.selection.maxRadius = MODEL_SCALE * 2.0;   info.selection.minRadius = 0.0;
 	info.selection.maxLat = M_PI / 2; info.selection.minLat = 0.0;
 	info.selection.maxLong = 0.0,     info.selection.minLong = -M_PI / 2;
 
@@ -70,7 +72,6 @@ void Program::start() {
 
 	rapidjson::Document eq = ContentReadWrite::readJSON("data/eq-2017-1.json");
 
-	//info.data = SphericalData(0);
 	info.data = SphericalData(eq);
 
 	createGrid(Scheme::SDOG);
@@ -208,7 +209,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
 		b.maxRadius -= inc * 0.1;
-		if (b.maxRadius >= 4.0) b.maxRadius = 4.0;
+		if (b.maxRadius >= MODEL_SCALE * 2.0) b.maxRadius = MODEL_SCALE * 2.0;
 		if (b.maxRadius <= b.minRadius) b.maxRadius = b.minRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
@@ -285,19 +286,20 @@ void Program::updateReference() {
 
 	// Set size
 	if (fullSizeRef) {
-		if (info.radius == 4.0) {
-			referenceOct.scale = glm::scale(glm::vec3(2.f, 2.f, 2.f));
-			referenceSphere.scale = glm::scale(glm::vec3(2.f, 2.f, 2.f));
+		if (info.radius == MODEL_SCALE * 2.0) {
+			referenceOct.scale = glm::scale(glm::vec3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
+			referenceSphere.scale = glm::scale(glm::vec3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
 		}
 		else {
-			float scale = info.radius / 2.0f;
+			float scale = info.radius / 2.f;
 			referenceOct.scale = glm::scale(glm::vec3(scale, scale, scale));
 			referenceSphere.scale = glm::scale(glm::vec3(scale, scale, scale));
 		}
 	}
 	else {
-		referenceOct.scale = glm::mat4();
-		referenceSphere.scale = glm::mat4();
+		float scale = MODEL_SCALE / 2.0;
+		referenceOct.scale = glm::scale(glm::vec3(scale, scale, scale));
+		referenceSphere.scale = glm::scale(glm::vec3(scale, scale, scale));
 	}
 	// Set shape
 	if (fullSphereRef) {
@@ -338,11 +340,11 @@ void Program::toggleRotation() {
 
 // Toggles location of surface between 0.5 and 0.75
 void Program::toggleSurfaceLocation() {
-	if (info.radius == 4.0) {
-		info.radius = 8.0 / 3.0;
+	if (info.radius == MODEL_SCALE * 2.0) {
+		info.radius = MODEL_SCALE * 4.0 / 3.0;
 	}
 	else {
-		info.radius = 4.0;
+		info.radius = MODEL_SCALE * 2.0;
 	}
 	createGrid(info.scheme);
 	updateReference();
