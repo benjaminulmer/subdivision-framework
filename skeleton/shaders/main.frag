@@ -25,7 +25,7 @@ void main(void) {
 
 		// Fall off function
 		float norm = (dist - minDist) / (maxDist - minDist);
-		norm = 1.f - 2.5f * (norm - 0.f);
+		norm = 1.f - 1.75f * norm;
 
 		if (norm < 0.f) norm = 0.f;
 		if (norm > 1.f) norm = 1.f;

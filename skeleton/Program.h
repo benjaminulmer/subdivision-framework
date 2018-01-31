@@ -65,6 +65,7 @@ private:
 	Renderable grids;
 	Renderable cullBounds;
 	Renderable coastLines;
+	Renderable cullPlane; 
 
 	std::vector<Renderable*> objects;
 

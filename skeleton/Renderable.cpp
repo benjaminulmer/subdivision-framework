@@ -6,7 +6,7 @@
 #include <iostream>
 // Creates a renderable of the geometry specified in json document
 Renderable::Renderable(rapidjson::Document& d) {
-	fade = false;
+	fade = true;
 	drawMode = GL_LINES;
 
 	rapidjson::Value& featuresArray = d["features"];

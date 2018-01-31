@@ -81,6 +81,11 @@ void Program::start() {
 	RenderEngine::setBufferData(coastLines, false);
 	objects.push_back(&coastLines);
 
+	// Set up cull plane
+	RenderEngine::assignBuffers(cullPlane, false);
+	objects.push_back(&cullPlane);
+	cullPlane.drawMode = GL_TRIANGLES;
+
 	createGrid(Scheme::SDOG);
 	updateBounds(BoundParam::MAX_RADIUS, 0);
 	updateReference();
@@ -120,7 +125,31 @@ void Program::setupWindow() {
 
 // Main loop
 void Program::mainLoop() {
+
 	while (true) {
+
+		// Update cull plane
+		//glm::vec3 cameraPos = camera->getPosition();
+		//glm::vec3 tan1 = glm::cross(cameraPos, glm::vec3(0.f, 1.f, 0.f));
+		//glm::vec3 tan2 = glm::cross(cameraPos, tan1);
+		//
+		//cullPlane.verts.clear();
+		//cullPlane.colours.clear();
+
+		//cullPlane.verts.push_back(tan1 * 10.f * MODEL_SCALE + tan2 * 10.f * MODEL_SCALE);
+		//cullPlane.verts.push_back(tan1 * -10.f * MODEL_SCALE + tan2 * 10.f * MODEL_SCALE);
+		//cullPlane.verts.push_back(tan1 * 10.f * MODEL_SCALE + tan2 * -10.f * MODEL_SCALE);
+
+		//cullPlane.verts.push_back(tan1 * -10.f * MODEL_SCALE + tan2 * -10.f * MODEL_SCALE);
+		//cullPlane.verts.push_back(tan1 * -10.f * MODEL_SCALE + tan2 * 10.f * MODEL_SCALE);
+		//cullPlane.verts.push_back(tan1 * 10.f * MODEL_SCALE + tan2 * -10.f * MODEL_SCALE);
+
+		//for (int i = 0; i < 6; i++) {
+		//	cullPlane.colours.push_back(glm::vec3(0.4f, 0.4f, 0.4f));
+		//}
+
+		//RenderEngine::setBufferData(cullPlane, false);
+
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
