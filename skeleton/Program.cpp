@@ -70,8 +70,16 @@ void Program::start() {
 
 	info.culling = false;
 
+	// Load earthquake data set
 	rapidjson::Document eq = ContentReadWrite::readJSON("data/eq-2017.json");
 	info.data = SphericalData(eq);
+
+	// Load coatline data set
+	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
+	coastLines = Renderable(cl);
+	RenderEngine::assignBuffers(coastLines, false);
+	RenderEngine::setBufferData(coastLines, false);
+	objects.push_back(&coastLines);
 
 	createGrid(Scheme::SDOG);
 	updateBounds(BoundParam::MAX_RADIUS, 0);

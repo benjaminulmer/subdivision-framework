@@ -178,6 +178,7 @@
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Program.cpp" />
+    <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="RenderEngine.cpp" />
     <ClCompile Include="SphericalData.cpp" />
     <ClCompile Include="SphericalGrid.cpp" />

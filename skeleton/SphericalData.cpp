@@ -38,6 +38,8 @@ SphericalData::SphericalData(rapidjson::Document & d) {
 		double radius = RADIUS_EARTH_KM - featuresArray[i]["geometry"]["coordinates"][2].GetDouble();
 		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
 
+		if (radius > MODEL_SCALE) radius = MODEL_SCALE;
+
 		float datum = featuresArray[i]["properties"]["mag"].GetDouble();
 
 		data.push_back(SphericalDatum(latitude, longitude, radius, datum));

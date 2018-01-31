@@ -20,6 +20,7 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPointSize(30.f);
+	glLineWidth(1.5f);
 	glClearColor(0.4f, 0.4f, 0.4f, 1.f);
 }
 

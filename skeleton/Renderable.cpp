@@ -1,56 +1,30 @@
 #include "Renderable.h"
 
-LineVerts::~LineVerts() {
-	// Remove data from GPU
-	glDeleteBuffers(1, &vertexBuffer);
-	glDeleteVertexArrays(1, &vao);
-}
+#include "Constants.h"
+#include "Geometry.h"
 
-Renderable::~Renderable() {
-	// Remove data from GPU
-	glDeleteBuffers(1, &vertexBuffer);
-	glDeleteBuffers(1, &normalBuffer);
-	glDeleteBuffers(1, &uvBuffer);
-	glDeleteBuffers(1, &indexBuffer);
-	glDeleteVertexArrays(1, &vao);
-}
+#include <iostream>
+// Creates a renderable of the geometry specified in json document
+Renderable::Renderable(rapidjson::Document& d) {
+	fade = false;
+	drawMode = GL_LINES;
 
-// Returns dimension of objects bounding box
-glm::vec3 Renderable::getDimensions() {
-	if (!boundingBoxComputed) {
-		computeBoundingBox();
-		boundingBoxComputed = true;
+	rapidjson::Value& featuresArray = d["features"];
+
+	// Loop over lines in data file
+	for (rapidjson::SizeType i = 0; i < featuresArray.Size(); i++) {
+		rapidjson::Value& coordArray = featuresArray[i]["geometry"]["coordinates"];
+
+		for (rapidjson::SizeType j = 0; j < coordArray.Size(); j++) {
+			float lng = coordArray[j][0].GetDouble() * M_PI / 180.0;
+			float lat = coordArray[j][1].GetDouble() * M_PI / 180.0;
+
+			verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * 1.001f * (float) MODEL_SCALE);
+			colours.push_back(glm::vec3(0.f, 0.f, 0.f));
+			if (j != 0 && j != coordArray.Size() - 1) {
+				verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * 1.001f * (float) MODEL_SCALE);
+				colours.push_back(glm::vec3(0.f, 0.f, 0.f));
+			}
+		}
 	}
-	return dimensions;
-}
-
-// Returns centre of objects bounding box
-glm::vec3 Renderable::getPosition() {
-	if (!boundingBoxComputed) {
-		computeBoundingBox();
-		boundingBoxComputed = true;
-	}
-	return position;
-}
-
-// Computed objects bounding box stored as dimensions and centre of box
-void Renderable::computeBoundingBox() {
-	float minX, maxX;
-	float minY, maxY;
-	float minZ, maxZ;
-	minX = maxX = verts.at(0).x;
-	minY = maxY = verts.at(0).y;
-	minZ = maxZ = verts.at(0).z;
-
-	// Loop over all verts to find max and mins
-	for (glm::vec3 v : verts) {
-		minX = glm::min(minX, v.x);
-		maxX = glm::max(maxX, v.x);
-		minY = glm::min(minY, v.y);
-		maxY = glm::max(maxY, v.y);
-		minZ = glm::min(minZ, v.z);
-		maxZ = glm::max(maxZ, v.z);
-	}
-	dimensions = glm::vec3(glm::abs(maxX - minX), glm::abs(maxY - minY), glm::abs(maxZ - minZ));
-	position = glm::vec3(0.5f * (maxX + minX), 0.5f * (maxY + minY), 0.5f * (maxZ + minZ));
 }

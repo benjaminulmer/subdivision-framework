@@ -64,6 +64,7 @@ private:
 	Renderable currRef;
 	Renderable grids;
 	Renderable cullBounds;
+	Renderable coastLines;
 
 	std::vector<Renderable*> objects;
 
