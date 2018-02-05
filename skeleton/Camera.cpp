@@ -30,26 +30,34 @@ glm::vec3 Camera::getPosition() {
 }
 
 // Rotates camera along longitudinal axis (spherical coords)
-void Camera::updateLongitudeRotation(float deg) {
+void Camera::updateLongitudeRotation(float pixelsMoved) {
 	
+	float scale = 0.008f * (eye.z - MODEL_SCALE);
 	// If camera is upside down reverse longitude rotations
 	if (cos(latitudeRotRad) > 0) {
-		longitudeRotRad += deg * M_PI / 180;
+		longitudeRotRad += scale * pixelsMoved * M_PI / 180;
 	}
 	else {
-		longitudeRotRad -= deg * M_PI / 180;
+		longitudeRotRad -= scale * pixelsMoved * M_PI / 180;
 	}
 }
 
 // Rotates camera along latitudinal axis (spherical coords)
-void Camera::updateLatitudeRotation(float deg) {
-	latitudeRotRad += deg * M_PI / 180;
+void Camera::updateLatitudeRotation(float pixelsMoved) {
+	float scale = 0.008f * (eye.z - MODEL_SCALE);
+	latitudeRotRad += scale * pixelsMoved * M_PI / 180;
 }
 
 // Zooms camera in or out (+1 or -1)
-void Camera::updateZoom(int value) {
-	float zoom = (eye.z / 10.f) * value;
-	eye.z += zoom;
+void Camera::updateZoom(int sign) {
+
+	float scale = 1.3f;
+	if (sign < 0) {
+		eye.z = (eye.z - MODEL_SCALE) / scale + MODEL_SCALE;
+	}
+	else {
+		eye.z = (eye.z - MODEL_SCALE) * scale + MODEL_SCALE;;
+	}
 }
 
 // Translates camera along x and y of view plane
@@ -72,7 +80,7 @@ void Camera::translate(glm::vec3 planeTranslation) {
 
 // Reset camera to starting position
 void Camera::reset() {
-	eye = glm::vec3(0.f, 0.f, 10.f * MODEL_SCALE);
+	eye = glm::vec3(0.f, 0.f, 4.f * MODEL_SCALE);
 	up = glm::vec3(0.f, 1.f, 0.f);
 	centre = glm::vec3(0.f, 0.f, 0.f);
 
