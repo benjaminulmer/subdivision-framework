@@ -21,6 +21,9 @@ public:
 	void reset();
 
 private:
+	const float zoomScale;
+	const float rotScale;
+
 	glm::vec3 eye;
 	glm::vec3 up;
 	glm::vec3 centre;

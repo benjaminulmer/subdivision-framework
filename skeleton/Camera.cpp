@@ -2,7 +2,7 @@
 
 #include "Constants.h"
 
-Camera::Camera() {
+Camera::Camera() : zoomScale(1.3f), rotScale(0.008f) {
 	reset();
 }
 
@@ -32,7 +32,7 @@ glm::vec3 Camera::getPosition() {
 // Rotates camera along longitudinal axis (spherical coords)
 void Camera::updateLongitudeRotation(float pixelsMoved) {
 	
-	float scale = 0.008f * (eye.z - MODEL_SCALE);
+	float scale = rotScale * (eye.z - MODEL_SCALE);
 	// If camera is upside down reverse longitude rotations
 	if (cos(latitudeRotRad) > 0) {
 		longitudeRotRad += scale * pixelsMoved * M_PI / 180;
@@ -44,20 +44,20 @@ void Camera::updateLongitudeRotation(float pixelsMoved) {
 
 // Rotates camera along latitudinal axis (spherical coords)
 void Camera::updateLatitudeRotation(float pixelsMoved) {
-	float scale = 0.008f * (eye.z - MODEL_SCALE);
+	float scale = rotScale * (eye.z - MODEL_SCALE);
 	latitudeRotRad += scale * pixelsMoved * M_PI / 180;
 }
 
 // Zooms camera in or out (+1 or -1)
 void Camera::updateZoom(int sign) {
 
-	float scale = 1.3f;
 	if (sign < 0) {
-		eye.z = (eye.z - MODEL_SCALE) / scale + MODEL_SCALE;
+		eye.z = (eye.z - MODEL_SCALE) / zoomScale + MODEL_SCALE;
 	}
 	else {
-		eye.z = (eye.z - MODEL_SCALE) * scale + MODEL_SCALE;;
+		eye.z = (eye.z - MODEL_SCALE) * zoomScale + MODEL_SCALE;;
 	}
+	if (eye.z > 4.f * MODEL_SCALE) eye.z = 4.f * MODEL_SCALE;
 }
 
 // Translates camera along x and y of view plane
