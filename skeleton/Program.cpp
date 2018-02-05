@@ -81,11 +81,6 @@ void Program::start() {
 	RenderEngine::setBufferData(coastLines, false);
 	objects.push_back(&coastLines);
 
-	// Set up cull plane
-	RenderEngine::assignBuffers(cullPlane, false);
-	objects.push_back(&cullPlane);
-	cullPlane.drawMode = GL_TRIANGLES;
-
 	createGrid(Scheme::SDOG);
 	updateBounds(BoundParam::MAX_RADIUS, 0);
 	updateReference();
@@ -128,42 +123,20 @@ void Program::mainLoop() {
 
 	while (true) {
 
-		// Update cull plane
-		//glm::vec3 cameraPos = camera->getPosition();
-		//glm::vec3 tan1 = glm::cross(cameraPos, glm::vec3(0.f, 1.f, 0.f));
-		//glm::vec3 tan2 = glm::cross(cameraPos, tan1);
-		//
-		//cullPlane.verts.clear();
-		//cullPlane.colours.clear();
-
-		//cullPlane.verts.push_back(tan1 * 10.f * MODEL_SCALE + tan2 * 10.f * MODEL_SCALE);
-		//cullPlane.verts.push_back(tan1 * -10.f * MODEL_SCALE + tan2 * 10.f * MODEL_SCALE);
-		//cullPlane.verts.push_back(tan1 * 10.f * MODEL_SCALE + tan2 * -10.f * MODEL_SCALE);
-
-		//cullPlane.verts.push_back(tan1 * -10.f * MODEL_SCALE + tan2 * -10.f * MODEL_SCALE);
-		//cullPlane.verts.push_back(tan1 * -10.f * MODEL_SCALE + tan2 * 10.f * MODEL_SCALE);
-		//cullPlane.verts.push_back(tan1 * 10.f * MODEL_SCALE + tan2 * -10.f * MODEL_SCALE);
-
-		//for (int i = 0; i < 6; i++) {
-		//	cullPlane.colours.push_back(glm::vec3(0.4f, 0.4f, 0.4f));
-		//}
-
-		//RenderEngine::setBufferData(cullPlane, false);
-
+		// Process all SDL events
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
 
-		// Find min and max distance from camera to cell renderable
-		// Used for fading
+		// Find min and max distance from camera to cell renderable - used for fading effect
 		float max = -FLT_MAX;
 		float min = FLT_MAX;
 
 		glm::vec3 cameraPos = camera->getPosition();
 		for (glm::vec3 v : grids.verts) {
-			float dist = glm::length(cameraPos - v);
 
+			float dist = glm::length(cameraPos - v);
 			max = (dist > max) ? dist : max;
 			min = (dist < min) ? dist : min;
 		}
@@ -173,6 +146,7 @@ void Program::mainLoop() {
 			referenceSphere.rot = glm::rotate(referenceSphere.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
 			currRef.rot = glm::rotate(currRef.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
 			cullBounds.rot = glm::rotate(cullBounds.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
+			coastLines.rot = glm::rotate(coastLines.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
 		}
 
 		renderEngine->render(objects, camera->getLookAt(), max, min);
