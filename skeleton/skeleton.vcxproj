@@ -165,10 +165,10 @@
     <ClInclude Include="Renderable.h" />
     <ClInclude Include="RenderEngine.h" />
     <ClInclude Include="SphericalData.h" />
-    <ClInclude Include="SphericalGrid.h" />
+    <ClInclude Include="SphericalCell.h" />
     <ClInclude Include="ShaderTools.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="VolumetricSphericalHierarchy.h" />
+    <ClInclude Include="SphericalGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
@@ -181,10 +181,10 @@
     <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="RenderEngine.cpp" />
     <ClCompile Include="SphericalData.cpp" />
-    <ClCompile Include="SphericalGrid.cpp" />
+    <ClCompile Include="SphericalCell.cpp" />
     <ClCompile Include="ShaderTools.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="VolumetricSphericalHierarchy.cpp" />
+    <ClCompile Include="SphericalGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\main.frag" />

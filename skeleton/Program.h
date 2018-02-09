@@ -6,7 +6,6 @@
 #include "Camera.h"
 #include "RenderEngine.h"
 #include "SphericalGrid.h"
-#include "VolumetricSphericalHierarchy.h"
 
 enum class BoundParam {
 	MAX_RADIUS,
@@ -50,7 +49,7 @@ private:
 	Camera* camera;
 
 	GridInfo info;
-	VolumetricSphericalHierarchy* root;
+	SphericalGrid* root;
 
 	Renderable referenceOct;
 	Renderable referenceSphere;

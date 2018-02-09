@@ -165,7 +165,7 @@ void Program::mainLoop() {
 void Program::createGrid(Scheme scheme) {
 	delete root;
 	info.scheme = scheme;
-	root = new VolumetricSphericalHierarchy(info);
+	root = new SphericalGrid(info);
 
 	// Set max number of grids depending on subdivision scheme
 	// These might need to be tweaked
@@ -183,7 +183,7 @@ void Program::createGrid(Scheme scheme) {
 	// Determine max number of subdivision levels that can be reasonably supported
 	int level = 0;
 	while (true) {
-		int numGrids = root->getNumGrids();
+		int numGrids = root->getNumCells();
 		if (numGrids < max) {
 			level++;
 			root->subdivideTo(level);
@@ -221,7 +221,7 @@ void Program::updateGrid(int levelInc) {
 
 // Updates bounds of which cells to show
 void Program::updateBounds(BoundParam param, int inc) {
-	GridBounds& b = (makingSelection) ? info.selection : info.cull;
+	CellBounds& b = (makingSelection) ? info.selection : info.cull;
 
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
@@ -265,7 +265,7 @@ void Program::updateBounds(BoundParam param, int inc) {
 		cullBounds.lineColour = glm::vec3(0.14, 0.f, 0.48f);
 	}
 
-	SphericalGrid r(GridType::NG, info, b.maxRadius, b.minRadius, b.maxLat, b.minLat, b.maxLong, b.minLong);
+	SphericalCell r(CellType::NG, info, b.maxRadius, b.minRadius, b.maxLat, b.minLat, b.maxLong, b.minLong);
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
 	r.createRenderable(cullBounds, 0, DisplayMode::LINES);
@@ -402,7 +402,7 @@ void Program::calculateVolumes(int level) {
 	// Representative slice for speed
 	std::vector<float> volumes;
 	info.mode = SubdivisionMode::REP_SLICE;
-	VolumetricSphericalHierarchy* temp = new VolumetricSphericalHierarchy(info);
+	SphericalGrid* temp = new SphericalGrid(info);
 	temp->getVolumes(volumes, level);
 	delete temp;
 
