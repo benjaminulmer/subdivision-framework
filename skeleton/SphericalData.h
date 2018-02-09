@@ -22,7 +22,6 @@ class SphericalData {
 
 public:
 	SphericalData();
-	SphericalData(int dummy);
 	SphericalData(rapidjson::Document& d);
 	SphericalData(std::vector<float> volumes);
 

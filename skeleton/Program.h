@@ -27,10 +27,6 @@ public:
 	void updateGrid(int levelInc);
 	void updateBounds(BoundParam param, int inc);
 
-	void toggleRefSize();
-	void toggleRefShape();
-	void toggleRef();
-
 	void setBoundsDrawing(bool state);
 	void toggleCull();
 	void toggleRotation();
@@ -51,9 +47,6 @@ private:
 	GridInfo info;
 	SphericalGrid* root;
 
-	Renderable referenceOct;
-	Renderable referenceSphere;
-	Renderable currRef;
 	Renderable grids;
 	Renderable cullBounds;
 	Renderable coastLines;
@@ -74,6 +67,5 @@ private:
 	void setupWindow();
 	void mainLoop();
 
-	void updateReference();
 	void calculateVolumes(int level);
 };

@@ -90,15 +90,6 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		else if (key == SDLK_f) {
 			renderEngine->toggleFade();
 		}
-		else if (key == SDLK_r) {
-			program->toggleRef();
-		}
-		else if (key == SDLK_e) {
-			program->toggleRefSize();
-		}
-		else if (key == SDLK_w) {
-			program->toggleRefShape();
-		}
 		else if (key == SDLK_q) {
 			program->toggleRotation();
 		}

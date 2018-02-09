@@ -44,21 +44,9 @@ void Program::start() {
 	InputHandler::setUp(camera, renderEngine, this);
 
 	// Assign buffers
-	RenderEngine::assignBuffers(referenceOct, true);
-	RenderEngine::assignBuffers(referenceSphere, true);
-	referenceOct.textureID = RenderEngine::loadTexture("textures/oct.png");
-	referenceSphere.textureID = RenderEngine::loadTexture("textures/sphere.png");
-
 	RenderEngine::assignBuffers(grids, false);
 	grids.fade = true;
 	RenderEngine::assignBuffers(cullBounds, false);
-
-	// Create geometry for references
-	ContentReadWrite::loadOBJ("models/octTex.obj", referenceOct);
-	RenderEngine::setBufferData(referenceOct, true);
-
-	ContentReadWrite::loadOBJ("models/sphereTex.obj", referenceSphere);
-	RenderEngine::setBufferData(referenceSphere, true);
 
 	// Objects to draw initially
 	objects.push_back(&grids);
@@ -90,7 +78,6 @@ void Program::start() {
 
 	createGrid(Scheme::SDOG);
 	updateBounds(BoundParam::MAX_RADIUS, 0);
-	updateReference();
 
 	mainLoop();
 }
@@ -148,10 +135,6 @@ void Program::mainLoop() {
 			min = (dist < min) ? dist : min;
 		}
 		if (rotation) {
-			grids.rot = glm::rotate(grids.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
-			referenceOct.rot = glm::rotate(referenceOct.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
-			referenceSphere.rot = glm::rotate(referenceSphere.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
-			currRef.rot = glm::rotate(currRef.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
 			cullBounds.rot = glm::rotate(cullBounds.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
 			coastLines.rot = glm::rotate(coastLines.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
 		}
@@ -274,59 +257,6 @@ void Program::updateBounds(BoundParam param, int inc) {
 	updateGrid(0);
 }
 
-// Toggles between full size and half (real) size reference
-void Program::toggleRefSize() {
-	fullSizeRef = !fullSizeRef;
-	updateReference();
-}
-
-// Toggles between octant and full sphere reference
-void Program::toggleRefShape() {
-	fullSphereRef = !fullSphereRef;
-	updateReference();
-}
-
-// Toggles drawing of reference
-void Program::toggleRef() {
-	if (refOn) {
-		auto pos = std::find(objects.begin(), objects.end(), &currRef);
-		objects.erase(pos);
-	}
-	else {
-		objects.push_back(&currRef);
-	}
-	refOn = !refOn;
-}
-
-// Updates reference to draw
-void Program::updateReference() {
-
-	// Set size
-	if (fullSizeRef) {
-		if (info.radius == MODEL_SCALE * 2.0) {
-			referenceOct.scale = glm::scale(glm::vec3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
-			referenceSphere.scale = glm::scale(glm::vec3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
-		}
-		else {
-			float scale = info.radius / 2.f;
-			referenceOct.scale = glm::scale(glm::vec3(scale, scale, scale));
-			referenceSphere.scale = glm::scale(glm::vec3(scale, scale, scale));
-		}
-	}
-	else {
-		float scale = MODEL_SCALE / 2.0;
-		referenceOct.scale = glm::scale(glm::vec3(scale, scale, scale));
-		referenceSphere.scale = glm::scale(glm::vec3(scale, scale, scale));
-	}
-	// Set shape
-	if (fullSphereRef) {
-		currRef = referenceSphere;
-	}
-	else {
-		currRef = referenceOct;
-	}
-}
-
 // Turn bounds box drawing on or off
 void Program::setBoundsDrawing(bool state) {
 	if (makingSelection && !state) {
@@ -364,7 +294,6 @@ void Program::toggleSurfaceLocation() {
 		info.radius = MODEL_SCALE * 2.0;
 	}
 	createGrid(info.scheme);
-	updateReference();
 }
 
 // Sets subdivision mode to be used by the grids
