@@ -1,8 +1,8 @@
 #pragma once
 
 #include <rapidjson/document.h>
+
 #include <vector>
-#include <random>
 
 struct SphericalDatum {
 

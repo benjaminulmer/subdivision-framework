@@ -4,15 +4,9 @@
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 
-#include <iostream>
-#include <fstream>
-#include <cstring>
-
-#include <vector>
 #include <string>
 
 #include "Renderable.h"
-
 
 class ContentReadWrite {
 

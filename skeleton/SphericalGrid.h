@@ -1,8 +1,7 @@
 #pragma once
 
+#include "Renderable.h"
 #include "SphericalData.h"
-#include "Geometry.h"
-#include "RenderEngine.h"
 
 enum class SubdivisionMode {
 	FULL,

@@ -3,7 +3,9 @@
 #include "Constants.h"
 #include "Geometry.h"
 
-#include <iostream>
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 // Creates a renderable of the geometry specified in json document
 Renderable::Renderable(rapidjson::Document& d) {
 	fade = true;

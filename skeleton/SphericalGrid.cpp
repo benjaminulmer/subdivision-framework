@@ -1,5 +1,7 @@
 #include "SphericalGrid.h"
 
+#include "Geometry.h"
+
 // Creats an SdogGrid with given bounds in each (spherical) direction
 SphericalGrid::SphericalGrid(GridType type, const GridInfo& info, double maxRadius, double minRadius,
                              double maxLat, double minLat, double maxLong, double minLong) :

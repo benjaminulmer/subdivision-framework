@@ -1,6 +1,9 @@
 #include "SphericalData.h"
 
-#include "Geometry.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <random>
+
 #include "Constants.h"
 
 // Default constructor

@@ -1,6 +1,13 @@
 #include "Program.h"
 
+#include <GL/glew.h>
+#include <SDL2/SDL_opengl.h>
+
+#include <iostream>
+
 #include "Constants.h"
+#include "ContentReadWrite.h"
+#include "InputHandler.h"
 
 Program::Program() {
 	window = nullptr;

@@ -1,18 +1,13 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <SDL2/SDL.h>
 #include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <SDL2/SDL.h>
+
 #include <vector>
 
-#include "lodepng.h"
-
 #include "Renderable.h"
-#include "ShaderTools.h"
 #include "Camera.h"
-#include "Texture.h"
 
 class RenderEngine {
 

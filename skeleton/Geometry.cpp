@@ -1,5 +1,8 @@
 #include "Geometry.h"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 // Geometric slerp between two vectors
 glm::vec3 Geometry::geomSlerp(glm::vec3 v1, glm::vec3 v2, float t) {
 	float theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
@@ -15,7 +18,7 @@ void Geometry::createArcR(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderab
 	glm::vec3 v2 = p2 - centre;
 
 	// Points on centre, cannot create arc (and will crash)
-	if (glm::length2(v1) < 0.0001 || glm::length2(v2) < 0.0001) {
+	if (glm::length(v1) < 0.0001 || glm::length(v2) < 0.0001) {
 		return;
 	}
 

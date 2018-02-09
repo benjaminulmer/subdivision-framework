@@ -1,6 +1,7 @@
+#include "Texture.h"
+
 #include <cmath>
 #include <iostream>
-#include "Texture.h"
 
 GLuint Texture::create1DTexture(std::vector<GLubyte>& rgbaValues) {
     GLuint textureID;

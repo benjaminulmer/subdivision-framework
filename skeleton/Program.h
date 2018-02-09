@@ -1,18 +1,11 @@
 #pragma once
 
-#include <GL/glew.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
 #undef main
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <cfloat>
-#include <algorithm>
 
+#include "Camera.h"
 #include "RenderEngine.h"
-#include "InputHandler.h"
-#include "ContentReadWrite.h"
+#include "SphericalGrid.h"
 #include "VolumetricSphericalHierarchy.h"
 
 enum class BoundParam {

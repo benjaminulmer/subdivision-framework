@@ -1,5 +1,14 @@
 #include "RenderEngine.h"
 
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "lodepng.h"
+
+#include <iostream>
+
+#include "ShaderTools.h"
+#include "Texture.h"
+
 RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 	window(window), fade(false), camera(camera) {
 

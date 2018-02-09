@@ -1,5 +1,8 @@
 #include "VolumetricSphericalHierarchy.h"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 // Creates an SDOG with the given radius
 // Does not automatically subdivide
 VolumetricSphericalHierarchy::VolumetricSphericalHierarchy(GridInfo& info) : 

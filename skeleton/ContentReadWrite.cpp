@@ -1,5 +1,10 @@
 #include "ContentReadWrite.h"
 
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <vector>
+
 // Load obj file from path into indexed list data structure
 bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 	printf("Loading OBJ file %s...\n", path);
