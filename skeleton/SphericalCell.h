@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "Renderable.h"
 #include "SphericalData.h"
 
@@ -55,7 +57,7 @@ public:
 	virtual ~SphericalCell();
 
 	bool contains(const SphericalDatum& d);
-	void fillData(const SphericalDatum& d, int level);
+	void fillData(const SphericalDatum& d, int level, const DataSetInfo& info);
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level, DisplayMode mode);
 	void getVolumes(std::vector<float>& volumes, int level);
@@ -71,7 +73,7 @@ private:
 	std::vector<SphericalCell*> children;
 	const GridInfo& info;
 
-	SphericalData data;
+	std::vector<DataSetPoints> dataSets;
 
 	void subdivide();
 	void binarySubdivide();

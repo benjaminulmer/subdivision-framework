@@ -109,7 +109,7 @@ void SphericalGrid::fillData(int level) {
 
 			// If contained in octant no other octant can contain point
 			if (octants[i]->contains(d)) {
-				octants[i]->fillData(d, level);
+				octants[i]->fillData(d, level, info.data.getInfo());
 				break;
 			}
 		}

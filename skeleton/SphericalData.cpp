@@ -5,9 +5,6 @@
 
 #include "Constants.h"
 
-// Default constructor
-SphericalData::SphericalData() {}
-
 // Load data from GeoJson document
 SphericalData::SphericalData(rapidjson::Document & d) {
 
@@ -26,6 +23,7 @@ SphericalData::SphericalData(rapidjson::Document & d) {
 
 		data.push_back(SphericalDatum(latitude, longitude, radius, datum));
 	}
+	info.id = 0;
 	calculateStats();
 }
 
@@ -34,22 +32,23 @@ SphericalData::SphericalData(std::vector<float> volumes) {
 	for (float v : volumes) {
 		data.push_back(SphericalDatum(v));
 	}
+	info.id = 0;
 	calculateStats();
 }
 
 // Calculates statistics about data (max, min, avg)
 void SphericalData::calculateStats() {
-	max = -FLT_MAX;
-	min = FLT_MAX;
-	avg = 0.f;
+	info.max = -FLT_MAX;
+	info.min = FLT_MAX;
+	info.mean = 0.f;
 
 	for (SphericalDatum d : data) {
 
 		float v = d.datum;
 
-		avg += v;
-		max = (v > max) ? v : max;
-		min = (v < min) ? v : min;
+		info.mean += v;
+		info.max = (v > info.max) ? v : info.max;
+		info.min = (v < info.min) ? v : info.min;
 	}
-	avg /= data.size();
+	info.mean /= data.size();
 }

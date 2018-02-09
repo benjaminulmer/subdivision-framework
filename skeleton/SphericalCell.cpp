@@ -44,7 +44,7 @@ bool SphericalCell::contains(const SphericalDatum& d) {
 }
 
 // Recursive function for agregating data located inside cell
-void SphericalCell::fillData(const SphericalDatum& d, int level) {
+void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetInfo& info) {
 
 	// If not at desired level recursively fill data on children
 	if (level != 0) {
@@ -52,14 +52,42 @@ void SphericalCell::fillData(const SphericalDatum& d, int level) {
 
 			// If contained in child no other child can contain point
 			if (g->contains(d)) {
-				g->fillData(d, level - 1);
-				data.addDatum(d);
+				g->fillData(d, level - 1, info);
+
+
+				int index = -1;
+				int i = 0;
+				for (DataSetPoints ds : dataSets) {
+
+					if (ds.info.id == info.id) {
+						index = i;
+					}
+					i++;
+				}
+				if (index == -1) {
+					dataSets.push_back(DataSetPoints(info));
+					index = 0;
+				}
+				dataSets[index].points.push_back(d);
 				break;
 			}
 		}
 	}
 	else {
-		data.addDatum(d);
+		int index = -1;
+		int i = 0;
+		for (DataSetPoints ds : dataSets) {
+
+			if (ds.info.id == info.id) {
+				index = i;
+			}
+			i++;
+		}
+		if (index == -1) {
+			dataSets.push_back(DataSetPoints(info));
+			index = 0;
+		}
+		dataSets[index].points.push_back(d);
 	}
 }
 
@@ -364,7 +392,7 @@ int SphericalCell::getNumCells() {
 void SphericalCell::fillRenderable(Renderable& r, DisplayMode mode) {
 
 	// Different rendering for data, volumes, and lines
-	if ((mode == DisplayMode::DATA && data.size() != 0) || mode == DisplayMode::VOLUMES) {
+	if ((mode == DisplayMode::DATA && dataSets.size() != 0 && dataSets[0].points.size() != 0) || mode == DisplayMode::VOLUMES) {
 		r.drawMode = GL_TRIANGLES;
 		faceRenderable(r);
 
@@ -457,11 +485,11 @@ void SphericalCell::lineRenderable(Renderable& r) {
 glm::vec3 SphericalCell::getDataColour() {
 	glm::vec3 colour;
 
-	data.calculateStats();
-	float selfValue = data.getAvg();
-	float min = info.data.getMin();
-	float max = info.data.getMax();
-	float avg = info.data.getAvg();
+	//data.calculateStats();
+	float selfValue = dataSets[0].mean();
+	float min = dataSets[0].info.min;
+	float max = dataSets[0].info.max;
+	float avg = dataSets[0].info.mean;
 
 	float step = (max - min) / 6.f;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glm/glm.hpp>
 #include <rapidjson/document.h>
 
 #include <vector>
@@ -18,10 +19,32 @@ struct SphericalDatum {
 	float datum;
 };
 
+
+struct DataSetInfo {
+	int id;
+	std::vector<glm::vec3> binColors;
+	float mean, max, min;
+};
+
+struct DataSetPoints {
+	DataSetPoints(const DataSetInfo& info) : info(info) {}
+
+	std::vector<SphericalDatum> points;
+	const DataSetInfo& info;
+
+	float mean() {
+		float mean = 0.f;
+		for (SphericalDatum d : points) {
+			mean += d.datum;
+		}
+		return mean / points.size();
+	}
+};
+
 class SphericalData {
 
 public:
-	SphericalData();
+	SphericalData() = default;
 	SphericalData(rapidjson::Document& d);
 	SphericalData(std::vector<float> volumes);
 
@@ -38,19 +61,23 @@ public:
 	}
 
 	float getMin() const {
-		return min;
+		return info.min;
 	}
 	float getMax() const {
-		return max;
+		return info.max;
 	}
-	float getAvg() const {
-		return avg;
+	float getMean() const {
+		return info.mean;
+	}
+
+	const DataSetInfo& getInfo() {
+		return info;
 	}
 
 	void calculateStats();
 
 private:
 	std::vector<SphericalDatum> data;
-	float min, max, avg;
+	DataSetInfo info;
 };
 
