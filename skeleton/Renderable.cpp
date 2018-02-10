@@ -23,6 +23,7 @@ Renderable::Renderable(rapidjson::Document& d) {
 
 			verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * 1.001f * (float) MODEL_SCALE);
 			colours.push_back(glm::vec3(0.f, 0.f, 0.f));
+
 			if (j != 0 && j != coordArray.Size() - 1) {
 				verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * 1.001f * (float) MODEL_SCALE);
 				colours.push_back(glm::vec3(0.f, 0.f, 0.f));

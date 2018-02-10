@@ -57,7 +57,7 @@ void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetIn
 
 				int index = -1;
 				int i = 0;
-				for (DataSetPoints ds : dataSets) {
+				for (DataPoints ds : dataSets) {
 
 					if (ds.info.id == info.id) {
 						index = i;
@@ -65,10 +65,10 @@ void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetIn
 					i++;
 				}
 				if (index == -1) {
-					dataSets.push_back(DataSetPoints(info));
+					dataSets.push_back(DataPoints(info));
 					index = 0;
 				}
-				dataSets[index].points.push_back(d);
+				dataSets[index].data.push_back(d);
 				break;
 			}
 		}
@@ -76,7 +76,7 @@ void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetIn
 	else {
 		int index = -1;
 		int i = 0;
-		for (DataSetPoints ds : dataSets) {
+		for (DataPoints ds : dataSets) {
 
 			if (ds.info.id == info.id) {
 				index = i;
@@ -84,10 +84,10 @@ void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetIn
 			i++;
 		}
 		if (index == -1) {
-			dataSets.push_back(DataSetPoints(info));
+			dataSets.push_back(DataPoints(info));
 			index = 0;
 		}
-		dataSets[index].points.push_back(d);
+		dataSets[index].data.push_back(d);
 	}
 }
 
@@ -392,7 +392,8 @@ int SphericalCell::getNumCells() {
 void SphericalCell::fillRenderable(Renderable& r, DisplayMode mode) {
 
 	// Different rendering for data, volumes, and lines
-	if ((mode == DisplayMode::DATA && dataSets.size() != 0 && dataSets[0].points.size() != 0) || mode == DisplayMode::VOLUMES) {
+	if ((mode == DisplayMode::DATA && dataSets.size() != 0) || mode == DisplayMode::VOLUMES) {
+
 		r.drawMode = GL_TRIANGLES;
 		faceRenderable(r);
 

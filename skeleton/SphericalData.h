@@ -26,18 +26,18 @@ struct DataSetInfo {
 	float mean, max, min;
 };
 
-struct DataSetPoints {
-	DataSetPoints(const DataSetInfo& info) : info(info) {}
+struct DataPoints {
+	DataPoints(const DataSetInfo& info) : info(info) {}
 
-	std::vector<SphericalDatum> points;
+	std::vector<SphericalDatum> data;
 	const DataSetInfo& info;
 
 	float mean() {
 		float mean = 0.f;
-		for (SphericalDatum d : points) {
+		for (SphericalDatum d : data) {
 			mean += d.datum;
 		}
-		return mean / points.size();
+		return mean / data.size();
 	}
 };
 
@@ -70,7 +70,7 @@ public:
 		return info.mean;
 	}
 
-	const DataSetInfo& getInfo() {
+	const DataSetInfo& getInfo() const {
 		return info;
 	}
 

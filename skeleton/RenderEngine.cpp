@@ -10,7 +10,7 @@
 #include "Texture.h"
 
 RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
-	window(window), fade(false), camera(camera) {
+	window(window), fade(true), camera(camera) {
 
 	SDL_GetWindowSize(window, &width, &height);
 

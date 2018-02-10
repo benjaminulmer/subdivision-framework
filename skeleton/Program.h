@@ -45,6 +45,7 @@ private:
 	Camera* camera;
 
 	GridInfo info;
+	SphericalData eqData;
 	SphericalGrid* root;
 
 	Renderable grids;

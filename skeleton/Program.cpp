@@ -48,9 +48,6 @@ void Program::start() {
 	grids.fade = true;
 	RenderEngine::assignBuffers(cullBounds, false);
 
-	// Objects to draw initially
-	objects.push_back(&grids);
-
 	// Set up GridInfo
 	info.radius = MODEL_SCALE * 4.0 / 3.0;
 	info.mode = SubdivisionMode::FULL;
@@ -67,17 +64,20 @@ void Program::start() {
 
 	// Load earthquake data set
 	rapidjson::Document eq = ContentReadWrite::readJSON("data/eq-2017.json");
-	info.data = SphericalData(eq);
+	eqData = SphericalData(eq);
 
 	// Load coatline data set
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
 	RenderEngine::assignBuffers(coastLines, false);
 	RenderEngine::setBufferData(coastLines, false);
-	objects.push_back(&coastLines);
 
 	createGrid(Scheme::SDOG);
 	updateBounds(BoundParam::MAX_RADIUS, 0);
+
+	// Objects to draw initially
+	objects.push_back(&grids);
+	objects.push_back(&coastLines);
 
 	mainLoop();
 }
@@ -124,16 +124,10 @@ void Program::mainLoop() {
 		}
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
-		float max = -FLT_MAX;
-		float min = FLT_MAX;
-
 		glm::vec3 cameraPos = camera->getPosition();
-		for (glm::vec3 v : grids.verts) {
+		float max = glm::length(cameraPos) + MODEL_SCALE;
+		float min = glm::length(cameraPos) - MODEL_SCALE;
 
-			float dist = glm::length(cameraPos - v);
-			max = (dist > max) ? dist : max;
-			min = (dist < min) ? dist : min;
-		}
 		if (rotation) {
 			cullBounds.rot = glm::rotate(cullBounds.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
 			coastLines.rot = glm::rotate(coastLines.rot, 0.005f, glm::vec3(0.f, 1.f, 0.f));
@@ -180,7 +174,7 @@ void Program::createGrid(Scheme scheme) {
 		subdivLevel = maxSubdivLevel;
 	}
 
-	root->fillData(maxSubdivLevel);
+	root->fillData(maxSubdivLevel, eqData);
 	updateGrid(0);
 }
 

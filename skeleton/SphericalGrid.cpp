@@ -96,20 +96,20 @@ int SphericalGrid::getNumCells() {
 }
 
 // Propogates data down tree to maxLevel
-void SphericalGrid::fillData(int level) {
+void SphericalGrid::fillData(int level, const SphericalData& data) {
 
 	// Create more levels if needed
 	if (level > numLevels) {
 		subdivideTo(level);
 	}
 
-	const std::vector<SphericalDatum>& data = info.data.getData();
-	for (const SphericalDatum& d : data) {
+	const std::vector<SphericalDatum>& dataPoints = data.getData();
+	for (const SphericalDatum& d : dataPoints) {
 		for (int i = 0; i < 8; i++) {
 
 			// If contained in octant no other octant can contain point
 			if (octants[i]->contains(d)) {
-				octants[i]->fillData(d, level, info.data.getInfo());
+				octants[i]->fillData(d, level, data.getInfo());
 				break;
 			}
 		}

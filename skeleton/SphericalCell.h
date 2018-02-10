@@ -46,7 +46,6 @@ struct GridInfo {
 	CellBounds selection;
 
 	float volMin, volMax, volAvg;
-	SphericalData data;
 };
 
 class SphericalCell {
@@ -73,7 +72,7 @@ private:
 	std::vector<SphericalCell*> children;
 	const GridInfo& info;
 
-	std::vector<DataSetPoints> dataSets;
+	std::vector<DataPoints> dataSets;
 
 	void subdivide();
 	void binarySubdivide();

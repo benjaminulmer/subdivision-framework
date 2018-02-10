@@ -13,7 +13,7 @@ public:
 	void getVolumes(std::vector<float>& volumes, int level);
 	int getNumCells();
 
-	void fillData(int level);
+	void fillData(int level, const SphericalData& data);
 
 private:
 	SphericalCell* octants[8];
