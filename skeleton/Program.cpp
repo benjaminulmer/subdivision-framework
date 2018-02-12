@@ -47,6 +47,8 @@ void Program::start() {
 	RenderEngine::assignBuffers(grids, false);
 	grids.fade = true;
 	RenderEngine::assignBuffers(cullBounds, false);
+	RenderEngine::assignBuffers(coastLines, false);
+	coastLines.fade = true;
 
 	// Set up GridInfo
 	info.radius = MODEL_SCALE * 4.0 / 3.0;
@@ -69,15 +71,15 @@ void Program::start() {
 	// Load coatline data set
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
-	RenderEngine::assignBuffers(coastLines, false);
 	RenderEngine::setBufferData(coastLines, false);
 
+	// Create grid
 	createGrid(Scheme::SDOG);
 	updateBounds(BoundParam::MAX_RADIUS, 0);
 
 	// Objects to draw initially
-	objects.push_back(&grids);
 	objects.push_back(&coastLines);
+	objects.push_back(&grids);
 
 	mainLoop();
 }

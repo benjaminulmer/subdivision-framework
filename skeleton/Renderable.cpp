@@ -7,8 +7,7 @@
 #include <math.h>
 
 // Creates a renderable of the geometry specified in json document
-Renderable::Renderable(rapidjson::Document& d) {
-	fade = true;
+Renderable::Renderable(rapidjson::Document& d) : Renderable() {
 	drawMode = GL_LINES;
 
 	rapidjson::Value& featuresArray = d["features"];
