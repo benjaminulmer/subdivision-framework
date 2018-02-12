@@ -45,29 +45,11 @@ class SphericalData {
 
 public:
 	SphericalData() = default;
-	SphericalData(rapidjson::Document& d);
+	SphericalData(rapidjson::Document& d, int num);
 	SphericalData(std::vector<float> volumes);
 
 	const std::vector<SphericalDatum>& getData() const {
 		return data;
-	}
-
-	int size() {
-		return (int) data.size();
-	}
-
-	void addDatum(const SphericalDatum& d) {
-		data.push_back(d);
-	}
-
-	float getMin() const {
-		return info.min;
-	}
-	float getMax() const {
-		return info.max;
-	}
-	float getMean() const {
-		return info.mean;
 	}
 
 	const DataSetInfo& getInfo() const {
@@ -77,6 +59,8 @@ public:
 	void calculateStats();
 
 private:
+	static int count;
+
 	std::vector<SphericalDatum> data;
 	DataSetInfo info;
 };

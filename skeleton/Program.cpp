@@ -47,8 +47,6 @@ void Program::start() {
 	RenderEngine::assignBuffers(grids, false);
 	grids.fade = true;
 	RenderEngine::assignBuffers(cullBounds, false);
-	RenderEngine::assignBuffers(coastLines, false);
-	coastLines.fade = true;
 
 	// Set up GridInfo
 	info.radius = MODEL_SCALE * 4.0 / 3.0;
@@ -65,12 +63,17 @@ void Program::start() {
 	info.culling = false;
 
 	// Load earthquake data set
-	rapidjson::Document eq = ContentReadWrite::readJSON("data/eq-2017.json");
-	eqData = SphericalData(eq);
+	rapidjson::Document eq1 = ContentReadWrite::readJSON("data/eq-2017-1.json");
+	eqData1 = SphericalData(eq1, 0);
+
+	rapidjson::Document eq2 = ContentReadWrite::readJSON("data/eq-2017-2.json");
+	eqData2 = SphericalData(eq2, 1);
 
 	// Load coatline data set
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
+	RenderEngine::assignBuffers(coastLines, false);
+	coastLines.fade = true;
 	RenderEngine::setBufferData(coastLines, false);
 
 	// Create grid
@@ -176,7 +179,8 @@ void Program::createGrid(Scheme scheme) {
 		subdivLevel = maxSubdivLevel;
 	}
 
-	root->fillData(maxSubdivLevel, eqData);
+	root->fillData(maxSubdivLevel, eqData1);
+	root->fillData(maxSubdivLevel, eqData2);
 	updateGrid(0);
 }
 

@@ -74,6 +74,8 @@ private:
 
 	std::vector<DataPoints> dataSets;
 
+	void addDataPoint(const SphericalDatum& d, const DataSetInfo& info);
+
 	void subdivide();
 	void binarySubdivide();
 	void ternarySubdivide();

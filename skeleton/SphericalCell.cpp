@@ -43,6 +43,30 @@ bool SphericalCell::contains(const SphericalDatum& d) {
 			d.radius <= maxRadius && d.radius > minRadius);
 }
 
+// Adds data point to cell
+void SphericalCell::addDataPoint(const SphericalDatum & d, const DataSetInfo & info) {
+
+	// Find index in list of data sets for the point
+	int index = -1;
+	int i = 0;
+	for (DataPoints ds : dataSets) {
+
+		if (ds.info.id == info.id) {
+			index = i;
+			break;
+		}
+		i++;
+	}
+
+	// If data point belongs to new data set add a new data set
+	if (index == -1) {
+		dataSets.push_back(DataPoints(info));
+		index = dataSets.size() - 1;
+	}
+	dataSets[index].data.push_back(d);
+
+}
+
 // Recursive function for agregating data located inside cell
 void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetInfo& info) {
 
@@ -52,42 +76,15 @@ void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetIn
 
 			// If contained in child no other child can contain point
 			if (g->contains(d)) {
+
 				g->fillData(d, level - 1, info);
-
-
-				int index = -1;
-				int i = 0;
-				for (DataPoints ds : dataSets) {
-
-					if (ds.info.id == info.id) {
-						index = i;
-					}
-					i++;
-				}
-				if (index == -1) {
-					dataSets.push_back(DataPoints(info));
-					index = 0;
-				}
-				dataSets[index].data.push_back(d);
+				addDataPoint(d, info);
 				break;
 			}
 		}
 	}
 	else {
-		int index = -1;
-		int i = 0;
-		for (DataPoints ds : dataSets) {
-
-			if (ds.info.id == info.id) {
-				index = i;
-			}
-			i++;
-		}
-		if (index == -1) {
-			dataSets.push_back(DataPoints(info));
-			index = 0;
-		}
-		dataSets[index].data.push_back(d);
+		addDataPoint(d, info);
 	}
 }
 
@@ -486,46 +483,19 @@ void SphericalCell::lineRenderable(Renderable& r) {
 glm::vec3 SphericalCell::getDataColour() {
 	glm::vec3 colour;
 
-	//data.calculateStats();
-	float selfValue = dataSets[0].mean();
-	float min = dataSets[0].info.min;
-	float max = dataSets[0].info.max;
-	float avg = dataSets[0].info.mean;
+	for (DataPoints dp : dataSets) {
+		float selfValue = dp.mean();
+		float min = dp.info.min;
+		float max = dp.info.max;
+		float avg = dp.info.mean;
 
-	float step = (max - min) / 6.f;
+		float norm = (selfValue - min) / (max - min);
+		norm *= dp.info.binColors.size();
+		if (norm >= dp.info.binColors.size()) norm >= dp.info.binColors.size() - 1;
 
-	if (selfValue >= min && selfValue <= min + step) {
-		colour = glm::vec3(254.f/255, 229.f/255, 217.f/255);
+		colour += dp.info.binColors[(int) norm];
 	}
-	else if (selfValue >= min + step && selfValue <= min + 2.f * step) {
-		colour = glm::vec3(252.f/255, 187.f/255, 161.f/255);
-	}
-	else if (selfValue >= min + 2.f * step && selfValue <= min + 3.f * step) {
-		colour = glm::vec3(252.f/255, 146.f/255, 114.f/255);
-	}
-	else if (selfValue >= min + 3.f * step && selfValue <= min + 4.f * step) {
-		colour = glm::vec3(251.f/255, 106.f/255, 74.f/255);
-	}
-	else if (selfValue >= min + 4.f * step && selfValue <= min + 5.f * step) {
-		colour = glm::vec3(222.f/255, 45.f/255, 38.f/255);
-	}
-	else {
-		colour = glm::vec3(165.f/255, 15.f/255, 21.f/255);
-	}
-	// Set colour
-	//if (selfValue > avg) {
-	//	float norm = (selfValue - avg) / (max - avg);
-	//	colour = glm::vec3(norm, 0.f, 0.f);
-	//}
-	//else if (selfValue < avg) {
-	//	float norm = (selfValue - min) / (avg - min);
-	//	colour = glm::vec3(0.f, 0.f, 1.f - norm);
-	//}
-	//else {
-	//	float norm = (selfValue - min) / (max - min);
-	//	colour = glm::vec3(norm, norm, norm);
-	//}
-	return colour;
+	return colour / (float) dataSets.size();
 }
 
 // Get colour of cell for displaying volumes
