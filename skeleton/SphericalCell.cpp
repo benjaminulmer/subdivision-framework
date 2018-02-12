@@ -489,10 +489,15 @@ glm::vec3 SphericalCell::getDataColour() {
 		float max = dp.info.max;
 		float avg = dp.info.mean;
 
-		float norm = (selfValue - min) / (max - min);
-		norm *= dp.info.binColors.size();
-		if (norm >= dp.info.binColors.size()) norm >= dp.info.binColors.size() - 1;
-
+		float norm;
+		if (max - min == 0.0) {
+			norm = dp.info.binColors.size() - 1;
+		}
+		else {
+			norm = (selfValue - min) / (max - min);
+			norm *= dp.info.binColors.size();
+			if (norm >= dp.info.binColors.size()) norm = dp.info.binColors.size() - 1;
+		}
 		colour += dp.info.binColors[(int) norm];
 	}
 	return colour / (float) dataSets.size();

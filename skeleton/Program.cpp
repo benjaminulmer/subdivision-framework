@@ -63,10 +63,10 @@ void Program::start() {
 	info.culling = false;
 
 	// Load earthquake data set
-	rapidjson::Document eq1 = ContentReadWrite::readJSON("data/eq-2017-1.json");
+	rapidjson::Document eq1 = ContentReadWrite::readJSON("data/eq-2017.json");
 	eqData1 = SphericalData(eq1, 0);
 
-	rapidjson::Document eq2 = ContentReadWrite::readJSON("data/eq-2017-2.json");
+	rapidjson::Document eq2 = ContentReadWrite::readJSON("data/cat5paths.json");
 	eqData2 = SphericalData(eq2, 1);
 
 	// Load coatline data set

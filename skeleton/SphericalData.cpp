@@ -2,6 +2,7 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <string>
 
 #include "Constants.h"
 
@@ -15,16 +16,49 @@ SphericalData::SphericalData(rapidjson::Document & d, int num) {
 
 	// Loop over all earthquakes in data file
 	for (rapidjson::SizeType i = 0; i < featuresArray.Size(); i++) {
-		double longitude = featuresArray[i]["geometry"]["coordinates"][0].GetDouble() * M_PI / 180.0;
-		double latitude = featuresArray[i]["geometry"]["coordinates"][1].GetDouble() * M_PI / 180.0;
-		double radius = RADIUS_EARTH_KM - featuresArray[i]["geometry"]["coordinates"][2].GetDouble();
-		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
+		rapidjson::Value& geometry = featuresArray[i]["geometry"];
 
-		if (radius > MODEL_SCALE) radius = MODEL_SCALE;
+		if (std::string(geometry["type"].GetString()) == "Point") {
 
-		float datum = featuresArray[i]["properties"]["mag"].GetDouble();
+			double longitude = geometry["coordinates"][0].GetDouble() * M_PI / 180.0;
+			double latitude = geometry["coordinates"][1].GetDouble() * M_PI / 180.0;
+			double radius = RADIUS_EARTH_KM - geometry["coordinates"][2].GetDouble();
+			radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
 
-		data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+			if (radius > MODEL_SCALE) radius = MODEL_SCALE;
+
+			float datum = featuresArray[i]["properties"]["mag"].GetDouble();
+			data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+		}
+		else if (std::string(geometry["type"].GetString()) == "LineString") {
+
+			rapidjson::Value& coords = geometry["coordinates"];
+
+			for (rapidjson::SizeType j = 0; j < coords.Size(); j++) {
+				double longitude = coords[j][0].GetDouble() * M_PI / 180.0;
+				double latitude = coords[j][1].GetDouble() * M_PI / 180.0;
+				double radius = MODEL_SCALE + 0.001f;
+
+				float datum = atof(featuresArray[i]["properties"]["Category"].GetString());
+				data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+			}
+		}
+		else if (std::string(geometry["type"].GetString()) == "MultiLineString") {
+
+			rapidjson::Value& coords = geometry["coordinates"];
+
+			for (rapidjson::SizeType j = 0; j < coords.Size(); j++) {
+
+				for (rapidjson::SizeType k = 0; k < coords[j].Size(); k++) {
+					double longitude = coords[j][k][0].GetDouble() * M_PI / 180.0;
+					double latitude = coords[j][k][1].GetDouble() * M_PI / 180.0;
+					double radius = MODEL_SCALE + 0.001f;
+
+					float datum = atof(featuresArray[i]["properties"]["Category"].GetString());
+					data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+				}
+			}
+		}
 	}
 	calculateStats();
 
