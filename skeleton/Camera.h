@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <glm/gtx/rotate_vector.hpp>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -11,8 +10,11 @@ class Camera {
 public:
 	Camera();
 
-	glm::mat4 getLookAt();
-	glm::vec3 getPosition();
+	glm::mat4 getLookAt() const;
+	glm::vec3 getPosition() const;
+	glm::vec3 getUp() const;
+	glm::vec3 getLookDir() const;
+
 	void updateLongitudeRotation(float deg);
 	void updateLatitudeRotation(float deg);
 	void updateZoom(int value);

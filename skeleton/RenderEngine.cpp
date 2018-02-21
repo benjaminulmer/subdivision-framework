@@ -9,14 +9,14 @@
 #include "ShaderTools.h"
 #include "Texture.h"
 
-RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
-	window(window), fade(true), camera(camera) {
+RenderEngine::RenderEngine(SDL_Window* window) :
+	window(window), fade(true) {
 
 	SDL_GetWindowSize(window, &width, &height);
 
 	mainProgram = ShaderTools::compileShaders("./shaders/main.vert", "./shaders/main.frag");
 
-	projection = glm::perspective(45.f, (float)width/height, 0.01f, 100.f);
+	projection = glm::perspective(fovYRad, (float)width/height, near, far);
 
 	// Default openGL state
 	// If you change state you must change back to default after

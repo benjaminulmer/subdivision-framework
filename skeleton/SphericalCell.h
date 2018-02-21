@@ -5,6 +5,8 @@
 #include "Renderable.h"
 #include "SphericalData.h"
 
+#include "Frustum.h"
+
 enum class SubdivisionMode {
 	FULL,
 	SELECTION
@@ -52,6 +54,8 @@ public:
 	void fillData(const SphericalDatum& d, int level, const DataSetInfo& info);
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level, DisplayMode mode);
+
+	static Frustum frust;
 
 private:
 	CellType type;

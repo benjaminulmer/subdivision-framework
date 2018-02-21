@@ -1,5 +1,7 @@
 #include "Camera.h"
 
+#include <glm/gtx/rotate_vector.hpp>
+
 #include "Constants.h"
 
 Camera::Camera() : zoomScale(1.3f), rotScale(0.008f) {
@@ -7,7 +9,7 @@ Camera::Camera() : zoomScale(1.3f), rotScale(0.008f) {
 }
 
 // Returns view matrix for the camera
-glm::mat4 Camera::getLookAt() {
+glm::mat4 Camera::getLookAt() const {
 
 	// Rotate eye along longitude
 	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
@@ -22,12 +24,32 @@ glm::mat4 Camera::getLookAt() {
 }
 
 // Returns position of the camera
-glm::vec3 Camera::getPosition() {
+glm::vec3 Camera::getPosition() const {
+
 	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
 	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, glm::cross(eyeTemp, glm::vec3(0.f, 1.f, 0.f)));
 
 	return eyeTemp + translation;
 }
+
+// Returns up of the camera
+glm::vec3 Camera::getUp() const {
+
+	// Rotate eye along longitude
+	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
+
+	// Find axis then rotate eye and up along latitude
+	glm::vec3 axis = glm::cross(eyeTemp, glm::vec3(0.f, 1.f, 0.f));
+
+	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, axis);
+	return glm::rotate(up, latitudeRotRad, axis);
+}
+
+// Returns looking direction of camera
+glm::vec3 Camera::getLookDir() const {
+	return glm::normalize(centre - getPosition());
+}
+
 
 // Rotates camera along longitudinal axis (spherical coords)
 void Camera::updateLongitudeRotation(float pixelsMoved) {

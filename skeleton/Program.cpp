@@ -7,6 +7,7 @@
 
 #include "Constants.h"
 #include "ContentReadWrite.h"
+#include "Frustum.h"
 #include "InputHandler.h"
 
 Program::Program() {
@@ -40,7 +41,7 @@ void Program::start() {
 	}
 
 	camera = new Camera();
-	renderEngine = new RenderEngine(window, camera);
+	renderEngine = new RenderEngine(window);
 	InputHandler::setUp(camera, renderEngine, this);
 
 	// Assign buffers
@@ -63,11 +64,11 @@ void Program::start() {
 	info.culling = false;
 
 	// Load earthquake data set
-	rapidjson::Document eq1 = ContentReadWrite::readJSON("data/eq-2017.json");
-	eqData1 = SphericalData(eq1, 0);
+	rapidjson::Document d1 = ContentReadWrite::readJSON("data/eq-2017.json");
+	eqData = SphericalData(d1, 0);
 
-	rapidjson::Document eq2 = ContentReadWrite::readJSON("data/cat5paths.json");
-	eqData2 = SphericalData(eq2, 1);
+	rapidjson::Document d2 = ContentReadWrite::readJSON("data/cat5paths.json");
+	pathsData = SphericalData(d2, 1);
 
 	// Load coatline data set
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
@@ -128,6 +129,8 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
+		SphericalCell::frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), renderEngine->getFar());
+
 		// Find min and max distance from camera to cell renderable - used for fading effect
 		glm::vec3 cameraPos = camera->getPosition();
 		float max = glm::length(cameraPos) + MODEL_SCALE;
@@ -170,8 +173,8 @@ void Program::createGrid(Scheme scheme) {
 		subdivLevel = maxSubdivLevel;
 	}
 
-	root->fillData(maxSubdivLevel, eqData1);
-	root->fillData(maxSubdivLevel, eqData2);
+	root->fillData(maxSubdivLevel, eqData);
+	root->fillData(maxSubdivLevel, pathsData);
 	updateGrid(0);
 }
 

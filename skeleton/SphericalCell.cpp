@@ -2,6 +2,8 @@
 
 #include "Geometry.h"
 
+Frustum SphericalCell::frust;
+
 // Creats an spherical cell with given bounds in each (spherical) direction
 SphericalCell::SphericalCell(CellType type, const GridInfo& info, double maxRadius, double minRadius,
                              double maxLat, double minLat, double maxLong, double minLong) :
@@ -310,6 +312,25 @@ void SphericalCell::lineRenderable(Renderable& r) {
 // Get colour of cell for displaying data
 glm::vec3 SphericalCell::getDataColour() {
 	glm::vec3 colour;
+
+	// Outer points
+	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRadius;
+	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRadius;
+	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRadius;
+	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRadius;
+
+	// Inner points
+	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRadius;
+	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRadius;
+	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
+	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
+
+	if (!frust.inside(o1) && !frust.inside(o2) && !frust.inside(o3) && !frust.inside(o4) &&
+		!frust.inside(i1) && !frust.inside(i2) && !frust.inside(i3) && !frust.inside(i4)) {
+
+		return glm::vec3(1.f, 1.f, 0.f);
+	}
+
 
 	// Loop over all data sets to colour cell
 	for (DataPoints dp : dataSets) {

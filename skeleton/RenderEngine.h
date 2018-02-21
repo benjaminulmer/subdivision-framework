@@ -12,7 +12,7 @@
 class RenderEngine {
 
 public:
-	RenderEngine(SDL_Window* window, Camera* camera);
+	RenderEngine(SDL_Window* window);
 
 	void render(const std::vector<Renderable*>& objects, const glm::mat4& view, float max, float min);
 
@@ -24,14 +24,22 @@ public:
 	void setWindowSize(int newWidth, int newHeight);
 	void toggleFade() { fade = !fade; }
 
+	float getFovY() { return fovYRad; }
+	float getAspectRatio() { return (float)width/height; }
+	float getNear() { return near; }
+	float getFar() { return far; }
+
 private:
 	SDL_Window* window;
 	int width, height;
 
+	const float fovYRad = 60.f * ((float)M_PI / 180.f);
+	const float near = 0.01f;
+	const float far = 100.f;
+
 	GLuint mainProgram;
 	bool fade;
 
-	Camera* camera;
 	glm::mat4 view;
 	glm::mat4 projection;
 };
