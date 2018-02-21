@@ -7,22 +7,17 @@
 
 enum class SubdivisionMode {
 	FULL,
-	SELECTION,
-	REP_SLICE
+	SELECTION
 };
 
 enum class DisplayMode {
 	DATA,
-	VOLUMES,
 	LINES
 };
 
 enum class Scheme {
 	SDOG,
 	OPT_SDOG,
-	NAIVE,
-	VOLUME,
-	TERNARY
 };
 
 enum class CellType {
@@ -44,8 +39,6 @@ struct GridInfo {
 	double radius;
 	CellBounds cull;
 	CellBounds selection;
-
-	float volMin, volMax, volAvg;
 };
 
 class SphericalCell {
@@ -59,8 +52,6 @@ public:
 	void fillData(const SphericalDatum& d, int level, const DataSetInfo& info);
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level, DisplayMode mode);
-	void getVolumes(std::vector<float>& volumes, int level);
-	int getNumCells();
 
 private:
 	CellType type;
@@ -77,10 +68,7 @@ private:
 	void addDataPoint(const SphericalDatum& d, const DataSetInfo& info);
 
 	void subdivide();
-	void binarySubdivide();
-	void ternarySubdivide();
-	void repSliceSubdivision(double midRadius, double midLat, double midLong);
-	void fullSubdivision(double midRadius, double midLat, double midLong);
+	void subdivisionSplit(double midRadius, double midLat, double midLong);
 
 	bool outsideBounds(CellBounds b);
 
@@ -88,5 +76,4 @@ private:
 	void faceRenderable(Renderable& r);
 	void lineRenderable(Renderable& r);
 	glm::vec3 getDataColour();
-	glm::vec3 getVolumeColour();
 };

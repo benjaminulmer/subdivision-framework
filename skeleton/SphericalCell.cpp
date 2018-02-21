@@ -105,12 +105,20 @@ void SphericalCell::subdivideTo(int level) {
 
 // Subdivides cell into children cells
 void SphericalCell::subdivide() {
-	if (info.scheme == Scheme::TERNARY) {
-		ternarySubdivide();
+
+	double midLong = (maxLong + minLong) / 2;
+	double midRadius = (maxRadius + minRadius) / 2;;
+	double midLat;
+
+	// Set latitude splitting point
+	if (info.scheme == Scheme::OPT_SDOG && type == CellType::SG) {
+		midLat = 0.57 * maxLat + 0.43 * minLat;
 	}
 	else {
-		binarySubdivide();
+		midLat = (maxLat + minLat) / 2;
 	}
+
+	subdivisionSplit(midRadius, midLat, midLong);
 
 	// Remove all children that are not in the selection
 	auto it = children.begin();
@@ -130,43 +138,8 @@ void SphericalCell::subdivide() {
 	}
 }
 
-// Subdivision for binary schemes
-void SphericalCell::binarySubdivide() {
-	double midLong = (maxLong + minLong) / 2;
-	double midRadius;
-	double midLat;
-
-	// Set radius and latitude splitting points 
-	if (info.scheme == Scheme::NAIVE || info.scheme == Scheme::SDOG || info.scheme == Scheme::OPT_SDOG) {
-
-		midRadius = (maxRadius + minRadius) / 2;
-		if (info.scheme == Scheme::OPT_SDOG && type == CellType::SG) {
-			midLat = 0.57 * maxLat + 0.43 * minLat;
-		}
-		else {
-			midLat = (maxLat + minLat) / 2;
-		}
-
-	}
-	else {//(info.scheme == Scheme::VOLUME)
-		double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
-		double denom = cbrt(2.0) * cbrt(sin(minLat) - sin(maxLat));
-
-		midRadius = num / denom;
-		midLat = asin((sin(maxLat) + sin(minLat)) / 2);
-	}
-
-	// Subdivision if different if only showing a representative slice
-	if (info.mode != SubdivisionMode::REP_SLICE) {
-		repSliceSubdivision(midRadius, midLat, midLong);
-	}
-	else {
-		fullSubdivision(midRadius, midLat, midLong);
-	}
-}
-
-// Only does representative subdivision for cell
-void SphericalCell::repSliceSubdivision(double midRadius, double midLat, double midLong) {
+// Fully subdivides cell
+void SphericalCell::subdivisionSplit(double midRadius, double midLat, double midLong) {
 	if (type == CellType::NG) {
 		children = std::vector<SphericalCell*>(8);
 
@@ -198,122 +171,6 @@ void SphericalCell::repSliceSubdivision(double midRadius, double midLat, double 
 		children[1] = new SphericalCell(CellType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
 		children[2] = new SphericalCell(CellType::NG, info, maxRadius, midRadius, midLat, minLat, maxLong, midLong);
 		children[3] = new SphericalCell(CellType::SG, info, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
-	}
-}
-
-// Fully subdivides cell
-void SphericalCell::fullSubdivision(double midRadius, double midLat, double midLong) {
-	if (type == CellType::NG) {
-		children = std::vector<SphericalCell*>(4);
-
-		children[0] = new SphericalCell(CellType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-		children[1] = new SphericalCell(CellType::NG, info, maxRadius, midRadius, maxLat, midLat, midLong, minLong);
-		children[2] = new SphericalCell(CellType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
-		children[3] = new SphericalCell(CellType::NG, info, midRadius, minRadius, maxLat, midLat, midLong, minLong);
-	}
-	else if (type == CellType::LG) {
-		children = std::vector<SphericalCell*>(4);
-
-		children[0] = new SphericalCell(CellType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-		children[1] = new SphericalCell(CellType::NG, info, midRadius, minRadius, midLat, minLat, midLong, minLong);
-
-		children[2] = new SphericalCell(CellType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-		children[3] = new SphericalCell(CellType::LG, info, midRadius, minRadius, maxLat, midLat, maxLong, minLong);
-	}
-	else {//(type == CellType::SG)
-		children = std::vector<SphericalCell*>(3);
-
-		children[0] = new SphericalCell(CellType::LG, info, maxRadius, midRadius, maxLat, midLat, maxLong, minLong);
-		children[1] = new SphericalCell(CellType::NG, info, maxRadius, midRadius, midLat, minLat, midLong, minLong);
-		children[2] = new SphericalCell(CellType::SG, info, midRadius, minRadius, maxLat, minLat, maxLong, minLong);
-	}
-}
-
-// Subdivision for ternary schemes
-void SphericalCell::ternarySubdivide() {
-
-	float midRadius = (maxRadius + minRadius) / 2;
-	float midLat = (maxLat + minLat) / 2;
-	float midLong = (maxLong + minLong) / 2;
-
-	float radius1 = (2.0 / 3.0) * minRadius + (1.0 / 3.0) * maxRadius;
-	float radius2 = (1.0 / 3.0) * minRadius + (2.0 / 3.0) * maxRadius;
-	float lat1    = (2.0 / 3.0) * minLat +    (1.0 / 3.0) * maxLat;
-	float lat2    = (1.0 / 3.0) * minLat +    (2.0 / 3.0) * maxLat;
-	float long1   = (2.0 / 3.0) * minLong +   (1.0 / 3.0) * maxLong;
-	float long2   = (1.0 / 3.0) * minLong +   (2.0 / 3.0) * maxLong;
-
-	if (type == CellType::NG) {
-		children = std::vector<SphericalCell*>(27);
-
-		children[0] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, long1,   minLong);
-		children[1] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat2,   lat1,   long1,   minLong);
-		children[2] = new SphericalCell(CellType::NG, info, maxRadius, radius2, maxLat, lat2,   long1,   minLong);
-		children[3] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, long2,   long1);
-		children[4] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat2,   lat1,   long2,   long1);
-		children[5] = new SphericalCell(CellType::NG, info, maxRadius, radius2, maxLat, lat2,   long2,   long1);
-		children[6] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, maxLong, long2);
-		children[7] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat2,   lat1,   maxLong, long2);
-		children[8] = new SphericalCell(CellType::NG, info, maxRadius, radius2, maxLat, lat2,   maxLong, long2);
-
-		children[9]  = new SphericalCell(CellType::NG, info, radius2, radius1, lat1,   minLat, long1,   minLong);
-		children[10] = new SphericalCell(CellType::NG, info, radius2, radius1, lat2,   lat1,   long1,   minLong);
-		children[11] = new SphericalCell(CellType::NG, info, radius2, radius1, maxLat, lat2,   long1,   minLong);
-		children[12] = new SphericalCell(CellType::NG, info, radius2, radius1, lat1,   minLat, long2,   long1);
-		children[13] = new SphericalCell(CellType::NG, info, radius2, radius1, lat2,   lat1,   long2,   long1);
-		children[14] = new SphericalCell(CellType::NG, info, radius2, radius1, maxLat, lat2,   long2,   long1);
-		children[15] = new SphericalCell(CellType::NG, info, radius2, radius1, lat1,   minLat, maxLong, long2);
-		children[16] = new SphericalCell(CellType::NG, info, radius2, radius1, lat2,   lat1,   maxLong, long2);
-		children[17] = new SphericalCell(CellType::NG, info, radius2, radius1, maxLat, lat2,   maxLong, long2);
-
-		children[18] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat1,   minLat, long1,   minLong);
-		children[19] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat2,   lat1,   long1,   minLong);
-		children[20] = new SphericalCell(CellType::NG, info, radius1, minRadius, maxLat, lat2,   long1,   minLong);
-		children[21] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat1,   minLat, long2,   long1);
-		children[22] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat2,   lat1,   long2,   long1);
-		children[23] = new SphericalCell(CellType::NG, info, radius1, minRadius, maxLat, lat2,   long2,   long1);
-		children[24] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat1,   minLat, maxLong, long2);
-		children[25] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat2,   lat1,   maxLong, long2);
-		children[26] = new SphericalCell(CellType::NG, info, radius1, minRadius, maxLat, lat2,   maxLong, long2);
-	}
-	else if (type == CellType::LG) {
-		children = std::vector<SphericalCell*>(18);
-
-		children[0] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, long1,   minLong);
-		children[1] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, long2,   long1);
-		children[2] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, maxLong, long2);
-		children[3] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat2,   lat1,   maxLong, midLong);
-		children[4] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat2,   lat1,   midLong, minLong);
-		children[5] = new SphericalCell(CellType::LG, info, maxRadius, radius2, maxLat, lat2,   maxLong, minLong);
-
-		children[6]  = new SphericalCell(CellType::NG, info, radius2, radius1, lat1,   minLat, long1,   minLong);
-		children[7]  = new SphericalCell(CellType::NG, info, radius2, radius1, lat1,   minLat, long2,   long1);
-		children[8]  = new SphericalCell(CellType::NG, info, radius2, radius1, lat1,   minLat, maxLong, long2);
-		children[9]  = new SphericalCell(CellType::NG, info, radius2, radius1, lat2,   lat1,   maxLong, midLong);
-		children[10] = new SphericalCell(CellType::NG, info, radius2, radius1, lat2,   lat1,   midLong, minLong);
-		children[11] = new SphericalCell(CellType::LG, info, radius2, radius1, maxLat, lat2,   maxLong, minLong);
-
-		children[12] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat1,   minLat, long1,   minLong);
-		children[13] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat1,   minLat, long2,   long1);
-		children[14] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat1,   minLat, maxLong, long2);
-		children[15] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat2,   lat1,   maxLong, midLong);
-		children[16] = new SphericalCell(CellType::NG, info, radius1, minRadius, lat2,   lat1,   midLong, minLong);
-		children[17] = new SphericalCell(CellType::LG, info, radius1, minRadius, maxLat, lat2,   maxLong, minLong);
-	}
-	else {//(type == CellType::SG)
-		children = std::vector<SphericalCell*>(10);
-
-		children[0] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, long1,   minLong);
-		children[1] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, long2,   long1);
-		children[2] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat1,   minLat, maxLong, long2);
-		children[3] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat2,   lat1,   maxLong, midLong);
-		children[4] = new SphericalCell(CellType::NG, info, maxRadius, radius2, lat2,   lat1,   midLong, minLong);
-		children[5] = new SphericalCell(CellType::LG, info, maxRadius, radius2, maxLat, lat2,   maxLong, minLong);
-
-		children[6] = new SphericalCell(CellType::LG, info, radius2, radius1,   maxLat, midLat, maxLong, minLong);
-		children[7] = new SphericalCell(CellType::NG, info, radius2, radius1,   midLat, minLat, midLong, minLong);
-		children[8] = new SphericalCell(CellType::NG, info, radius2, radius1,   midLat, minLat, maxLong, midLong);
-		children[9] = new SphericalCell(CellType::SG, info, radius1, minRadius, maxLat, minLat, maxLong, minLong);
 	}
 }
 
@@ -356,46 +213,17 @@ bool SphericalCell::outsideBounds(CellBounds b) {
 	       maxRadius <= b.minRadius || rMaxLat <= b.minLat || rMaxLong <= b.minLong;
 }
 
-// Recursive function for getting volumes at desired level
-void SphericalCell::getVolumes(std::vector<float>& volumes, int level) {
-
-	// If not at desired level recursively get volumes for children
-	if (level != 0) {
-		for (SphericalCell* g : children) {
-			g->getVolumes(volumes, level - 1);
-		}
-	}
-	else {
-		float volume = (maxLong - minLong) * (pow(maxRadius, 3) - pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0;
-		volumes.push_back(abs(volume));
-	}
-}
-
-// Recursive function for getting number of cells at desired level
-int SphericalCell::getNumCells() {
-	int toReturn = 0;
-	if (children.size() != 0) {
-		for (SphericalCell* g : children) {
-			toReturn += g->getNumCells();
-		}
-		return toReturn;
-	}
-	else {
-		return 1;
-	}
-}
-
 // Fills a renderable with geometry for the cell
 void SphericalCell::fillRenderable(Renderable& r, DisplayMode mode) {
 
 	// Different rendering for data, volumes, and lines
-	if ((mode == DisplayMode::DATA && dataSets.size() != 0) || mode == DisplayMode::VOLUMES) {
+	if (mode == DisplayMode::DATA && dataSets.size() != 0) {
 
 		r.drawMode = GL_TRIANGLES;
 		faceRenderable(r);
 
 		// Colour is different for data and volume modes
-		glm::vec3 colour = (mode == DisplayMode::DATA) ? getDataColour() : getVolumeColour();
+		glm::vec3 colour = getDataColour();
 
 		for (int i = 0; i < 36; i++) {
 			r.colours.push_back(colour);
@@ -504,32 +332,4 @@ glm::vec3 SphericalCell::getDataColour() {
 		colour += dp.info.binColors[(int) norm];
 	}
 	return colour / (float) dataSets.size();
-}
-
-// Get colour of cell for displaying volumes
-glm::vec3 SphericalCell::getVolumeColour() {
-	glm::vec3 colour;
-
-	float selfValue = abs((maxLong - minLong) * (pow(maxRadius, 3) - pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)) / 3.0);
-	float min = info.volMin;
-	float max = info.volMax;
-	float avg = info.volAvg;
-
-	// If all volumes the same return grey
-	if (max == min) {
-		return glm::vec3(0.5f, 0.5f, 0.5f);
-	}
-
-	// Set colour
-	if ((selfValue / max) > 0.999f && (selfValue / max) < 1.001f) {
-		colour = glm::vec3(1.f, 0.f, 0.f);
-	}
-	else if ((selfValue / min) > 0.999f && (selfValue / min) < 1.001f) {
-		colour = glm::vec3(0.f, 0.f, 1.f);
-	}
-	else {
-		float norm = (selfValue - min) / (max - min);
-		colour = glm::vec3(norm, norm, norm);
-	}
-	return colour;
 }

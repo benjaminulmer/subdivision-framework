@@ -68,6 +68,4 @@ private:
 
 	void setupWindow();
 	void mainLoop();
-
-	void calculateVolumes(int level);
 };

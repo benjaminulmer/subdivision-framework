@@ -9,7 +9,6 @@ SphericalGrid::SphericalGrid(GridInfo& info) :
 	info(info), numLevels(0) {
 
 	// Create starting octants of SDOG
-	if (info.scheme == Scheme::SDOG || info.scheme == Scheme::OPT_SDOG || info.scheme == Scheme::TERNARY) {
 		octants[0] = new SphericalCell(CellType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
 		octants[1] = new SphericalCell(CellType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
 		octants[2] = new SphericalCell(CellType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
@@ -19,18 +18,6 @@ SphericalGrid::SphericalGrid(GridInfo& info) :
 		octants[5] = new SphericalCell(CellType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
 		octants[6] = new SphericalCell(CellType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
 		octants[7] = new SphericalCell(CellType::SG, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
-	}
-	else {//(scheme == Scheme::NAIVE || scheme == Scheme::VOLUME)
-		octants[0] = new SphericalCell(CellType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[1] = new SphericalCell(CellType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI / 2, 0.0);
-		octants[2] = new SphericalCell(CellType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI / 2, 0.0);
-		octants[3] = new SphericalCell(CellType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI / 2, 0.0);
-
-		octants[4] = new SphericalCell(CellType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[5] = new SphericalCell(CellType::NG, info, info.radius, 0.0, -M_PI / 2, 0.0, M_PI, M_PI / 2);
-		octants[6] = new SphericalCell(CellType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, -M_PI, -M_PI / 2);
-		octants[7] = new SphericalCell(CellType::NG, info, info.radius, 0.0, M_PI / 2, 0.0, M_PI, M_PI / 2);
-	}
 }
 
 // Delete all children (recursively)
@@ -48,15 +35,9 @@ void SphericalGrid::subdivideTo(int level) {
 		return;
 	}
 
-	if (info.mode != SubdivisionMode::REP_SLICE) {
-		for (int i = 0; i < 8; i++) {
-			octants[i]->subdivideTo(level);
-		}
+	for (int i = 0; i < 8; i++) {
+		octants[i]->subdivideTo(level);
 	}
-	else {
-		octants[2]->subdivideTo(level);
-	}
-
 }
 
 // Creates a renderable for the spherical grid at the given level
@@ -66,33 +47,10 @@ void SphericalGrid::createRenderable(Renderable& r, int level, DisplayMode mode)
 	if (level > numLevels) {
 		subdivideTo(level);
 	}
-	if (info.mode != SubdivisionMode::REP_SLICE) {
-		for (int i = 0; i < 8; i++) {
-			octants[i]->createRenderable(r, level, mode);
-		}
-	}
-	else {
-		octants[2]->createRenderable(r, level, mode);
-	}
-}
 
-// Gets the volume of all cell for the spherical grid at the given level
-void SphericalGrid::getVolumes(std::vector<float>& volumes, int level) {
-
-	// Create more levels if needed
-	if (level > numLevels) {
-		subdivideTo(level);
-	}
-	octants[2]->getVolumes(volumes, level);
-}
-
-// Returns the total number of cells currently in the hierarchy
-int SphericalGrid::getNumCells() {
-	int toReturn = 0;
 	for (int i = 0; i < 8; i++) {
-		toReturn += octants[i]->getNumCells();
+		octants[i]->createRenderable(r, level, mode);
 	}
-	return toReturn;
 }
 
 // Propogates data down tree to maxLevel
@@ -113,5 +71,31 @@ void SphericalGrid::fillData(int level, const SphericalData& data) {
 				break;
 			}
 		}
+	}
+}
+
+// Number of LG cells at depth (single octanct)
+int SphericalGrid::lgCells(int depth) {
+
+	if (depth == 0) {
+		return 0;
+	}
+	else if (depth == 1) {
+		return 1;
+	}
+	else {
+		return lgCells(depth - 1) * 2 + 1;
+	}
+}
+
+// Calculates number of cells at depth (single octanct)
+int SphericalGrid::numCells(int depth) {
+
+	if (depth == 0) {
+		return 1;
+	}
+	else {
+		int lgCell = lgCells(depth - 1);
+		return 8 * (numCells(depth - 1) - lgCell - 1) + 6 * lgCell + 4;
 	}
 }

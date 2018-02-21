@@ -151,21 +151,12 @@ void Program::createGrid(Scheme scheme) {
 
 	// Set max number of grids depending on subdivision scheme
 	// These might need to be tweaked
-	int max = 0;
-	if (scheme == Scheme::TERNARY) {
-		max = 50000;
-	}
-	else if (scheme == Scheme::SDOG) {
-		max = 400000;
-	}
-	else {
-		max = 200000;
-	}
+	int max = 400000;
 
 	// Determine max number of subdivision levels that can be reasonably supported
 	int level = 0;
 	while (true) {
-		int numGrids = root->getNumCells();
+		int numGrids = 8 * root->numCells(level);
 		if (numGrids < max) {
 			level++;
 			root->subdivideTo(level);
@@ -193,10 +184,6 @@ void Program::updateGrid(int levelInc) {
 
 	grids.verts.clear();
 	grids.colours.clear();
-
-	if (dispMode == DisplayMode::VOLUMES) {
-		calculateVolumes(subdivLevel);
-	}
 
 	root->createRenderable(grids, subdivLevel, dispMode);
 	RenderEngine::setBufferData(grids, false);
@@ -321,37 +308,4 @@ void Program::toggleMakingSelection() {
 		setBoundsDrawing(false);
 		createGrid(info.scheme);
 	}
-}
-
-
-// Calculate volume of grids at current level
-void Program::calculateVolumes(int level) {
-	SubdivisionMode old = info.mode;
-
-	// Representative slice for speed
-	std::vector<float> volumes;
-	info.mode = SubdivisionMode::REP_SLICE;
-	SphericalGrid* temp = new SphericalGrid(info);
-	temp->getVolumes(volumes, level);
-	delete temp;
-
-	// Find max, min, and avg
-	float max = -FLT_MAX;
-	float min = FLT_MAX;
-	float avg = 0.f;
-
-	for (float v : volumes) {
-		avg += v;
-
-		if (v > max) max = v;
-		if (v < min) min = v;
-	}
-	avg /= volumes.size();
-	std::cout << max / min << std::endl;
-
-	// Store results for grids to use
-	info.volMax = max;
-	info.volMin = min;
-	info.volAvg = avg;
-	info.mode = old;
 }
