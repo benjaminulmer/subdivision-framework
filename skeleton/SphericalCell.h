@@ -7,6 +7,8 @@
 
 #include "Frustum.h"
 
+class Frustum;
+
 enum class SubdivisionMode {
 	FULL,
 	SELECTION
@@ -50,7 +52,10 @@ public:
 	              double maxLat, double minLat, double maxLong, double minLong);
 	virtual ~SphericalCell();
 
-	bool contains(const SphericalDatum& d);
+	void cornerPoints(glm::vec3& o1, glm::vec3& o2, glm::vec3& o3, glm::vec3& o4, 
+					  glm::vec3& i1, glm::vec3& i2, glm::vec3& i3, glm::vec3& i4) const;
+
+	bool contains(const SphericalDatum& d) const;
 	void fillData(const SphericalDatum& d, int level, const DataSetInfo& info);
 	void subdivideTo(int level);
 	void createRenderable(Renderable& r, int level, DisplayMode mode);

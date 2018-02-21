@@ -20,8 +20,25 @@ SphericalCell::~SphericalCell() {
 	}
 }
 
+// Corner points of the cell. Outer first then inner. MinLong MinLat - MaxLong MinLat - MinLong MaxLat - MaxLong - MaxLat
+void SphericalCell::cornerPoints(glm::vec3& o1, glm::vec3& o2, glm::vec3& o3, glm::vec3& o4, 
+								 glm::vec3& i1, glm::vec3& i2, glm::vec3& i3, glm::vec3& i4) const {
+
+	// Outer points
+	o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRadius;
+	o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRadius;
+	o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRadius;
+	o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRadius;
+
+	// Inner points
+	i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRadius;
+	i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRadius;
+	i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
+	i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
+}
+
 // Returns if given data point resides in cell
-bool SphericalCell::contains(const SphericalDatum& d) {
+bool SphericalCell::contains(const SphericalDatum& d) const {
 
 	// Special cases for negative numbers
 	double rMinLat, rMaxLat, rMinLong, rMaxLong;
@@ -240,17 +257,8 @@ void SphericalCell::fillRenderable(Renderable& r, DisplayMode mode) {
 // Fill renderable as faces
 void SphericalCell::faceRenderable(Renderable& r) {
 
-	// Outer points
-	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRadius;
-	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRadius;
-	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRadius;
-	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRadius;
-
-	// Inner points
-	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRadius;
-	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRadius;
-	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
-	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
+	glm::vec3 o1, o2, o3, o4, i1, i2, i3, i4;
+	cornerPoints(o1, o2, o3, o4, i1, i2, i3, i4);
 
 	// Outside and inside
 	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
@@ -278,17 +286,8 @@ void SphericalCell::faceRenderable(Renderable& r) {
 void SphericalCell::lineRenderable(Renderable& r) {
 	glm::vec3 origin(0.f, 0.f, 0.f);
 
-	// Outer points
-	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRadius;
-	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRadius;
-	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRadius;
-	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRadius;
-
-	// Inner points
-	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRadius;
-	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRadius;
-	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
-	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
+	glm::vec3 o1, o2, o3, o4, i1, i2, i3, i4;
+	cornerPoints(o1, o2, o3, o4, i1, i2, i3, i4);
 
 	// Straight lines connect each inner point to coresponding outer point
 	Geometry::createLineR(i1, o1, r);
@@ -311,26 +310,14 @@ void SphericalCell::lineRenderable(Renderable& r) {
 
 // Get colour of cell for displaying data
 glm::vec3 SphericalCell::getDataColour() {
+
 	glm::vec3 colour;
 
-	// Outer points
-	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRadius;
-	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRadius;
-	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRadius;
-	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRadius;
-
-	// Inner points
-	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRadius;
-	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRadius;
-	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRadius;
-	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRadius;
-
-	if (!frust.inside(o1) && !frust.inside(o2) && !frust.inside(o3) && !frust.inside(o4) &&
-		!frust.inside(i1) && !frust.inside(i2) && !frust.inside(i3) && !frust.inside(i4)) {
-
+	// Temp
+	if (!frust.inside(*this)) {
 		return glm::vec3(1.f, 1.f, 0.f);
 	}
-
+	// End temp
 
 	// Loop over all data sets to colour cell
 	for (DataPoints dp : dataSets) {
