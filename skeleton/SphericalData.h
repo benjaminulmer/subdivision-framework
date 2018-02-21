@@ -46,7 +46,7 @@ class SphericalData {
 public:
 	SphericalData() = default;
 	SphericalData(rapidjson::Document& d, int num);
-	SphericalData(std::vector<float> volumes);
+	SphericalData(const std::vector<float>& volumes);
 
 	const std::vector<SphericalDatum>& getData() const {
 		return data;

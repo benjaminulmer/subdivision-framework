@@ -34,7 +34,7 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const std::vector<Renderable*>& objects, glm::mat4 view, float max, float min) {
+void RenderEngine::render(const std::vector<Renderable*>& objects, const glm::mat4& view, float max, float min) {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glUseProgram(mainProgram);
 
@@ -116,7 +116,7 @@ void RenderEngine::deleteBufferData(Renderable & renderable, bool texture) {
 }
 
 // Creates a 2D texture
-GLuint RenderEngine::loadTexture(std::string filename) {
+GLuint RenderEngine::loadTexture(const std::string& filename) {
 
 	// Read in file (png only)
 	std::vector<unsigned char> _image;

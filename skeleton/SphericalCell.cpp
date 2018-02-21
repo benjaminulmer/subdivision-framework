@@ -483,16 +483,19 @@ void SphericalCell::lineRenderable(Renderable& r) {
 glm::vec3 SphericalCell::getDataColour() {
 	glm::vec3 colour;
 
+	// Loop over all data sets to colour cell
 	for (DataPoints dp : dataSets) {
 		float selfValue = dp.mean();
 		float min = dp.info.min;
 		float max = dp.info.max;
 		float avg = dp.info.mean;
 
+		// If all data points the same just use the last bin colour
 		float norm;
 		if (max - min == 0.0) {
 			norm = dp.info.binColors.size() - 1;
 		}
+		// Normalize distributions and pick appropriate bin
 		else {
 			norm = (selfValue - min) / (max - min);
 			norm *= dp.info.binColors.size();

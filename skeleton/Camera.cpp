@@ -61,11 +61,13 @@ void Camera::updateZoom(int sign) {
 }
 
 // Translates camera along x and y of view plane
-void Camera::translate(glm::vec3 planeTranslation) {
+void Camera::translate(const glm::vec3& planeTranslation) {
+
+	glm::vec3 pTrans(planeTranslation);
 
 	// Scale translation based on zoom level
 	float scale = (eye.z / 500.f);
-	planeTranslation *= scale;
+	pTrans *= scale;
 
 	// Get rotation axis
 	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);

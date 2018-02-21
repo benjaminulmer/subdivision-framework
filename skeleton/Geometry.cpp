@@ -4,7 +4,7 @@
 #include <math.h>
 
 // Geometric slerp between two vectors
-glm::vec3 Geometry::geomSlerp(glm::vec3 v1, glm::vec3 v2, float t) {
+glm::vec3 Geometry::geomSlerp(const glm::vec3& v1, const glm::vec3& v2, float t) {
 	float theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
 
 	glm::vec3 term1 = (sin((1.f - t) * theta) / sin(theta)) * v1;
@@ -13,7 +13,7 @@ glm::vec3 Geometry::geomSlerp(glm::vec3 v1, glm::vec3 v2, float t) {
 }
 
 // Creates a renderable for an arc defined by p1, p2, and centre points
-void Geometry::createArcR(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderable& r) {
+void Geometry::createArcR(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& centre, Renderable& r) {
 	glm::vec3 v1 = p1 - centre;
 	glm::vec3 v2 = p2 - centre;
 
@@ -52,7 +52,7 @@ void Geometry::createArcR(glm::vec3 p1, glm::vec3 p2, glm::vec3 centre, Renderab
 }
 
 // Creates a renderable for a line defined by p1 and p2
-void Geometry::createLineR(glm::vec3 p1, glm::vec3 p2, Renderable & r) {
+void Geometry::createLineR(const glm::vec3& p1, const glm::vec3& p2, Renderable & r) {
 	r.verts.push_back(p1);
 	r.verts.push_back(p2);
 	r.colours.push_back(r.lineColour);

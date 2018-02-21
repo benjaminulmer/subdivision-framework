@@ -208,12 +208,12 @@ void Program::updateBounds(BoundParam param, int inc) {
 
 	// Update proper bound
 	if (param == BoundParam::MAX_RADIUS) {
-		b.maxRadius -= inc * 0.1;
+		b.maxRadius -= inc * 0.01;
 		if (b.maxRadius >= MODEL_SCALE * 2.0) b.maxRadius = MODEL_SCALE * 2.0;
 		if (b.maxRadius <= b.minRadius) b.maxRadius = b.minRadius;
 	}
 	else if (param == BoundParam::MIN_RADIUS) {
-		b.minRadius += inc * 0.1;
+		b.minRadius += inc * 0.01;
 		if (b.minRadius >= b.maxRadius) b.minRadius = b.maxRadius;
 		if (b.minRadius <= 0.0) b.minRadius = 0.0;
 	}

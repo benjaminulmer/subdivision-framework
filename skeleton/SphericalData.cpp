@@ -14,10 +14,11 @@ SphericalData::SphericalData(rapidjson::Document & d, int num) {
 
 	rapidjson::Value& featuresArray = d["features"];
 
-	// Loop over all earthquakes in data file
+	// Loop over all features in the file
 	for (rapidjson::SizeType i = 0; i < featuresArray.Size(); i++) {
 		rapidjson::Value& geometry = featuresArray[i]["geometry"];
 
+		// Points just have one data point
 		if (std::string(geometry["type"].GetString()) == "Point") {
 
 			double longitude = geometry["coordinates"][0].GetDouble() * M_PI / 180.0;
@@ -30,6 +31,7 @@ SphericalData::SphericalData(rapidjson::Document & d, int num) {
 			float datum = featuresArray[i]["properties"]["mag"].GetDouble();
 			data.push_back(SphericalDatum(latitude, longitude, radius, datum));
 		}
+		// Loop over all points in line
 		else if (std::string(geometry["type"].GetString()) == "LineString") {
 
 			rapidjson::Value& coords = geometry["coordinates"];
@@ -43,6 +45,7 @@ SphericalData::SphericalData(rapidjson::Document & d, int num) {
 				data.push_back(SphericalDatum(latitude, longitude, radius, datum));
 			}
 		}
+		// Double loop over all lines then all points in lines
 		else if (std::string(geometry["type"].GetString()) == "MultiLineString") {
 
 			rapidjson::Value& coords = geometry["coordinates"];
@@ -83,7 +86,7 @@ SphericalData::SphericalData(rapidjson::Document & d, int num) {
 }
 
 // Fake volume "data"
-SphericalData::SphericalData(std::vector<float> volumes) {
+SphericalData::SphericalData(const std::vector<float>& volumes) {
 	for (float v : volumes) {
 		data.push_back(SphericalDatum(v));
 	}

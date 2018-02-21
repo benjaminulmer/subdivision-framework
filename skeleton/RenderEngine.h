@@ -14,12 +14,12 @@ class RenderEngine {
 public:
 	RenderEngine(SDL_Window* window, Camera* camera);
 
-	void render(const std::vector<Renderable*>& objects, glm::mat4 view, float max, float min);
+	void render(const std::vector<Renderable*>& objects, const glm::mat4& view, float max, float min);
 
 	static void assignBuffers(Renderable& renderable, bool texture);
 	static void setBufferData(Renderable& renderable, bool texture);
 	static void deleteBufferData(Renderable& renderable, bool texture);
-	static GLuint loadTexture(std::string filename);
+	static GLuint loadTexture(const std::string& filename);
 
 	void setWindowSize(int newWidth, int newHeight);
 	void toggleFade() { fade = !fade; }
