@@ -283,13 +283,13 @@ void Program::toggleSurfaceLocation() {
 	else {
 		info.radius = MODEL_SCALE * 2.0;
 	}
-	createGrid(info.scheme);
+	refreshGrid();
 }
 
 // Sets subdivision mode to be used by the grids
 void Program::setSubdivisionMode(SubdivisionMode mode) {
 	info.mode = mode;
-	createGrid(info.scheme);
+	refreshGrid();
 }
 
 // Sets display mode for rendering
@@ -309,6 +309,6 @@ void Program::toggleMakingSelection() {
 		makingSelection = false;
 		updateBounds(BoundParam::MAX_RADIUS, 0);
 		setBoundsDrawing(false);
-		createGrid(info.scheme);
+		refreshGrid();
 	}
 }

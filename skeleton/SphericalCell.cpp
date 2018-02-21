@@ -110,6 +110,10 @@ void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetIn
 // Recursive function for subdiving the tree to given level
 void SphericalCell::subdivideTo(int level) {
 
+	if (!frust.inside(*this)) {
+		return;
+	}
+
 	// Only subdivide if a leaf (children already exist otherwise)
 	if (children.size() == 0) {
 		subdivide();

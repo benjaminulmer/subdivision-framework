@@ -29,6 +29,7 @@ Frustum::Frustum(const Camera& camera, float fovY, float aspectRatio, float near
 	bottomN = glm::rotate(up, -fovY / 2.f, biNorm);
 }
 
+// Returns if all points are outside of given plane
 inline bool Frustum::allPointsOutsidePlane(const glm::vec3& o1, const glm::vec3& o2, const glm::vec3& o3, const glm::vec3& o4,
 							               const glm::vec3& i1, const glm::vec3& i2, const glm::vec3& i3, const glm::vec3& i4,
 							               const glm::vec3& pPoint, const glm::vec3& pNorm) {

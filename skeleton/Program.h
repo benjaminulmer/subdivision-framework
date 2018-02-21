@@ -23,6 +23,7 @@ public:
 
 	void start();
 
+	void refreshGrid() { createGrid(info.scheme); }
 	void createGrid(Scheme scheme);
 	void updateGrid(int levelInc);
 	void updateBounds(BoundParam param, int inc);

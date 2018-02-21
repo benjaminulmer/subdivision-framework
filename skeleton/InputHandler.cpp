@@ -45,6 +45,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	auto key = e.keysym.sym;
 
 	if (e.state == SDL_PRESSED) {
+		if (key == SDLK_r) {
+			program->refreshGrid();
+		}
 		if (key == SDLK_UP) {
 			program->updateGrid(1);
 		}
