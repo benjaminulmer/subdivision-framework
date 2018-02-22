@@ -57,8 +57,10 @@ public:
 
 	bool contains(const SphericalDatum& d) const;
 	void fillData(const SphericalDatum& d, const DataSetInfo& info);
-	void subdivideTo(int level);
+	void subdivide();
 	void createRenderable(Renderable& r, DisplayMode mode);
+
+	int countLeafs();
 
 	static Frustum frust;
 
@@ -76,7 +78,7 @@ private:
 
 	void addDataPoint(const SphericalDatum& d, const DataSetInfo& info);
 
-	void subdivide();
+	void performSubdivision();
 	void subdivisionSplit(double midRadius, double midLat, double midLong);
 
 	bool outsideBounds(CellBounds b);

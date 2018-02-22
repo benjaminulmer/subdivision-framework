@@ -160,10 +160,11 @@ void Program::createGrid(Scheme scheme) {
 	// Determine max number of subdivision levels that can be reasonably supported
 	int level = 0;
 	while (true) {
-		int numGrids = 8 * root->numCells(level);
+		int numGrids = root->countLeafs();
+		std::cout << numGrids << std::endl;
 		if (numGrids < max) {
 			level++;
-			root->subdivideTo(level);
+			root->subdivide();
 		}
 		else {
 			maxSubdivLevel = level;

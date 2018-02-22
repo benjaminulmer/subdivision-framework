@@ -8,16 +8,16 @@ public:
 	SphericalGrid(GridInfo& info);
 	virtual ~SphericalGrid();
 
-	void subdivideTo(int level);
+	void subdivide();
 	void createRenderable(Renderable& r, DisplayMode mode);
 	void fillData(const SphericalData& data);
 
+	int countLeafs();
 	static int numCells(int depth);
 
 private:
 	SphericalCell* octants[8];
 	GridInfo info;
-	int numLevels;
 
 	static int lgCells(int depth);
 };

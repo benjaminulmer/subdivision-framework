@@ -107,8 +107,24 @@ void SphericalCell::fillData(const SphericalDatum& d, const DataSetInfo& info) {
 	}
 }
 
+// Recursive function for counting number of leafs in tree
+int SphericalCell::countLeafs() {
+	int count = 0;
+
+	// If not at desired level recursively create renderables for children
+	if (children.size() != 0) {
+		for (SphericalCell* g : children) {
+			count += g->countLeafs();
+		}
+		return count;
+	}
+	else {
+		return 1;
+	}
+}
+
 // Recursive function for subdiving the tree to given level
-void SphericalCell::subdivideTo(int level) {
+void SphericalCell::subdivide() {
 
 	if (!frust.inside(*this)) {
 		return;
@@ -116,18 +132,17 @@ void SphericalCell::subdivideTo(int level) {
 
 	// Only subdivide if a leaf (children already exist otherwise)
 	if (children.size() == 0) {
-		subdivide();
+		performSubdivision();
 	}
-	// If more leveles need to be created recursively subdivide children
-	if (level > 1) {
+	else {
 		for (SphericalCell* g : children) {
-			g->subdivideTo(level - 1);
+			g->subdivide();
 		}
 	}
 }
 
 // Subdivides cell into children cells
-void SphericalCell::subdivide() {
+void SphericalCell::performSubdivision() {
 
 	double midLong = (maxLong + minLong) / 2;
 	double midRadius = (maxRadius + minRadius) / 2;;

@@ -17,7 +17,7 @@ Frustum::Frustum(const Camera& camera, float fovY, float aspectRatio, float near
 	nearP = camPos + near * lookDir;
 	nearN = lookDir;
 
-	farP = glm::vec3(0.f, 0.f, 0.f); //camPos + far * lookDir;
+	farP = glm::vec3(0.f, 0.f, 0.f) + 7.f * -lookDir;
 	farN = -lookDir;
 
 	leftN = glm::rotate(biNorm, fovX / 2.f, up);

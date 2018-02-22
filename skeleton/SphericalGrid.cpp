@@ -5,8 +5,7 @@
 
 // Creates an spherical grid with the given radius
 // Does not automatically subdivide
-SphericalGrid::SphericalGrid(GridInfo& info) : 
-	info(info), numLevels(0) {
+SphericalGrid::SphericalGrid(GridInfo& info) : info(info) {
 
 	// Create starting octants of SDOG
 		octants[0] = new SphericalCell(CellType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);
@@ -28,15 +27,10 @@ SphericalGrid::~SphericalGrid() {
 }
 
 // Subdivides spherical grid to the desired level (if not already that deep)
-void SphericalGrid::subdivideTo(int level) {
-
-	// Check if enough levels are already created
-	if (level <= numLevels || level <= 0) {
-		return;
-	}
+void SphericalGrid::subdivide() {
 
 	for (int i = 0; i < 8; i++) {
-		octants[i]->subdivideTo(level);
+		octants[i]->subdivide();
 	}
 }
 
@@ -62,6 +56,16 @@ void SphericalGrid::fillData(const SphericalData& data) {
 			}
 		}
 	}
+}
+
+// Returns number of leaf cells in tree
+int SphericalGrid::countLeafs() {
+	int count = 0;
+
+	for (int i = 0; i < 8; i++) {
+		count += octants[i]->countLeafs();
+	}
+	return count;
 }
 
 // Number of LG cells at depth (single octanct)
