@@ -7,15 +7,6 @@
 #include "RenderEngine.h"
 #include "SphericalGrid.h"
 
-enum class BoundParam {
-	MAX_RADIUS,
-	MIN_RADIUS,
-	MAX_LAT,
-	MIN_LAT,
-	MAX_LONG,
-	MIN_LONG
-};
-
 class Program {
 
 public:
@@ -26,17 +17,10 @@ public:
 	void refreshGrid() { createGrid(info.scheme); }
 	void createGrid(Scheme scheme);
 	void updateGrid(int levelInc);
-	void updateBounds(BoundParam param, int inc);
 
-	void setBoundsDrawing(bool state);
-	void toggleCull();
-	void toggleRotation();
 	void toggleSurfaceLocation();
 
-	void setSubdivisionMode(SubdivisionMode mode);
 	void setDisplayMode(DisplayMode mode);
-
-	void toggleMakingSelection();
 
 private:
 	SDL_Window* window;
@@ -50,22 +34,14 @@ private:
 	SphericalData pathsData;
 	SphericalGrid* root;
 
-	Renderable grids;
-	Renderable cullBounds;
+	Renderable cells;
 	Renderable coastLines;
 
 	std::vector<Renderable*> objects;
 
-	int maxSubdivLevel;
-	int subdivLevel;
+	int maxTreeDepth;
 
-	bool makingSelection;
-
-	bool rotation;
 	DisplayMode dispMode;
-	bool refOn;
-	bool fullSphereRef;
-	bool fullSizeRef;
 
 	void setupWindow();
 	void mainLoop();

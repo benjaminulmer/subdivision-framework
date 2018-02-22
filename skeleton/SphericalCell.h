@@ -7,13 +7,6 @@
 
 #include "Frustum.h"
 
-class Frustum;
-
-enum class SubdivisionMode {
-	FULL,
-	SELECTION
-};
-
 enum class DisplayMode {
 	DATA,
 	LINES
@@ -38,11 +31,8 @@ struct CellBounds {
 
 struct GridInfo {
 	Scheme scheme;
-	SubdivisionMode mode;
-	bool culling;
 	double radius;
-	CellBounds cull;
-	CellBounds selection;
+	Frustum frust;
 };
 
 class SphericalCell {
@@ -61,8 +51,6 @@ public:
 	void createRenderable(Renderable& r, DisplayMode mode);
 
 	int countLeafs();
-
-	static Frustum frust;
 
 private:
 	CellType type;

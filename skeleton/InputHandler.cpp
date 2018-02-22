@@ -54,46 +54,21 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		else if (key == SDLK_2) {
 			program->createGrid(Scheme::OPT_SDOG);
 		}
-		else if (key == SDLK_5) {
-			program->setSubdivisionMode(SubdivisionMode::SELECTION);
-		}
-		else if (key == SDLK_6) {
-			program->setSubdivisionMode(SubdivisionMode::FULL);
-		}
 		else if (key == SDLK_8) {
 			program->setDisplayMode(DisplayMode::LINES);
 		}
-		else if (key == SDLK_0) {
+		else if (key == SDLK_9) {
 			program->setDisplayMode(DisplayMode::DATA);
-		}
-		else if (key == SDLK_c) {
-			program->toggleCull();
 		}
 		else if (key == SDLK_f) {
 			renderEngine->toggleFade();
 		}
-		else if (key == SDLK_q) {
-			program->toggleRotation();
-		}
 		else if (key == SDLK_s) {
 			program->toggleSurfaceLocation();
-		}
-		else if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
-		         key == SDLK_j || key == SDLK_k || key == SDLK_l) {
-			program->setBoundsDrawing(true);
-		}
-		else if (key == SDLK_RETURN) {
-			program->toggleMakingSelection();
 		}
 		else if (key == SDLK_ESCAPE) {
 			SDL_Quit();
 			exit(0);
-		}
-	}
-	else {//(e.state == SDL_RELEASED)
-		if (key == SDLK_u || key == SDLK_i || key == SDLK_o ||
-		    key == SDLK_j || key == SDLK_k || key == SDLK_l) {
-			program->setBoundsDrawing(false);
 		}
 	}
 }
@@ -137,28 +112,7 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 	int dy;
 	dy = e.x - e.y;
 
-	const Uint8 *state = SDL_GetKeyboardState(0);
-	if (state[SDL_SCANCODE_U]) {
-		program->updateBounds(BoundParam::MAX_RADIUS, dy * 20.0);
-	}
-	else if (state[SDL_SCANCODE_J]) {
-		program->updateBounds(BoundParam::MIN_RADIUS, dy * 20.0);
-	}
-	else if (state[SDL_SCANCODE_I]) {
-		program->updateBounds(BoundParam::MAX_LAT, dy);
-	}
-	else if (state[SDL_SCANCODE_K]) {
-		program->updateBounds(BoundParam::MIN_LAT, dy);
-	}
-	else if (state[SDL_SCANCODE_O]) {
-		program->updateBounds(BoundParam::MAX_LONG, dy);
-	}
-	else if (state[SDL_SCANCODE_L]) {
-		program->updateBounds(BoundParam::MIN_LONG, dy);
-	}
-	else {
-		camera->updateZoom(dy);
-	}
+	camera->updateZoom(dy);
 }
 
 // Callback for window reshape/resize

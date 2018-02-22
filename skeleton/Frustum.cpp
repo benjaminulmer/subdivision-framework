@@ -2,6 +2,8 @@
 
 #include <glm/gtx/rotate_vector.hpp>
 
+#include "SphericalCell.h"
+
 // Creates view frustum in world space from camera and projection info
 Frustum::Frustum(const Camera& camera, float fovY, float aspectRatio, float near, float far) {
 
@@ -17,7 +19,7 @@ Frustum::Frustum(const Camera& camera, float fovY, float aspectRatio, float near
 	nearP = camPos + near * lookDir;
 	nearN = lookDir;
 
-	farP = glm::vec3(0.f, 0.f, 0.f) + 7.f * -lookDir;
+	farP = camPos + far * lookDir;
 	farN = -lookDir;
 
 	leftN = glm::rotate(biNorm, fovX / 2.f, up);
@@ -32,7 +34,7 @@ Frustum::Frustum(const Camera& camera, float fovY, float aspectRatio, float near
 // Returns if all points are outside of given plane
 inline bool Frustum::allPointsOutsidePlane(const glm::vec3& o1, const glm::vec3& o2, const glm::vec3& o3, const glm::vec3& o4,
 							               const glm::vec3& i1, const glm::vec3& i2, const glm::vec3& i3, const glm::vec3& i4,
-							               const glm::vec3& pPoint, const glm::vec3& pNorm) {
+							               const glm::vec3& pPoint, const glm::vec3& pNorm) const {
 
 	return (glm::dot(o1 - pPoint, pNorm) < 0 && glm::dot(o2 - pPoint, pNorm) < 0 && 
 			glm::dot(o3 - pPoint, pNorm) < 0 && glm::dot(o4 - pPoint, pNorm) < 0 && 
@@ -41,14 +43,14 @@ inline bool Frustum::allPointsOutsidePlane(const glm::vec3& o1, const glm::vec3&
 }
 
 // Returns if point is inside frustum
-bool Frustum::inside(const glm::vec3& point) {
+bool Frustum::inside(const glm::vec3& point) const {
 	return (glm::dot(point - leftP, leftN) > 0) && (glm::dot(point - rightP, rightN) > 0) &&
 	       (glm::dot(point - topP, topN) > 0) && (glm::dot(point - bottomP, bottomN) > 0) && 
 	       (glm::dot(point - nearP, nearN) > 0) && (glm::dot(point - farP, farN) > 0);
 }
 
 // Returns if cell is inside or overlaps with frustum
-bool Frustum::inside(const SphericalCell& cell) {
+bool Frustum::inside(const SphericalCell& cell) const {
 	
 	glm::vec3 o1, o2, o3, o4, i1, i2, i3, i4;
 	cell.cornerPoints(o1, o2, o3, o4, i1, i2, i3, i4);

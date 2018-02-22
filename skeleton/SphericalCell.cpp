@@ -2,8 +2,6 @@
 
 #include "Geometry.h"
 
-Frustum SphericalCell::frust;
-
 // Creats an spherical cell with given bounds in each (spherical) direction
 SphericalCell::SphericalCell(CellType type, const GridInfo& info, double maxRadius, double minRadius,
                              double maxLat, double minLat, double maxLong, double minLong) :
@@ -15,8 +13,8 @@ SphericalCell::SphericalCell(CellType type, const GridInfo& info, double maxRadi
 
 // Deletes all children recursively (if has any)
 SphericalCell::~SphericalCell() {
-	for (SphericalCell* g : children) {
-		delete g;
+	for (SphericalCell* c : children) {
+		delete c;
 	}
 }
 
@@ -91,12 +89,12 @@ void SphericalCell::fillData(const SphericalDatum& d, const DataSetInfo& info) {
 
 	// If not at desired level recursively fill data on children
 	if (children.size() != 0) {
-		for (SphericalCell* g : children) {
+		for (SphericalCell* c : children) {
 
 			// If contained in child no other child can contain point
-			if (g->contains(d)) {
+			if (c->contains(d)) {
 
-				g->fillData(d, info);
+				c->fillData(d, info);
 				addDataPoint(d, info);
 				break;
 			}
@@ -113,8 +111,8 @@ int SphericalCell::countLeafs() {
 
 	// If not at desired level recursively create renderables for children
 	if (children.size() != 0) {
-		for (SphericalCell* g : children) {
-			count += g->countLeafs();
+		for (SphericalCell* c : children) {
+			count += c->countLeafs();
 		}
 		return count;
 	}
@@ -126,7 +124,7 @@ int SphericalCell::countLeafs() {
 // Recursive function for subdiving the tree to given level
 void SphericalCell::subdivide() {
 
-	if (!frust.inside(*this)) {
+	if (!info.frust.inside(*this)) {
 		return;
 	}
 
@@ -135,8 +133,8 @@ void SphericalCell::subdivide() {
 		performSubdivision();
 	}
 	else {
-		for (SphericalCell* g : children) {
-			g->subdivide();
+		for (SphericalCell* c : children) {
+			c->subdivide();
 		}
 	}
 }
@@ -157,23 +155,6 @@ void SphericalCell::performSubdivision() {
 	}
 
 	subdivisionSplit(midRadius, midLat, midLong);
-
-	// Remove all children that are not in the selection
-	auto it = children.begin();
-
-	if (info.mode == SubdivisionMode::SELECTION) {
-
-		// Remove all children outside of selection
-		while (it != children.end()) {
-			if ((*it)->outsideBounds(info.selection)) {
-				children.erase(it);
-				it = children.begin();
-			}
-			else {
-				it++;
-			}
-		}
-	}
 }
 
 // Fully subdivides cell
@@ -217,11 +198,11 @@ void SphericalCell::createRenderable(Renderable & r, DisplayMode mode) {
 	
 	// If not at desired level recursively create renderables for children
 	if (children.size() != 0) {
-		for (SphericalCell* g : children) {
-			g->createRenderable(r, mode);
+		for (SphericalCell* c : children) {
+			c->createRenderable(r, mode);
 		}
 	}
-	else if (!info.culling || !outsideBounds(info.cull)) {
+	else {
 		fillRenderable(r, mode);
 	}
 }
@@ -332,8 +313,8 @@ glm::vec3 SphericalCell::getDataColour() {
 
 	glm::vec3 colour;
 
-	// Temp
-	if (!frust.inside(*this)) {
+	// Temp - Will move up in call stack later. Good for debugging currently
+	if (!info.frust.inside(*this)) {
 		return glm::vec3(1.f, 1.f, 0.f);
 	}
 	// End temp
