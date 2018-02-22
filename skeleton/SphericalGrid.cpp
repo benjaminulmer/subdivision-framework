@@ -41,25 +41,15 @@ void SphericalGrid::subdivideTo(int level) {
 }
 
 // Creates a renderable for the spherical grid at the given level
-void SphericalGrid::createRenderable(Renderable& r, int level, DisplayMode mode) {
-
-	// Create more levels if needed
-	if (level > numLevels) {
-		subdivideTo(level);
-	}
+void SphericalGrid::createRenderable(Renderable& r, DisplayMode mode) {
 
 	for (int i = 0; i < 8; i++) {
-		octants[i]->createRenderable(r, level, mode);
+		octants[i]->createRenderable(r, mode);
 	}
 }
 
 // Propogates data down tree to maxLevel
-void SphericalGrid::fillData(int level, const SphericalData& data) {
-
-	// Create more levels if needed
-	if (level > numLevels) {
-		subdivideTo(level);
-	}
+void SphericalGrid::fillData(const SphericalData& data) {
 
 	const std::vector<SphericalDatum>& dataPoints = data.getData();
 	for (const SphericalDatum& d : dataPoints) {
@@ -67,7 +57,7 @@ void SphericalGrid::fillData(int level, const SphericalData& data) {
 
 			// If contained in octant no other octant can contain point
 			if (octants[i]->contains(d)) {
-				octants[i]->fillData(d, level, data.getInfo());
+				octants[i]->fillData(d, data.getInfo());
 				break;
 			}
 		}

@@ -48,12 +48,6 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		if (key == SDLK_r) {
 			program->refreshGrid();
 		}
-		if (key == SDLK_UP) {
-			program->updateGrid(1);
-		}
-		else if (key == SDLK_DOWN) {
-			program->updateGrid(-1);
-		}
 		else if (key == SDLK_1) {
 			program->createGrid(Scheme::SDOG);
 		}

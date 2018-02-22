@@ -9,8 +9,8 @@ public:
 	virtual ~SphericalGrid();
 
 	void subdivideTo(int level);
-	void createRenderable(Renderable& r, int level, DisplayMode mode);
-	void fillData(int level, const SphericalData& data);
+	void createRenderable(Renderable& r, DisplayMode mode);
+	void fillData(const SphericalData& data);
 
 	static int numCells(int depth);
 

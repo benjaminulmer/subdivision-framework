@@ -56,9 +56,9 @@ public:
 					  glm::vec3& i1, glm::vec3& i2, glm::vec3& i3, glm::vec3& i4) const;
 
 	bool contains(const SphericalDatum& d) const;
-	void fillData(const SphericalDatum& d, int level, const DataSetInfo& info);
+	void fillData(const SphericalDatum& d, const DataSetInfo& info);
 	void subdivideTo(int level);
-	void createRenderable(Renderable& r, int level, DisplayMode mode);
+	void createRenderable(Renderable& r, DisplayMode mode);
 
 	static Frustum frust;
 

@@ -21,7 +21,7 @@ Program::Program() {
 	maxSubdivLevel = 6;
 	subdivLevel = 1;
 	rotation = false;
-	dispMode = DisplayMode::LINES;
+	dispMode = DisplayMode::DATA;
 
 	refOn = false;
 	fullSphereRef = false;
@@ -148,6 +148,7 @@ void Program::mainLoop() {
 
 // Sets the scheme that will be used for subdivision
 void Program::createGrid(Scheme scheme) {
+
 	delete root;
 	info.scheme = scheme;
 	root = new SphericalGrid(info);
@@ -173,22 +174,18 @@ void Program::createGrid(Scheme scheme) {
 		subdivLevel = maxSubdivLevel;
 	}
 
-	root->fillData(maxSubdivLevel, eqData);
-	root->fillData(maxSubdivLevel, pathsData);
+	root->fillData(eqData);
+	root->fillData(pathsData);
 	updateGrid(0);
 }
 
 // Updates the level of subdivision being shown
 void Program::updateGrid(int levelInc) {
-	if (subdivLevel + levelInc < 1 || subdivLevel + levelInc > maxSubdivLevel) {
-		return;
-	}
-	subdivLevel += levelInc;
 
 	grids.verts.clear();
 	grids.colours.clear();
 
-	root->createRenderable(grids, subdivLevel, dispMode);
+	root->createRenderable(grids, dispMode);
 	RenderEngine::setBufferData(grids, false);
 }
 
@@ -241,7 +238,6 @@ void Program::updateBounds(BoundParam param, int inc) {
 	SphericalCell r(CellType::NG, info, b.maxRadius, b.minRadius, b.maxLat, b.minLat, b.maxLong, b.minLong);
 	cullBounds.verts.clear();
 	cullBounds.colours.clear();
-	r.createRenderable(cullBounds, 0, DisplayMode::LINES);
 	RenderEngine::setBufferData(cullBounds, false);
 
 	updateGrid(0);

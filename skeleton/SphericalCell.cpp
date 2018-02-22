@@ -87,16 +87,16 @@ void SphericalCell::addDataPoint(const SphericalDatum & d, const DataSetInfo & i
 }
 
 // Recursive function for agregating data located inside cell
-void SphericalCell::fillData(const SphericalDatum& d, int level, const DataSetInfo& info) {
+void SphericalCell::fillData(const SphericalDatum& d, const DataSetInfo& info) {
 
 	// If not at desired level recursively fill data on children
-	if (level != 0) {
+	if (children.size() != 0) {
 		for (SphericalCell* g : children) {
 
 			// If contained in child no other child can contain point
 			if (g->contains(d)) {
 
-				g->fillData(d, level - 1, info);
+				g->fillData(d, info);
 				addDataPoint(d, info);
 				break;
 			}
@@ -198,12 +198,12 @@ void SphericalCell::subdivisionSplit(double midRadius, double midLat, double mid
 }
 
 // Recursive function for creating renderable at desired level
-void SphericalCell::createRenderable(Renderable & r, int level, DisplayMode mode) {
+void SphericalCell::createRenderable(Renderable & r, DisplayMode mode) {
 	
 	// If not at desired level recursively create renderables for children
-	if (level != 0) {
+	if (children.size() != 0) {
 		for (SphericalCell* g : children) {
-			g->createRenderable(r, level - 1, mode);
+			g->createRenderable(r, mode);
 		}
 	}
 	else if (!info.culling || !outsideBounds(info.cull)) {
