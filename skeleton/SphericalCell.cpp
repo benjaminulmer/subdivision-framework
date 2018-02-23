@@ -240,6 +240,10 @@ void SphericalCell::fillRenderable(Renderable& r, DisplayMode mode) {
 	// Different rendering for data, volumes, and lines
 	if (mode == DisplayMode::DATA && dataSets.size() != 0) {
 
+		if (!info.frust.inside(*this) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
+			return;
+		}
+
 		r.drawMode = GL_TRIANGLES;
 		faceRenderable(r);
 
@@ -314,12 +318,6 @@ void SphericalCell::lineRenderable(Renderable& r) {
 glm::vec3 SphericalCell::getDataColour() {
 
 	glm::vec3 colour;
-
-	// Temp - Will move up in call stack later. Good for debugging currently
-	if (!info.frust.inside(*this) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
-		return glm::vec3(1.f, 1.f, 0.f);
-	}
-	// End temp
 
 	// Loop over all data sets to colour cell
 	for (DataPoints dp : dataSets) {
