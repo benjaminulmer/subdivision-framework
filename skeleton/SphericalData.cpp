@@ -10,89 +10,149 @@
 
 int SphericalData::count = 0;
 
-SphericalData::SphericalData(rapidjson::Document & d, int num) {
+SphericalData::SphericalData(rapidjson::Document& d, rapidjson::Document& metaD) {
 
 	rapidjson::Value& featuresArray = d["features"];
+	const char* keyword = metaD["keyword"].GetString();
 
 	// Loop over all features in the file
 	for (rapidjson::SizeType i = 0; i < featuresArray.Size(); i++) {
-		rapidjson::Value& geometry = featuresArray[i]["geometry"];
+
+		rapidjson::Value& feature = featuresArray[i];
+		rapidjson::Value& geometry = feature["geometry"];
+		rapidjson::Value& coords = geometry["coordinates"];
 
 		// Points just have one data point
 		if (std::string(geometry["type"].GetString()) == "Point") {
-
-			double longitude = geometry["coordinates"][0].GetDouble() * M_PI / 180.0;
-			double latitude = geometry["coordinates"][1].GetDouble() * M_PI / 180.0;
-			double radius = RADIUS_EARTH_KM - geometry["coordinates"][2].GetDouble();
-			radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
-
-			if (radius > MODEL_SCALE) radius = MODEL_SCALE;
-
-			float datum = featuresArray[i]["properties"]["mag"].GetDouble();
-			data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+			readAndPushDatum(feature, keyword);
 		}
 		// Loop over all points in line
 		else if (std::string(geometry["type"].GetString()) == "LineString") {
 
-			rapidjson::Value& coords = geometry["coordinates"];
-
 			for (rapidjson::SizeType j = 0; j < coords.Size(); j++) {
-				double longitude = coords[j][0].GetDouble() * M_PI / 180.0;
-				double latitude = coords[j][1].GetDouble() * M_PI / 180.0;
-				double radius = MODEL_SCALE + 0.001f;
-
-				float datum = atof(featuresArray[i]["properties"]["Category"].GetString());
-				data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+				readAndPushDatum(feature, keyword, j);
 			}
 		}
 		// Double loop over all lines then all points in lines
 		else if (std::string(geometry["type"].GetString()) == "MultiLineString") {
 
-			rapidjson::Value& coords = geometry["coordinates"];
-
 			for (rapidjson::SizeType j = 0; j < coords.Size(); j++) {
 
 				for (rapidjson::SizeType k = 0; k < coords[j].Size(); k++) {
-					double longitude = coords[j][k][0].GetDouble() * M_PI / 180.0;
-					double latitude = coords[j][k][1].GetDouble() * M_PI / 180.0;
-					double radius = MODEL_SCALE + 0.001f;
-
-					float datum = atof(featuresArray[i]["properties"]["Category"].GetString());
-					data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+					readAndPushDatum(feature, keyword, j, k);
 				}
 			}
 		}
 	}
-	calculateStats();
 
-	if (num == 0) {
-		info.binColors.push_back(glm::vec3(254.f/255, 229.f/255, 217.f/255));
-		info.binColors.push_back(glm::vec3(252.f/255, 187.f/255, 161.f/255));
-		info.binColors.push_back(glm::vec3(252.f/255, 146.f/255, 114.f/255));
-		info.binColors.push_back(glm::vec3(251.f/255, 106.f/255, 74.f/255));
-		info.binColors.push_back(glm::vec3(222.f/255, 45.f/255, 38.f/255));
-		info.binColors.push_back(glm::vec3(165.f/255, 15.f/255, 21.f/255));
+	rapidjson::Value& coloursArray = metaD["colours"];
+
+	// Loop over colours to create colours for bins
+	for (rapidjson::SizeType i = 0; i < coloursArray.Size(); i++) {
+
+		float r = coloursArray[i]["r"].GetInt() / 255.f;
+		float g = coloursArray[i]["g"].GetInt() / 255.f;
+		float b = coloursArray[i]["b"].GetInt() / 255.f;
+
+		info.binColors.push_back(glm::vec3(r, g, b));
 	}
-	else {
-		info.binColors.push_back(glm::vec3(241.f/255, 228.f/255, 246.f/255));
-		info.binColors.push_back(glm::vec3(208.f/255, 209.f/255, 230.f/255));
-		info.binColors.push_back(glm::vec3(166.f/255, 189.f/255, 219.f/255));
-		info.binColors.push_back(glm::vec3(116.f/255, 169.f/255, 207.f/255));
-		info.binColors.push_back(glm::vec3(43.f/255, 140.f/255, 190.f/255));
-		info.binColors.push_back(glm::vec3(4.f/255, 90.f/255, 141.f/255));
-	}
+
+	calculateStats();
 	info.id = count;
 	count++;
 }
 
-// Fake volume "data"
-SphericalData::SphericalData(const std::vector<float>& volumes) {
-	for (float v : volumes) {
-		data.push_back(SphericalDatum(v));
+// Reads datum and pushes to data vector
+void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyword) {
+
+	rapidjson::Value& geometry = feature["geometry"];
+	rapidjson::Value& coords = geometry["coordinates"];
+
+	double longitude = coords[0].GetDouble() * M_PI / 180.0;
+	double latitude = coords[1].GetDouble() * M_PI / 180.0;
+	double radius;
+
+	// Depth info
+	if (coords.Size() == 3) {
+		radius = RADIUS_EARTH_KM - coords[2].GetDouble();
+		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
+		if (radius > MODEL_SCALE) radius = MODEL_SCALE;
 	}
-	calculateStats();
-	info.id = count;
-	count++;
+	// No depth info
+	else {
+		radius = MODEL_SCALE + 0.001f;
+	}
+
+	float datum;
+	if (feature["properties"][keyword].IsDouble() || feature["properties"][keyword].IsInt()) {
+		datum = feature["properties"][keyword].GetDouble();
+	}
+	else {
+		datum = atof(feature["properties"][keyword].GetString());
+	}
+	data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+}
+
+// Reads datum and pushes to data vector
+void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyword, int j) {
+
+	rapidjson::Value& geometry = feature["geometry"];
+	rapidjson::Value& coords = geometry["coordinates"];
+
+	double longitude = coords[j][0].GetDouble() * M_PI / 180.0;
+	double latitude = coords[j][1].GetDouble() * M_PI / 180.0;
+	double radius;
+
+	// Depth info
+	if (coords[j].Size() == 3) {
+		radius = RADIUS_EARTH_KM - coords[j][2].GetDouble();
+		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
+		if (radius > MODEL_SCALE) radius = MODEL_SCALE;
+	}
+	// No depth info
+	else {
+		radius = MODEL_SCALE + 0.001f;
+	}
+
+	float datum;
+	if (feature["properties"][keyword].IsDouble() || feature["properties"][keyword].IsInt()) {
+		datum = feature["properties"][keyword].GetDouble();
+	}
+	else {
+		datum = atof(feature["properties"][keyword].GetString());
+	}
+	data.push_back(SphericalDatum(latitude, longitude, radius, datum));
+}
+
+// Reads datum and pushes to data vector
+void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyword, int j, int k) {
+
+	rapidjson::Value& geometry = feature["geometry"];
+	rapidjson::Value& coords = geometry["coordinates"];
+
+	double longitude = coords[j][k][0].GetDouble() * M_PI / 180.0;
+	double latitude = coords[j][k][1].GetDouble() * M_PI / 180.0;
+	double radius;
+
+	// Depth info
+	if (coords[j][k].Size() == 3) {
+		radius = RADIUS_EARTH_KM - coords[j][k][2].GetDouble();
+		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
+		if (radius > MODEL_SCALE) radius = MODEL_SCALE;
+	}
+	// No depth info
+	else {
+		radius = MODEL_SCALE + 0.001f;
+	}
+
+	float datum;
+	if (feature["properties"][keyword].IsDouble() || feature["properties"][keyword].IsInt()) {
+		datum = feature["properties"][keyword].GetDouble();
+	}
+	else {
+		datum = atof(feature["properties"][keyword].GetString());
+	}
+	data.push_back(SphericalDatum(latitude, longitude, radius, datum));
 }
 
 // Calculates statistics about data (max, min, avg)

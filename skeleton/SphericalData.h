@@ -10,11 +10,6 @@ struct SphericalDatum {
 	SphericalDatum(double latitude, double longitude, double radius, float datum) :
 		latitude(latitude), longitude(longitude), radius(radius), datum(datum) {}
 
-	// Temp
-	SphericalDatum(float datum) :
-		latitude(0.0), longitude(0.0), radius(0.0), datum(datum) {
-	}
-
 	double latitude, longitude, radius;
 	float datum;
 };
@@ -45,8 +40,7 @@ class SphericalData {
 
 public:
 	SphericalData() = default;
-	SphericalData(rapidjson::Document& d, int num);
-	SphericalData(const std::vector<float>& volumes);
+	SphericalData(rapidjson::Document& d, rapidjson::Document& metaD);
 
 	const std::vector<SphericalDatum>& getData() const {
 		return data;
@@ -63,5 +57,9 @@ private:
 
 	std::vector<SphericalDatum> data;
 	DataSetInfo info;
+
+	void readAndPushDatum(rapidjson::Value& feature, const char* keyword);
+	void readAndPushDatum(rapidjson::Value& feature, const char* keyword, int j);
+	void readAndPushDatum(rapidjson::Value& feature, const char* keyword, int j, int k);
 };
 
