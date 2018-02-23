@@ -121,10 +121,12 @@ int SphericalCell::countLeafs() {
 	}
 }
 
+#include <iostream>
+
 // Recursive function for subdiving the tree to given level
 void SphericalCell::subdivide() {
 
-	if (!info.frust.inside(*this)) {
+	if (!info.frust.inside(*this) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
 		return;
 	}
 
@@ -314,7 +316,7 @@ glm::vec3 SphericalCell::getDataColour() {
 	glm::vec3 colour;
 
 	// Temp - Will move up in call stack later. Good for debugging currently
-	if (!info.frust.inside(*this)) {
+	if (!info.frust.inside(*this) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
 		return glm::vec3(1.f, 1.f, 0.f);
 	}
 	// End temp

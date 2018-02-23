@@ -112,7 +112,19 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 	int dy;
 	dy = e.x - e.y;
 
-	camera->updateZoom(dy);
+	const Uint8 *state = SDL_GetKeyboardState(0);
+	if (state[SDL_SCANCODE_U]) {
+		program->updateRadialBounds(RadialBound::MAX, -dy);
+	}
+	else if (state[SDL_SCANCODE_J]) {
+		program->updateRadialBounds(RadialBound::MIN, -dy);
+	}
+	else if (state[SDL_SCANCODE_M]) {
+		program->updateRadialBounds(RadialBound::BOTH, -dy);
+	}
+	else {
+		camera->updateZoom(dy);
+	}
 }
 
 // Callback for window reshape/resize

@@ -44,6 +44,8 @@ void Program::start() {
 
 	// Set starting radius
 	info.radius = MODEL_SCALE * 4.0 / 3.0;
+	info.cullMaxRadius = 0.75 * info.radius + (1000.0 / RADIUS_EARTH_KM) * MODEL_SCALE;
+	info.cullMinRadius = 0.75 * info.radius - (1000.0 / RADIUS_EARTH_KM) * MODEL_SCALE;
 
 	// Load earthquake data set
 	rapidjson::Document d1 = ContentReadWrite::readJSON("data/eq-2017.json");
@@ -139,7 +141,6 @@ void Program::createGrid(Scheme scheme) {
 	int level = 0;
 	while (true) {
 		int numGrids = root->countLeafs();
-		std::cout << numGrids << std::endl;
 		if (numGrids < max) {
 			level++;
 			root->subdivide();
@@ -163,6 +164,34 @@ void Program::updateGrid(int levelInc) {
 
 	root->createRenderable(cells, dispMode);
 	RenderEngine::setBufferData(cells, false);
+}
+
+// Updates radial bounds for culling
+void Program::updateRadialBounds(RadialBound b, int dir) {
+
+	double amount = info.radius / maxTreeDepth / 2.0;
+
+	if (b == RadialBound::MAX) {
+		info.cullMaxRadius += dir * amount;
+
+	}
+	else if (b == RadialBound::MIN) {
+		info.cullMinRadius += dir * amount;
+
+	}
+	else {//b == RadialBound::BOTH
+		info.cullMinRadius += dir * amount;
+		info.cullMaxRadius += dir * amount;
+	}
+
+	// Bounds enforcing
+	if (info.cullMinRadius < 0.0) info.cullMinRadius = 0.0;
+	if (info.cullMaxRadius > info.radius) info.cullMaxRadius = info.radius;
+	if (info.cullMinRadius > info.cullMaxRadius) info.cullMinRadius = info.cullMaxRadius;
+	if (info.cullMaxRadius < info.cullMinRadius) info.cullMaxRadius = info.cullMinRadius;
+
+	// Temp until visual representation
+	std::cout << info.cullMinRadius << ", " << info.cullMaxRadius << std::endl;
 }
 
 // Toggles location of surface between 0.5 and 0.75

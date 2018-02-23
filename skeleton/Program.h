@@ -7,6 +7,13 @@
 #include "RenderEngine.h"
 #include "SphericalGrid.h"
 
+enum class RadialBound {
+	MAX,
+	MIN,
+	BOTH
+};
+
+
 class Program {
 
 public:
@@ -18,6 +25,7 @@ public:
 	void createGrid(Scheme scheme);
 	void updateGrid(int levelInc);
 
+	void updateRadialBounds(RadialBound b, int dir);
 	void toggleSurfaceLocation();
 
 	void setDisplayMode(DisplayMode mode);

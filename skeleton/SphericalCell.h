@@ -33,6 +33,8 @@ struct GridInfo {
 	Scheme scheme;
 	double radius;
 	Frustum frust;
+	double cullMaxRadius;
+	double cullMinRadius;
 };
 
 class SphericalCell {
