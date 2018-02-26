@@ -17,7 +17,6 @@ public:
 
 private:
 	SphericalCell* octants[8];
-	GridInfo info;
 
 	static int lgCells(int depth);
 };

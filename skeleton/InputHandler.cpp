@@ -123,7 +123,8 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 		program->updateRadialBounds(RadialBound::BOTH, -dy);
 	}
 	else {
-		camera->updateZoom(dy);
+		program->updateScale(-dy);
+		//camera->updateZoom(dy);
 	}
 }
 

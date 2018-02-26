@@ -43,9 +43,10 @@ void Program::start() {
 	cells.fade = true;
 
 	// Set starting radius
-	info.radius = MODEL_SCALE * 4.0 / 3.0;
-	info.cullMaxRadius = 0.75 * info.radius + (1000.0 / RADIUS_EARTH_KM) * MODEL_SCALE;
-	info.cullMinRadius = 0.75 * info.radius - (1000.0 / RADIUS_EARTH_KM) * MODEL_SCALE;
+	info.scale = 1.f;
+	info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
+	info.cullMaxRadius = 0.75 * info.radius + (1000.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
+	info.cullMinRadius = 0.75 * info.radius - (1000.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
 
 	// Load earthquake data set
 	rapidjson::Document d1 = ContentReadWrite::readJSON("data/eq-2017.json");
@@ -120,8 +121,8 @@ void Program::mainLoop() {
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
 		glm::vec3 cameraPos = camera->getPosition();
-		float max = glm::length(cameraPos) + MODEL_SCALE;
-		float min = glm::length(cameraPos) - MODEL_SCALE;
+		float max = glm::length(cameraPos) + RADIUS_EARTH_MODEL;
+		float min = glm::length(cameraPos) - RADIUS_EARTH_MODEL;
 
 		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
@@ -168,6 +169,21 @@ void Program::updateGrid(int levelInc) {
 	RenderEngine::setBufferData(cells, false);
 }
 
+// Changes scale of model
+void Program::updateScale(float inc) {
+
+	if (inc < 0) {
+		info.scale /= 1.4f;
+	}
+	else {
+		info.scale *= 1.4f;
+	}
+	camera->setScale(info.scale);
+
+	cells.scale = glm::scale(glm::vec3(info.scale, info.scale, info.scale));
+	coastLines.scale = glm::scale(glm::vec3(info.scale, info.scale, info.scale));
+}
+
 // Updates radial bounds for culling
 void Program::updateRadialBounds(RadialBound b, int dir) {
 
@@ -199,11 +215,11 @@ void Program::updateRadialBounds(RadialBound b, int dir) {
 // Toggles location of surface between 0.5 and 0.75
 void Program::toggleSurfaceLocation() {
 
-	if (info.radius == MODEL_SCALE * 2.0) {
-		info.radius = MODEL_SCALE * 4.0 / 3.0;
+	if (info.radius == RADIUS_EARTH_MODEL * 2.0) {
+		info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
 	}
 	else {
-		info.radius = MODEL_SCALE * 2.0;
+		info.radius = RADIUS_EARTH_MODEL * 2.0;
 	}
 	refreshGrid();
 }

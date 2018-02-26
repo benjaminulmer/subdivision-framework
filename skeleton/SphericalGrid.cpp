@@ -5,7 +5,7 @@
 
 // Creates an spherical grid with the given radius
 // Does not automatically subdivide
-SphericalGrid::SphericalGrid(GridInfo& info) : info(info) {
+SphericalGrid::SphericalGrid(GridInfo& info) {
 
 	// Create starting octants of SDOG
 		octants[0] = new SphericalCell(CellType::SG, info, info.radius, 0.0, -M_PI / 2, 0.0, -M_PI / 2, 0.0);

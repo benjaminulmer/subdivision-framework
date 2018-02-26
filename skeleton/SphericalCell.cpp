@@ -126,7 +126,7 @@ int SphericalCell::countLeafs() {
 // Recursive function for subdiving the tree to given level
 void SphericalCell::subdivide() {
 
-	if (!info.frust.inside(*this) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
+	if (!info.frust.inside(*this, info.scale) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
 		return;
 	}
 
@@ -240,7 +240,7 @@ void SphericalCell::fillRenderable(Renderable& r, DisplayMode mode) {
 	// Different rendering for data, volumes, and lines
 	if (mode == DisplayMode::DATA && dataSets.size() != 0) {
 
-		if (!info.frust.inside(*this) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
+		if (!info.frust.inside(*this, info.scale) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
 			return;
 		}
 

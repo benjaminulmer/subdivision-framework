@@ -35,6 +35,8 @@ struct GridInfo {
 	Frustum frust;
 	double cullMaxRadius;
 	double cullMinRadius;
+
+	float scale;
 };
 
 class SphericalCell {

@@ -50,11 +50,17 @@ glm::vec3 Camera::getLookDir() const {
 	return glm::normalize(centre - getPosition());
 }
 
+// Sets current model scale
+void Camera::setScale(float scale) {
+	curScale = scale;
+
+	eye = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL * scale + 30.f);
+}
 
 // Rotates camera along longitudinal axis (spherical coords)
 void Camera::updateLongitudeRotation(float pixelsMoved) {
 	
-	float scale = rotScale * (eye.z - MODEL_SCALE);
+	float scale = rotScale * (eye.z - RADIUS_EARTH_MODEL);
 	// If camera is upside down reverse longitude rotations
 	if (cos(latitudeRotRad) > 0) {
 		longitudeRotRad += scale * pixelsMoved * M_PI / 180;
@@ -66,7 +72,7 @@ void Camera::updateLongitudeRotation(float pixelsMoved) {
 
 // Rotates camera along latitudinal axis (spherical coords)
 void Camera::updateLatitudeRotation(float pixelsMoved) {
-	float scale = rotScale * (eye.z - MODEL_SCALE);
+	float scale = rotScale * (eye.z - RADIUS_EARTH_MODEL);
 	latitudeRotRad += scale * pixelsMoved * M_PI / 180;
 }
 
@@ -74,12 +80,12 @@ void Camera::updateLatitudeRotation(float pixelsMoved) {
 void Camera::updateZoom(int sign) {
 
 	if (sign < 0) {
-		eye.z = (eye.z - MODEL_SCALE) / zoomScale + MODEL_SCALE;
+		eye.z = (eye.z - RADIUS_EARTH_MODEL) / zoomScale + RADIUS_EARTH_MODEL;
 	}
 	else {
-		eye.z = (eye.z - MODEL_SCALE) * zoomScale + MODEL_SCALE;;
+		eye.z = (eye.z - RADIUS_EARTH_MODEL) * zoomScale + RADIUS_EARTH_MODEL;;
 	}
-	if (eye.z > 4.f * MODEL_SCALE) eye.z = 4.f * MODEL_SCALE;
+	if (eye.z > 4.f * RADIUS_EARTH_MODEL) eye.z = 4.f * RADIUS_EARTH_MODEL;
 }
 
 // Translates camera along x and y of view plane
@@ -104,7 +110,7 @@ void Camera::translate(const glm::vec3& planeTranslation) {
 
 // Reset camera to starting position
 void Camera::reset() {
-	eye = glm::vec3(0.f, 0.f, 4.f * MODEL_SCALE);
+	eye = glm::vec3(0.f, 0.f, 4.f * RADIUS_EARTH_MODEL);
 	up = glm::vec3(0.f, 1.f, 0.f);
 	centre = glm::vec3(0.f, 0.f, 0.f);
 

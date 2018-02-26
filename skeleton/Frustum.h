@@ -2,8 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "Camera.h"
-
+class Camera;
 class SphericalCell;
 
 class Frustum {
@@ -13,7 +12,7 @@ public:
 	Frustum(const Camera& camera, float fovY, float aspectRatio, float near, float far);
 
 	bool inside(const glm::vec3& point) const;
-	bool inside(const SphericalCell& cell) const;
+	bool inside(const SphericalCell& cell, float scale) const;
 
 private:
 	glm::vec3 leftP, rightP, topP, bottomP, nearP, farP;

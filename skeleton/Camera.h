@@ -5,6 +5,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include "SphericalCell.h"
+
 class Camera {
 
 public:
@@ -14,6 +16,8 @@ public:
 	glm::vec3 getPosition() const;
 	glm::vec3 getUp() const;
 	glm::vec3 getLookDir() const;
+
+	void setScale(float scale);
 
 	void updateLongitudeRotation(float deg);
 	void updateLatitudeRotation(float deg);
@@ -25,6 +29,8 @@ public:
 private:
 	const float zoomScale;
 	const float rotScale;
+
+	float curScale;
 
 	glm::vec3 eye;
 	glm::vec3 up;

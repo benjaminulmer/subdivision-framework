@@ -2,6 +2,7 @@
 
 #include <glm/gtx/rotate_vector.hpp>
 
+#include "Camera.h"
 #include "SphericalCell.h"
 
 // Creates view frustum in world space from camera and projection info
@@ -50,10 +51,12 @@ bool Frustum::inside(const glm::vec3& point) const {
 }
 
 // Returns if cell is inside or overlaps with frustum
-bool Frustum::inside(const SphericalCell& cell) const {
+bool Frustum::inside(const SphericalCell& cell, float scale) const {
 	
 	glm::vec3 o1, o2, o3, o4, i1, i2, i3, i4;
 	cell.cornerPoints(o1, o2, o3, o4, i1, i2, i3, i4);
+	o1 *= scale; o2 *= scale; o3 *= scale; o4 *= scale;
+	i1 *= scale; i2 *= scale; i3 *= scale; i4 *= scale;
 
 	// Test to see if all point are on wrong side of same plane
 	if (allPointsOutsidePlane(o1, o2, o3, o4, i1, i2, i3, i4, leftP, leftN) || 

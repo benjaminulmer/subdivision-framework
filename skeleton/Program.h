@@ -25,6 +25,7 @@ public:
 	void createGrid(Scheme scheme);
 	void updateGrid(int levelInc);
 
+	void updateScale(float inc);
 	void updateRadialBounds(RadialBound b, int dir);
 	void toggleSurfaceLocation();
 

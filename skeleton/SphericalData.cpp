@@ -75,12 +75,12 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 	// Depth info
 	if (coords.Size() == 3) {
 		radius = RADIUS_EARTH_KM - coords[2].GetDouble();
-		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
-		if (radius > MODEL_SCALE) radius = MODEL_SCALE;
+		radius = radius / RADIUS_EARTH_KM * RADIUS_EARTH_MODEL;
+		if (radius > RADIUS_EARTH_MODEL) radius = RADIUS_EARTH_MODEL;
 	}
 	// No depth info
 	else {
-		radius = MODEL_SCALE + 0.001f;
+		radius = RADIUS_EARTH_MODEL + 0.001f;
 	}
 
 	float datum;
@@ -106,12 +106,12 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 	// Depth info
 	if (coords[j].Size() == 3) {
 		radius = RADIUS_EARTH_KM - coords[j][2].GetDouble();
-		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
-		if (radius > MODEL_SCALE) radius = MODEL_SCALE;
+		radius = radius / RADIUS_EARTH_KM * RADIUS_EARTH_MODEL;
+		if (radius > RADIUS_EARTH_MODEL) radius = RADIUS_EARTH_MODEL;
 	}
 	// No depth info
 	else {
-		radius = MODEL_SCALE + 0.001f;
+		radius = RADIUS_EARTH_MODEL + 0.001f;
 	}
 
 	float datum;
@@ -137,12 +137,12 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 	// Depth info
 	if (coords[j][k].Size() == 3) {
 		radius = RADIUS_EARTH_KM - coords[j][k][2].GetDouble();
-		radius = radius / RADIUS_EARTH_KM * MODEL_SCALE;
-		if (radius > MODEL_SCALE) radius = MODEL_SCALE;
+		radius = radius / RADIUS_EARTH_KM * RADIUS_EARTH_MODEL;
+		if (radius > RADIUS_EARTH_MODEL) radius = RADIUS_EARTH_MODEL;
 	}
 	// No depth info
 	else {
-		radius = MODEL_SCALE + 0.001f;
+		radius = RADIUS_EARTH_MODEL + 0.001f;
 	}
 
 	float datum;
