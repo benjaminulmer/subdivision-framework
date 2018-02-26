@@ -1,8 +1,10 @@
 #include "Program.h"
 
 #include <GL/glew.h>
+#include <glm/gtx/intersect.hpp>
 #include <SDL2/SDL_opengl.h>
 
+#include <cmath>
 #include <iostream>
 
 #include "Constants.h"
@@ -167,6 +169,62 @@ void Program::updateGrid(int levelInc) {
 
 	root->createRenderable(cells, dispMode);
 	RenderEngine::setBufferData(cells, false);
+}
+
+// Updates camera rotation
+// Locations are in pixel coordinates
+void Program::updateRotation(int oldX, int newX, int oldY, int newY) {
+
+	glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();
+	glm::mat4 invProjView = glm::inverse(projView);
+
+	float oldXN = (2.0 * oldX) / (width) - 1.0; 
+	float oldYN = (2.0 * oldY) / (height) - 1.0;
+	oldYN *= -1.0;
+
+	float newXN = (2.0 * newX) / (width) - 1.0; 
+	float newYN = (2.0 * newY) / (height) - 1.0;
+	newYN *= -1.0;
+
+	glm::vec4 worldOld(oldXN, oldYN, -1.0, 1.0);
+	glm::vec4 worldNew(newXN, newYN, -1.0, 1.0);
+
+	worldOld = invProjView * worldOld; 
+
+	worldOld.x /= worldOld.w;
+	worldOld.y /= worldOld.w;
+	worldOld.z /= worldOld.w;
+
+	worldNew = invProjView * worldNew;
+
+	worldNew.x /= worldNew.w;
+	worldNew.y /= worldNew.w;
+	worldNew.z /= worldNew.w;
+
+	glm::vec3 rayO = camera->getPosition();
+	glm::vec3 rayDOld = glm::normalize(glm::vec3(worldOld) - rayO);
+	glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
+	float sphereRad = RADIUS_EARTH_MODEL * info.scale;
+	glm::vec3 sphereO = glm::vec3(0.f, 0.f, 0.f);
+
+	glm::vec3 iPosOld, iPosNew, iNorm;
+
+	if (glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm) && 
+			glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
+
+		float longOld = atan(iPosOld.x / iPosOld.z);
+		float latOld = M_PI / 2.0 - acos(iPosOld.y / sphereRad);
+
+		float longNew = atan(iPosNew.x / iPosNew.z);
+		float latNew = M_PI / 2.0 - acos(iPosNew.y / sphereRad);
+
+		camera->updateLatitudeRotation(latNew - latOld);
+		camera->updateLongitudeRotation(longNew - longOld);
+
+		std::cout << latNew - latOld << ", " << longNew - longOld << std::endl;
+	}
+
+	
 }
 
 // Changes scale of model

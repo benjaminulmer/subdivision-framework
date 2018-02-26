@@ -58,22 +58,13 @@ void Camera::setScale(float scale) {
 }
 
 // Rotates camera along longitudinal axis (spherical coords)
-void Camera::updateLongitudeRotation(float pixelsMoved) {
-	
-	float scale = rotScale * (eye.z - RADIUS_EARTH_MODEL);
-	// If camera is upside down reverse longitude rotations
-	if (cos(latitudeRotRad) > 0) {
-		longitudeRotRad += scale * pixelsMoved * M_PI / 180;
-	}
-	else {
-		longitudeRotRad -= scale * pixelsMoved * M_PI / 180;
-	}
+void Camera::updateLongitudeRotation(float rad) {
+	longitudeRotRad += rad;
 }
 
 // Rotates camera along latitudinal axis (spherical coords)
-void Camera::updateLatitudeRotation(float pixelsMoved) {
-	float scale = rotScale * (eye.z - RADIUS_EARTH_MODEL);
-	latitudeRotRad += scale * pixelsMoved * M_PI / 180;
+void Camera::updateLatitudeRotation(float rad) {
+	latitudeRotRad -= rad;
 }
 
 // Zooms camera in or out (+1 or -1)

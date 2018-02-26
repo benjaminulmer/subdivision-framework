@@ -28,19 +28,19 @@ public:
 	float getAspectRatio() { return (float)width/height; }
 	float getNear() { return near; }
 	float getFar() { return far; }
+	glm::mat4 getProjection() { return projection; }
 
 private:
 	SDL_Window* window;
 	int width, height;
 
 	const float fovYRad = 60.f * ((float)M_PI / 180.f);
-	const float near = 0.01f;
+	const float near = 1.f;
 	const float far = 100.f;
 
 	GLuint mainProgram;
 	bool fade;
 
-	glm::mat4 view;
 	glm::mat4 projection;
 };
 

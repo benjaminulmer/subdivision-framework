@@ -87,8 +87,7 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 
 	// left mouse button moves camera
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-		camera->updateLongitudeRotation(dx);
-		camera->updateLatitudeRotation(dy);
+		program->updateRotation(mouseOldX, e.x, mouseOldY, e.y);
 	}
 	else if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
 		camera->translate(glm::vec3(-dx, dy, 0.f));

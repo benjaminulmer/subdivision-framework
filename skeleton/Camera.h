@@ -19,8 +19,8 @@ public:
 
 	void setScale(float scale);
 
-	void updateLongitudeRotation(float deg);
-	void updateLatitudeRotation(float deg);
+	void updateLongitudeRotation(float rad);
+	void updateLatitudeRotation(float rad);
 	void updateZoom(int value);
 	void translate(const glm::vec3& planeTranslation);
 
