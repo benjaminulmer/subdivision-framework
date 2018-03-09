@@ -36,7 +36,7 @@ private:
 
 	const float fovYRad = 60.f * ((float)M_PI / 180.f);
 	const float near = 1.f;
-	const float far = 100.f;
+	const float far = 1000.f;
 
 	GLuint mainProgram;
 	bool fade;

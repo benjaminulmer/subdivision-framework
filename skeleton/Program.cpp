@@ -5,6 +5,7 @@
 #include <SDL2/SDL_opengl.h>
 
 #include <cmath>
+#include <limits>
 #include <iostream>
 
 #include "Constants.h"
@@ -47,8 +48,8 @@ void Program::start() {
 	// Set starting radius
 	info.scale = 1.f;
 	info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
-	info.cullMaxRadius = 0.75 * info.radius + (1000.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
-	info.cullMinRadius = 0.75 * info.radius - (1000.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
+	info.cullMaxRadius = 0.75 * info.radius + (20.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
+	info.cullMinRadius = 0.75 * info.radius - (10.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
 
 	// Load earthquake data set
 	rapidjson::Document d1 = ContentReadWrite::readJSON("data/eq-2017.json");
@@ -65,6 +66,9 @@ void Program::start() {
 	RenderEngine::assignBuffers(coastLines, false);
 	coastLines.fade = true;
 	RenderEngine::setBufferData(coastLines, false);
+
+	float s = 1.f + std::numeric_limits<float>::epsilon();
+	coastLines.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
 
 	// Create grid
 	createGrid(Scheme::SDOG);
@@ -155,6 +159,7 @@ void Program::createGrid(Scheme scheme) {
 			break;
 		}
 	}
+	std::cout << level << std::endl;
 
 	root->fillData(eqData);
 	root->fillData(pathsData);
@@ -220,11 +225,7 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY) {
 
 		camera->updateLatitudeRotation(latNew - latOld);
 		camera->updateLongitudeRotation(longNew - longOld);
-
-		std::cout << latNew - latOld << ", " << longNew - longOld << std::endl;
 	}
-
-	
 }
 
 // Changes scale of model
@@ -238,8 +239,9 @@ void Program::updateScale(float inc) {
 	}
 	camera->setScale(info.scale);
 
+	float s = 1.f + std::numeric_limits<float>::epsilon();
 	cells.scale = glm::scale(glm::vec3(info.scale, info.scale, info.scale));
-	coastLines.scale = glm::scale(glm::vec3(info.scale, info.scale, info.scale));
+	coastLines.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
 }
 
 // Updates radial bounds for culling

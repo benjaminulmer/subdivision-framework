@@ -20,11 +20,11 @@ Renderable::Renderable(rapidjson::Document& d) : Renderable() {
 			float lng = coordArray[j][0].GetDouble() * M_PI / 180.0;
 			float lat = coordArray[j][1].GetDouble() * M_PI / 180.0;
 
-			verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * 1.001f * (float) RADIUS_EARTH_MODEL);
+			verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * (float) RADIUS_EARTH_MODEL);
 			colours.push_back(glm::vec3(0.f, 0.f, 0.f));
 
 			if (j != 0 && j != coordArray.Size() - 1) {
-				verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * 1.001f * (float) RADIUS_EARTH_MODEL);
+				verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * (float) RADIUS_EARTH_MODEL);
 				colours.push_back(glm::vec3(0.f, 0.f, 0.f));
 			}
 		}

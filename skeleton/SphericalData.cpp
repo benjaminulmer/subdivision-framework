@@ -1,5 +1,6 @@
 #include "SphericalData.h"
 
+#include <limits>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <string>
@@ -80,7 +81,7 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 	}
 	// No depth info
 	else {
-		radius = RADIUS_EARTH_MODEL + 0.001f;
+		radius = RADIUS_EARTH_MODEL + 10.f * std::numeric_limits<float>::epsilon();
 	}
 
 	float datum;
@@ -111,7 +112,7 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 	}
 	// No depth info
 	else {
-		radius = RADIUS_EARTH_MODEL + 0.001f;
+		radius = RADIUS_EARTH_MODEL + 10.f * std::numeric_limits<float>::epsilon();
 	}
 
 	float datum;
@@ -142,7 +143,7 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 	}
 	// No depth info
 	else {
-		radius = RADIUS_EARTH_MODEL + 0.001f;
+		radius = RADIUS_EARTH_MODEL + 10.f * std::numeric_limits<float>::epsilon();
 	}
 
 	float datum;
