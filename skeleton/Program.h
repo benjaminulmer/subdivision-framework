@@ -53,6 +53,9 @@ private:
 	int maxTreeDepth;
 	int viewLevel;
 
+	float latRot;
+	float longRot;
+
 	DisplayMode dispMode;
 
 	void setupWindow();

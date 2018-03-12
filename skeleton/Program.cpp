@@ -22,6 +22,8 @@ Program::Program() {
 
 	maxTreeDepth = 0;
 	viewLevel = 7;
+	longRot = 0;
+	latRot = 0;
 	dispMode = DisplayMode::DATA;
 
 	width = height = 800;
@@ -62,7 +64,7 @@ void Program::start() {
 	pathsData = SphericalData(d2, m2);
 
 	for (int i = 0; i < 3; i++) {
-		pathsData.linSub();
+		//pathsData.linSub();
 	}
 
 	// Load coatline data set
@@ -135,6 +137,9 @@ void Program::mainLoop() {
 		float max = glm::length(cameraPos) + RADIUS_EARTH_MODEL;
 		float min = glm::length(cameraPos) - RADIUS_EARTH_MODEL;
 
+		cells.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+		coastLines.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+
 		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
 	}
@@ -170,7 +175,6 @@ void Program::createGrid(Scheme scheme) {
 			break;
 		}
 	}
-	std::cout << level << std::endl;
 
 	root->fillData(eqData);
 	root->fillData(pathsData);
@@ -234,8 +238,11 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY) {
 		float longNew = atan(iPosNew.x / iPosNew.z);
 		float latNew = M_PI / 2.0 - acos(iPosNew.y / sphereRad);
 
-		camera->updateLatitudeRotation(latNew - latOld);
-		camera->updateLongitudeRotation(longNew - longOld);
+		if (longOld < M_PI / 2.0)
+		std::cout << iPosOld.x << " / " << iPosOld.z << "  ::  " <<  iPosNew.x << " / " << iPosNew.z  << std::endl;
+
+		latRot += latNew - latOld;
+		longRot += longNew - longOld;
 	}
 }
 
@@ -305,5 +312,8 @@ void Program::setDisplayMode(DisplayMode mode) {
 void Program::updateViewLevel(int inc) {
 	viewLevel += inc;
 	if (viewLevel < 0) viewLevel = 0;
+	if (viewLevel > maxTreeDepth) viewLevel = maxTreeDepth;
+
+	std::cout << "Current subdivision level for view: " << viewLevel << std::endl;
 	updateGrid();
 }
