@@ -9,7 +9,7 @@ public:
 	virtual ~SphericalGrid();
 
 	void subdivide();
-	void createRenderable(Renderable& r, DisplayMode mode);
+	void createRenderable(Renderable& r, int level, DisplayMode mode);
 	void fillData(const SphericalData& data);
 
 	int countLeafs();

@@ -21,6 +21,7 @@ Program::Program() {
 	root = nullptr;
 
 	maxTreeDepth = 0;
+	viewLevel = 7;
 	dispMode = DisplayMode::DATA;
 
 	width = height = 800;
@@ -59,6 +60,10 @@ void Program::start() {
 	rapidjson::Document d2 = ContentReadWrite::readJSON("data/cat5paths.json");
 	rapidjson::Document m2 = ContentReadWrite::readJSON("data/cat5pathsm.json");
 	pathsData = SphericalData(d2, m2);
+
+	for (int i = 0; i < 3; i++) {
+		pathsData.linSub();
+	}
 
 	// Load coatline data set
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
@@ -146,9 +151,15 @@ void Program::createGrid(Scheme scheme) {
 	// These might need to be tweaked
 	int max = 400000;
 
+	root->fillData(eqData);
+	root->fillData(pathsData);
+
 	// Determine max number of subdivision levels that can be reasonably supported
 	int level = 0;
 	while (true) {
+
+		std::cout << level << std::endl;
+
 		int numGrids = root->countLeafs();
 		if (numGrids < max) {
 			level++;
@@ -163,16 +174,16 @@ void Program::createGrid(Scheme scheme) {
 
 	root->fillData(eqData);
 	root->fillData(pathsData);
-	updateGrid(0);
+	updateGrid();
 }
 
 // Updates the level of subdivision being shown
-void Program::updateGrid(int levelInc) {
+void Program::updateGrid() {
 
 	cells.verts.clear();
 	cells.colours.clear();
 
-	root->createRenderable(cells, dispMode);
+	root->createRenderable(cells, viewLevel, dispMode);
 	RenderEngine::setBufferData(cells, false);
 }
 
@@ -287,5 +298,12 @@ void Program::toggleSurfaceLocation() {
 // Sets display mode for rendering
 void Program::setDisplayMode(DisplayMode mode) {
 	dispMode = mode;
-	updateGrid(0);
+	updateGrid();
+}
+
+// Update subdivision level of rendering
+void Program::updateViewLevel(int inc) {
+	viewLevel += inc;
+	if (viewLevel < 0) viewLevel = 0;
+	updateGrid();
 }

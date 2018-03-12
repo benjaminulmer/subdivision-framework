@@ -23,7 +23,7 @@ public:
 
 	void refreshGrid() { createGrid(info.scheme); }
 	void createGrid(Scheme scheme);
-	void updateGrid(int levelInc);
+	void updateGrid();
 
 	void updateRotation(int oldX, int newX, int oldY, int newY);
 	void updateScale(float inc);
@@ -31,6 +31,7 @@ public:
 	void toggleSurfaceLocation();
 
 	void setDisplayMode(DisplayMode mode);
+	void updateViewLevel(int inc);
 
 private:
 	SDL_Window* window;
@@ -50,6 +51,7 @@ private:
 	std::vector<Renderable*> objects;
 
 	int maxTreeDepth;
+	int viewLevel;
 
 	DisplayMode dispMode;
 

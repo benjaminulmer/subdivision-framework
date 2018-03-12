@@ -126,13 +126,30 @@ int SphericalCell::countLeafs() {
 // Recursive function for subdiving the tree to given level
 void SphericalCell::subdivide() {
 
-	if (!info.frust.inside(*this, info.scale) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
+	//if (!info.frust.inside(*this, info.scale) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
+	if (dataSets.size() == 0) {
 		return;
 	}
 
 	// Only subdivide if a leaf (children already exist otherwise)
 	if (children.size() == 0) {
 		performSubdivision();
+
+		for (DataPoints dps : dataSets) {
+			for (SphericalDatum d : dps.data) {
+				for (SphericalCell* c : children) {
+
+					// If contained in child no other child can contain point
+					if (c->contains(d)) {
+
+						c->addDataPoint(d, dps.info);
+						break;
+					}
+				}
+			}
+		}
+
+
 	}
 	else {
 		for (SphericalCell* c : children) {
@@ -196,12 +213,12 @@ void SphericalCell::subdivisionSplit(double midRadius, double midLat, double mid
 }
 
 // Recursive function for creating renderable at desired level
-void SphericalCell::createRenderable(Renderable & r, DisplayMode mode) {
+void SphericalCell::createRenderable(Renderable & r, int level, DisplayMode mode) {
 	
 	// If not at desired level recursively create renderables for children
-	if (children.size() != 0) {
+	if (children.size() != 0 && level != 0) {
 		for (SphericalCell* c : children) {
-			c->createRenderable(r, mode);
+			c->createRenderable(r, level - 1, mode);
 		}
 	}
 	else {
@@ -240,9 +257,9 @@ void SphericalCell::fillRenderable(Renderable& r, DisplayMode mode) {
 	// Different rendering for data, volumes, and lines
 	if (mode == DisplayMode::DATA && dataSets.size() != 0) {
 
-		if (!info.frust.inside(*this, info.scale) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
-			return;
-		}
+		//if (!info.frust.inside(*this, info.scale) || maxRadius < info.cullMinRadius || minRadius > info.cullMaxRadius) {
+		//	return;
+		//}
 
 		r.drawMode = GL_TRIANGLES;
 		faceRenderable(r);

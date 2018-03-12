@@ -35,10 +35,10 @@ void SphericalGrid::subdivide() {
 }
 
 // Creates a renderable for the spherical grid at the given level
-void SphericalGrid::createRenderable(Renderable& r, DisplayMode mode) {
+void SphericalGrid::createRenderable(Renderable& r, int level, DisplayMode mode) {
 
 	for (int i = 0; i < 8; i++) {
-		octants[i]->createRenderable(r, mode);
+		octants[i]->createRenderable(r, level, mode);
 	}
 }
 

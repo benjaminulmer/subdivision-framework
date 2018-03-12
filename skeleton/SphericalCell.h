@@ -52,7 +52,7 @@ public:
 	bool contains(const SphericalDatum& d) const;
 	void fillData(const SphericalDatum& d, const DataSetInfo& info);
 	void subdivide();
-	void createRenderable(Renderable& r, DisplayMode mode);
+	void createRenderable(Renderable& r, int level, DisplayMode mode);
 
 	int countLeafs();
 

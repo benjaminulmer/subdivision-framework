@@ -66,6 +66,12 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		else if (key == SDLK_s) {
 			program->toggleSurfaceLocation();
 		}
+		else if (key == SDLK_UP) {
+			program->updateViewLevel(1);
+		}
+		else if (key == SDLK_DOWN) {
+			program->updateViewLevel(-1);
+		}
 		else if (key == SDLK_ESCAPE) {
 			SDL_Quit();
 			exit(0);
