@@ -63,8 +63,8 @@ void Program::start() {
 	rapidjson::Document m2 = ContentReadWrite::readJSON("data/cat5pathsm.json");
 	pathsData = SphericalData(d2, m2);
 
-	for (int i = 0; i < 3; i++) {
-		//pathsData.linSub();
+	for (int i = 0; i < 4; i++) {
+		pathsData.linSub();
 	}
 
 	// Load coatline data set
@@ -175,9 +175,6 @@ void Program::createGrid(Scheme scheme) {
 			break;
 		}
 	}
-
-	root->fillData(eqData);
-	root->fillData(pathsData);
 	updateGrid();
 }
 
@@ -237,9 +234,6 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY) {
 
 		float longNew = atan(iPosNew.x / iPosNew.z);
 		float latNew = M_PI / 2.0 - acos(iPosNew.y / sphereRad);
-
-		if (longOld < M_PI / 2.0)
-		std::cout << iPosOld.x << " / " << iPosOld.z << "  ::  " <<  iPosNew.x << " / " << iPosNew.z  << std::endl;
 
 		latRot += latNew - latOld;
 		longRot += longNew - longOld;
