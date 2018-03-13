@@ -63,8 +63,20 @@ void Program::start() {
 	rapidjson::Document m2 = ContentReadWrite::readJSON("data/cat5pathsm.json");
 	pathsData = SphericalData(d2, m2);
 
+	rapidjson::Document d3 = ContentReadWrite::readJSON("data/samplePath.json");
+	rapidjson::Document m3 = ContentReadWrite::readJSON("data/samplePathm.json");
+	sampleData = SphericalData(d3, m3);
+
+	rapidjson::Document d4 = ContentReadWrite::readJSON("data/samplePath2.json");
+	rapidjson::Document m4 = ContentReadWrite::readJSON("data/samplePath2m.json");
+	sampleData2 = SphericalData(d4, m4);
+
 	for (int i = 0; i < 4; i++) {
 		pathsData.linSub();
+		sampleData.linSub();
+		sampleData.linSub();
+		sampleData2.linSub();
+		sampleData2.linSub();
 	}
 
 	// Load coatline data set
@@ -154,10 +166,12 @@ void Program::createGrid(Scheme scheme) {
 
 	// Set max number of grids depending on subdivision scheme
 	// These might need to be tweaked
-	int max = 400000;
+	int max = 1600000;
 
 	root->fillData(eqData);
 	root->fillData(pathsData);
+	root->fillData(sampleData);
+	root->fillData(sampleData2);
 
 	// Determine max number of subdivision levels that can be reasonably supported
 	int level = 0;
@@ -190,7 +204,7 @@ void Program::updateGrid() {
 
 // Updates camera rotation
 // Locations are in pixel coordinates
-void Program::updateRotation(int oldX, int newX, int oldY, int newY) {
+void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) {
 
 	glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();
 	glm::mat4 invProjView = glm::inverse(projView);
@@ -235,8 +249,13 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY) {
 		float longNew = atan(iPosNew.x / iPosNew.z);
 		float latNew = M_PI / 2.0 - acos(iPosNew.y / sphereRad);
 
-		latRot += latNew - latOld;
-		longRot += longNew - longOld;
+		if (skew) {
+			camera->updateLatitudeRotation(latNew - latOld);
+		}
+		else {
+			latRot += latNew - latOld;
+			longRot += longNew - longOld;
+		}
 	}
 }
 

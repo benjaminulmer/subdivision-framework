@@ -46,7 +46,7 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 
 	if (e.state == SDL_PRESSED) {
 		if (key == SDLK_r) {
-			program->refreshGrid();
+			//program->refreshGrid();
 		}
 		else if (key == SDLK_1) {
 			program->createGrid(Scheme::SDOG);
@@ -93,10 +93,10 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 
 	// left mouse button moves camera
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-		program->updateRotation(mouseOldX, e.x, mouseOldY, e.y);
+		program->updateRotation(mouseOldX, e.x, mouseOldY, e.y, false);
 	}
 	else if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
-		camera->translate(glm::vec3(-dx, dy, 0.f));
+		program->updateRotation(mouseOldX, e.x, mouseOldY, e.y, true);
 	}
 
 	// Update current position of the mouse

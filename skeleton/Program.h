@@ -25,7 +25,7 @@ public:
 	void createGrid(Scheme scheme);
 	void updateGrid();
 
-	void updateRotation(int oldX, int newX, int oldY, int newY);
+	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
 	void updateScale(float inc);
 	void updateRadialBounds(RadialBound b, int dir);
 	void toggleSurfaceLocation();
@@ -43,6 +43,8 @@ private:
 	GridInfo info;
 	SphericalData eqData;
 	SphericalData pathsData;
+	SphericalData sampleData;
+	SphericalData sampleData2;
 	SphericalGrid* root;
 
 	Renderable cells;

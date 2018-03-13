@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "sample paths",
+"crs": { "type": "name", "properties": { "name": "" } },
+"features": [
+{ "type": "Feature", "properties": {"value" : 1.0}, "geometry": { "type": "LineString", 
+	"coordinates": [ [-65.989, 18.439, 0.08], [-63.699, 17.675, -10], [-61.5707, 16.291, 0.08] ] } }
+]
+}

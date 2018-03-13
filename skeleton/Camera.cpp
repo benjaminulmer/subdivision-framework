@@ -55,6 +55,8 @@ void Camera::setScale(float scale) {
 	curScale = scale;
 
 	eye = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL * scale + 30.f);
+	centre = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL * scale);
+	latitudeRotRad = 0.f;
 }
 
 // Rotates camera along longitudinal axis (spherical coords)
@@ -101,9 +103,9 @@ void Camera::translate(const glm::vec3& planeTranslation) {
 
 // Reset camera to starting position
 void Camera::reset() {
-	eye = glm::vec3(0.f, 0.f, 4.f * RADIUS_EARTH_MODEL);
+	eye = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL + 30.f);
 	up = glm::vec3(0.f, 1.f, 0.f);
-	centre = glm::vec3(0.f, 0.f, 0.f);
+	centre = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL);
 
 	longitudeRotRad = 0;
 	latitudeRotRad = 0;
