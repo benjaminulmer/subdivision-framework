@@ -2,6 +2,8 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <string>
+#include "Constants.h"
 
 // Creates an spherical grid with the given radius
 // Does not automatically subdivide
@@ -25,6 +27,101 @@ SphericalGrid::~SphericalGrid() {
 		delete octants[i];
 	}
 }
+
+#include <iostream>
+
+std::string SphericalGrid::codeForPos(double latDeg, double longDeg, double radius, int level) {
+
+	std::string code = "";
+
+	double minLat, maxLat, minLong, maxLong, minRad, maxRad;
+	minLat = 0.0;
+	maxLat = 90.0;
+	minRad = 0.0;
+	maxRad = 2.0 * RADIUS_EARTH_KM;
+
+	int octCode = 0;
+	if (latDeg < 0.0) {
+		octCode += 4;
+	}
+	if (longDeg < 0.0) {
+		octCode += 2;
+	}
+	if (abs(longDeg) > 90.0) {
+		octCode += 1;
+		minLong = 90.0;
+		maxLong = 180.0;
+	}
+	else {
+		minLong = 0.0;
+		maxLong = 90.0;
+	}
+	latDeg = abs(latDeg);
+	longDeg = abs(longDeg);
+
+	code += std::to_string(octCode);
+
+	CellType curType = CellType::SG;
+
+	for (int i = 0; i < level; i++) {
+		
+		int childCode;
+		double midLat = 0.5 * minLat + 0.5 * maxLat;
+		double midLong = 0.5 * minLong + 0.5 * maxLong;
+		double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+		if (curType == CellType::NG) {
+
+		}
+		else if (curType == CellType::LG) {
+
+		}
+		else {// curType == CellType::SG
+
+			if (radius > midRad) {
+
+				minRad = midRad;
+
+				if (latDeg < midLat) {
+
+					maxLat = midLat;
+					curType == CellType::NG;
+
+					if (longDeg < midLong) {
+
+						childCode = 0;
+						maxLong = midLong;
+					}
+					else {
+
+						childCode = 1;
+						minLong = midLong;
+					}
+
+				}
+				else {
+					childCode = 2;
+					minLat = midLat;
+					curType == CellType::LG;
+				}
+
+			}
+			else {
+				childCode = 3;
+				maxRad = midRad;
+				// curType == CellType::SG;
+			}
+
+		}
+
+		code += std::to_string(childCode);
+	}
+
+	return code;
+}
+
+
+
 
 // Subdivides spherical grid to the desired level (if not already that deep)
 void SphericalGrid::subdivide() {

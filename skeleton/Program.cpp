@@ -32,6 +32,16 @@ Program::Program() {
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
 
+	std::cout << root->codeForPos(-3.0, -91.0, RADIUS_EARTH_KM + 1.0, 1) << std::endl;
+	std::cout << root->codeForPos(-3.0, -175.0, RADIUS_EARTH_KM + 1.0, 1) << std::endl;
+	std::cout << root->codeForPos(-50, -91.0, RADIUS_EARTH_KM + 1.0, 1) << std::endl;
+	std::cout << root->codeForPos(-3.0, -91.0, 1.0, 1) << std::endl;
+
+	std::cout << root->codeForPos(-1.0, 1.0, RADIUS_EARTH_KM + 1.0, 1) << std::endl;
+	std::cout << root->codeForPos(-1.0, 95.0, RADIUS_EARTH_KM + 1.0, 1) << std::endl;
+	std::cout << root->codeForPos(-1.0, -1.0, RADIUS_EARTH_KM + 1.0, 1) << std::endl;
+	std::cout << root->codeForPos(-1.0, -95.0, RADIUS_EARTH_KM + 1.0, 1) << std::endl;
+
 	setupWindow();
 	GLenum err = glewInit();
 	if (glewInit() != GLEW_OK) {
