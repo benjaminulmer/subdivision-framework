@@ -168,6 +168,7 @@
     <ClInclude Include="SphericalData.h" />
     <ClInclude Include="SphericalCell.h" />
     <ClInclude Include="ShaderTools.h" />
+    <ClInclude Include="SphGrid.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="SphericalGrid.h" />
   </ItemGroup>
@@ -185,6 +186,7 @@
     <ClCompile Include="SphericalData.cpp" />
     <ClCompile Include="SphericalCell.cpp" />
     <ClCompile Include="ShaderTools.cpp" />
+    <ClCompile Include="SphGrid.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="SphericalGrid.cpp" />
   </ItemGroup>
