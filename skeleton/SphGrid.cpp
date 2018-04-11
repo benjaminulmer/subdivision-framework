@@ -100,6 +100,12 @@ void SphGrid::fillData(const SphericalData& data) {
 	for (const SphericalDatum& d : dataPoints) {
 		
 		std::string code = codeForPos(d.latitude, d.longitude, d.radius, maxDepth);
+
+		if (map.count(code) == 0) {
+			std::cout << "error: " + code << std::endl;
+			continue;
+		}
+
 		SphCell* c = map[code];
 
 		// Find index in list of data sets for the point
@@ -181,34 +187,34 @@ int SphGrid::countLeafs() {
 	return count;
 }
 
-std::string SphGrid::codeForPos(double latDeg, double longDeg, double radius, int level) {
+std::string SphGrid::codeForPos(double latRad, double longRad, double radius, int level) {
 
 	std::string code = "";
 
 	double minLat, maxLat, minLong, maxLong, minRad, maxRad;
 	minLat = 0.0;
-	maxLat = 90.0;
+	maxLat = M_PI_2;
 	minRad = 0.0;
 	maxRad = maxRadius;
 
 	int octCode = 0;
-	if (latDeg < 0.0) {
+	if (latRad < 0.0) {
 		octCode += 4;
 	}
-	if (longDeg < 0.0) {
+	if (longRad < 0.0) {
 		octCode += 2;
 	}
-	if (abs(longDeg) > 90.0) {
+	if (abs(longRad) > M_PI_2) {
 		octCode += 1;
-		minLong = 90.0;
-		maxLong = 180.0;
+		minLong = M_PI_2;
+		maxLong = M_PI;
 	}
 	else {
 		minLong = 0.0;
-		maxLong = 90.0;
+		maxLong = M_PI_2;
 	}
-	latDeg = abs(latDeg);
-	longDeg = abs(longDeg);
+	latRad = abs(latRad);
+	longRad = abs(longRad);
 
 	code += std::to_string(octCode);
 
@@ -230,14 +236,14 @@ std::string SphGrid::codeForPos(double latDeg, double longDeg, double radius, in
 				childCode += 4;
 				maxRad = midRad;
 			}
-			if (latDeg < midLat) {
+			if (latRad < midLat) {
 				maxLat = midLat;
 			}
 			else {
 				childCode += 2;
 				minLat = midLat;
 			}
-			if (longDeg < midLong) {
+			if (longRad < midLong) {
 				maxLong = midLong;
 			}
 			else {
@@ -255,11 +261,11 @@ std::string SphGrid::codeForPos(double latDeg, double longDeg, double radius, in
 				maxRad = midRad;
 				childCode += 3;
 			}
-			if (latDeg < midLat) {
+			if (latRad < midLat) {
 
 				curType = CellType::NG;
 
-				if (longDeg < midLong) {
+				if (longRad < midLong) {
 					maxLong = midLong;
 				}
 				else {
@@ -279,11 +285,11 @@ std::string SphGrid::codeForPos(double latDeg, double longDeg, double radius, in
 
 				minRad = midRad;
 
-				if (latDeg < midLat) {
+				if (latRad < midLat) {
 					maxLat = midLat;
 					curType = CellType::NG;
 
-					if (longDeg < midLong) {
+					if (longRad < midLong) {
 						childCode = 0;
 						maxLong = midLong;
 					}

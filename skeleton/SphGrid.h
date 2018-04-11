@@ -38,7 +38,7 @@ public:
 	void createRenderable(Renderable& r, int level);
 	int countLeafs();
 
-	std::string codeForPos(double lat, double longi, double radius, int level);
+	std::string codeForPos(double latRad, double longRad, double radius, int level);
 	const SphCell* cellFromCode(std::string code);
 
 private:
