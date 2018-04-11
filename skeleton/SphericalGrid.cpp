@@ -65,35 +65,88 @@ std::string SphericalGrid::codeForPos(double latDeg, double longDeg, double radi
 
 	for (int i = 0; i < level; i++) {
 		
-		int childCode;
+		int childCode = 0;
 		double midLat = 0.5 * minLat + 0.5 * maxLat;
 		double midLong = 0.5 * minLong + 0.5 * maxLong;
 		double midRad = 0.5 * minRad + 0.5 * maxRad;
 
 		if (curType == CellType::NG) {
 
+			std::cout << "NG" << std::endl;
+
+			if (radius > midRad) {
+				minRad = midRad;
+			}
+			else {
+				childCode += 4;
+				maxRad = midRad;
+			}
+
+			if (latDeg < midLat) {
+				maxLat = midLat;
+			}
+			else {
+				childCode += 2;
+				minLat = midLat;
+			}
+			if (longDeg < midLong) {
+				maxLong = midLong;
+			}
+			else {
+				childCode += 1;
+				minLong = midLong;
+			}
+			// type doesn't change
 		}
 		else if (curType == CellType::LG) {
 
+			std::cout << "LG" << std::endl;
+
+			if (radius > midRad) {
+				minRad = midRad;
+			}
+			else {
+				maxRad = midRad;
+				childCode += 3;
+			}
+
+			if (latDeg < midLat) {
+
+				curType = CellType::NG;
+
+				if (longDeg < midLong) {
+					maxLong = midLong;
+				}
+				else {
+					childCode += 1;
+					minLong = midLong;
+				}
+
+			}
+			else {
+				childCode += 2;
+				minLat = midLat;
+				// type doesn't change
+			}
+
 		}
 		else {// curType == CellType::SG
+
+			std::cout << "SG" << std::endl;
 
 			if (radius > midRad) {
 
 				minRad = midRad;
 
 				if (latDeg < midLat) {
-
 					maxLat = midLat;
-					curType == CellType::NG;
+					curType = CellType::NG;
 
 					if (longDeg < midLong) {
-
 						childCode = 0;
 						maxLong = midLong;
 					}
 					else {
-
 						childCode = 1;
 						minLong = midLong;
 					}
@@ -102,18 +155,17 @@ std::string SphericalGrid::codeForPos(double latDeg, double longDeg, double radi
 				else {
 					childCode = 2;
 					minLat = midLat;
-					curType == CellType::LG;
+					curType = CellType::LG;
 				}
 
 			}
 			else {
 				childCode = 3;
 				maxRad = midRad;
-				// curType == CellType::SG;
+				// type doesn't change
 			}
 
 		}
-
 		code += std::to_string(childCode);
 	}
 
