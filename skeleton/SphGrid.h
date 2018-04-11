@@ -5,9 +5,11 @@
 //
 
 #include "SphericalData.h"
+#include "Renderable.h"
 
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 class SphCell {
 
@@ -19,6 +21,8 @@ public:
 	double maxLat, minLat;
 	double maxLong, minLong;
 
+	std::vector<DataPoints> dataSets;
+
 	CellType type();
 };
 
@@ -29,16 +33,18 @@ public:
 
 	void subdivideTo(int level);
 	void subdivide();
-	void subdivideCell(std::string code, SphCell cell);
+	void subdivideCell(std::string code, SphCell* cell);
 	void fillData(const SphericalData& data);
+	void createRenderable(Renderable& r, int level);
+	int countLeafs();
 
 	std::string codeForPos(double lat, double longi, double radius, int level);
-	SphCell cellFromCode(std::string code);
+	const SphCell* cellFromCode(std::string code);
 
 private:
 	int maxDepth;
 	double maxRadius;
 
-	std::unordered_map<std::string, SphCell> map;
+	std::unordered_map<std::string, SphCell*> map;
 };
 

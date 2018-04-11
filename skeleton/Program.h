@@ -7,6 +7,8 @@
 #include "RenderEngine.h"
 #include "SphericalGrid.h"
 
+#include "SphGrid.h"
+
 enum class RadialBound {
 	MAX,
 	MIN,
@@ -45,7 +47,7 @@ private:
 	SphericalData pathsData;
 	SphericalData sampleData;
 	SphericalData sampleData2;
-	SphericalGrid* root;
+	SphGrid* root;
 
 	Renderable cells;
 	Renderable coastLines;

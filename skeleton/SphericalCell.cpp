@@ -66,7 +66,7 @@ void SphericalCell::addDataPoint(const SphericalDatum & d, const DataSetInfo & i
 	// Find index in list of data sets for the point
 	int index = -1;
 	int i = 0;
-	for (DataPoints ds : dataSets) {
+	for (DataPoints& ds : dataSets) {
 
 		if (ds.info.id == info.id) {
 			index = i;

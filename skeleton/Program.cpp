@@ -164,7 +164,7 @@ void Program::createGrid(Scheme scheme) {
 
 	delete root;
 	info.scheme = scheme;
-	root = new SphericalGrid(info);
+	root = new SphGrid(info.radius);
 
 	// Set max number of grids depending on subdivision scheme
 	// These might need to be tweaked
@@ -175,6 +175,8 @@ void Program::createGrid(Scheme scheme) {
 	root->fillData(sampleData);
 	root->fillData(sampleData2);
 
+	std::cout << "first fill" << std::endl;
+
 	// Determine max number of subdivision levels that can be reasonably supported
 	int level = 0;
 	while (true) {
@@ -182,11 +184,22 @@ void Program::createGrid(Scheme scheme) {
 		std::cout << level << std::endl;
 
 		int numGrids = root->countLeafs();
+		std::cout << numGrids << std::endl;
 		if (numGrids < max) {
 			level++;
 			root->subdivide();
+
+			root->fillData(eqData);
+			root->fillData(pathsData);
+			root->fillData(sampleData);
+			root->fillData(sampleData2);
 		}
 		else {
+			maxTreeDepth = level;
+			break;
+		}
+
+		if (level >= 14) {
 			maxTreeDepth = level;
 			break;
 		}
@@ -200,7 +213,7 @@ void Program::updateGrid() {
 	cells.verts.clear();
 	cells.colours.clear();
 
-	root->createRenderable(cells, viewLevel, dispMode);
+	root->createRenderable(cells, viewLevel);
 	RenderEngine::setBufferData(cells, false);
 }
 
