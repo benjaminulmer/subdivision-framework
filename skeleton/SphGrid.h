@@ -36,7 +36,7 @@ public:
 	void subdivideCell(std::string code, SphCell* cell, std::vector<std::pair<std::string, SphCell*>>& toAdd);
 	void fillData(const SphericalData& data);
 	void createRenderable(Renderable& r, int level);
-	int countLeafs();
+	int size() { return map.size(); }
 
 	std::string codeForPos(double latRad, double longRad, double radius, int level);
 	const SphCell* cellFromCode(std::string code);

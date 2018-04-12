@@ -168,7 +168,7 @@ void Program::createGrid(Scheme scheme) {
 
 	// Set max number of grids depending on subdivision scheme
 	// These might need to be tweaked
-	int max = 1600000;
+	int max = 4000000;
 
 	root->fillData(eqData);
 	root->fillData(pathsData);
@@ -181,10 +181,8 @@ void Program::createGrid(Scheme scheme) {
 	int level = 0;
 	while (true) {
 
-		int numGrids = root->countLeafs();
-
+		int numGrids = root->size();
 		std::cout << level << " : " << numGrids << std::endl;
-
 
 		if (numGrids < max) {
 			level++;
@@ -199,7 +197,7 @@ void Program::createGrid(Scheme scheme) {
 			maxTreeDepth = level;
 			break;
 		}
-		if (level > 17) {
+		if (level > 20) {
 			system("pause");
 			maxTreeDepth = level;
 			break;

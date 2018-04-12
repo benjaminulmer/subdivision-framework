@@ -6,9 +6,6 @@
 #include "Constants.h"
 #include "Geometry.h"
 
-
-#include <iostream>
-
 SphCell::SphCell() :
 	minLat(0.0), maxLat(0.0), minLong(0.0), maxLong(0.0), minRad(0.0), maxRad(0.0) {}
 
@@ -110,12 +107,6 @@ void SphGrid::fillData(const SphericalData& data) {
 	for (const SphericalDatum& d : dataPoints) {
 		
 		std::string code = codeForPos(d.latitude, d.longitude, d.radius, maxDepth);
-
-		if (map.count(code) == 0) {
-			std::cout << "error: " + code << std::endl;
-			continue;
-		}
-
 		SphCell* c = map[code];
 
 		// Find index in list of data sets for the point
@@ -143,7 +134,7 @@ void SphGrid::createRenderable(Renderable& r, int level) {
 
 	for (std::pair<std::string, SphCell*> p : map) {
 
-		if (p.first.size() == level + 1) {
+		if (p.first.size() == level + 1 && p.second->dataSets.size() != 0) {
 
 			double minLong = p.second->minLong; double maxLong = p.second->maxLong;
 			double minLat = p.second->minLat; double maxLat = p.second->maxLat;
@@ -184,17 +175,6 @@ void SphGrid::createRenderable(Renderable& r, int level) {
 			Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRad, r);
 		}
 	}
-}
-
-int SphGrid::countLeafs() {
-
-	int count = 0;
-	for (std::pair<std::string, SphCell*> p : map) {
-		if (p.first.size() == maxDepth + 1) {
-			count++;
-		}
-	}
-	return count;
 }
 
 std::string SphGrid::codeForPos(double latRad, double longRad, double radius, int level) {
