@@ -42,53 +42,63 @@ SphGrid::SphGrid(double radius) : maxDepth(0), maxRadius(radius) {
 
 void SphGrid::subdivideTo(int level) {
 
-	for (int i = maxDepth; i < level; i++) {
+	while (maxDepth < level) {
 		subdivide();
 	}
 }
 
 void SphGrid::subdivide() {
 
-	for (std::pair<std::string, SphCell*> p : map) {
+	std::vector<std::pair<std::string, SphCell*>> toAdd;
+
+	for (const std::pair<std::string, SphCell*>& p : map) {
+
 		if (p.first.size() == maxDepth + 1 && p.second->dataSets.size() != 0) {
-			subdivideCell(p.first, p.second);
+
+			subdivideCell(p.first, p.second, toAdd);
 		}
+	}
+	for (const std::pair<std::string, SphCell*>& p : toAdd) {
+		map[p.first] = p.second;
 	}
 	maxDepth++;
 }
 
-void SphGrid::subdivideCell(std::string code, SphCell* cell) {
+void SphGrid::subdivideCell(std::string code, SphCell* cell, std::vector<std::pair<std::string, SphCell*>>& toAdd) {
 
 	double midLat = 0.5 * cell->minLat + 0.5 * cell->maxLat;
 	double midLong = 0.5 * cell->minLong + 0.5 * cell->maxLong;
 	double midRad = 0.5 * cell->minRad + 0.5 * cell->maxRad;
 
 	if (cell->type() == CellType::NG) {
-		map[code + "0"] = new SphCell(cell->minLat, midLat, cell->minLong, midLong, midRad, cell->maxRad);
-		map[code + "1"] = new SphCell(cell->minLat, midLat, midLong, cell->maxLong, midRad, cell->maxRad);
-		map[code + "2"] = new SphCell(midLat, cell->maxLat, cell->minLong, midLong, midRad, cell->maxRad);
-		map[code + "3"] = new SphCell(midLat, cell->maxLat, midLong, cell->maxLong, midRad, cell->maxRad);
 
-		map[code + "4"] = new SphCell(cell->minLat, midLat, cell->minLong, midLong, cell->minRad, midRad);
-		map[code + "5"] = new SphCell(cell->minLat, midLat, midLong, cell->maxLong, cell->minRad, midRad);
-		map[code + "6"] = new SphCell(midLat, cell->maxLat, cell->minLong, midLong, cell->minRad, midRad);
-		map[code + "7"] = new SphCell(midLat, cell->maxLat, midLong, cell->maxLong, cell->minRad, midRad);
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "0", new SphCell(cell->minLat, midLat, cell->minLong, midLong, midRad, cell->maxRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "1", new SphCell(cell->minLat, midLat, midLong, cell->maxLong, midRad, cell->maxRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "2", new SphCell(midLat, cell->maxLat, cell->minLong, midLong, midRad, cell->maxRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "3", new SphCell(midLat, cell->maxLat, midLong, cell->maxLong, midRad, cell->maxRad)));
+
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "4", new SphCell(cell->minLat, midLat, cell->minLong, midLong, cell->minRad, midRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "5", new SphCell(cell->minLat, midLat, midLong, cell->maxLong, cell->minRad, midRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "6", new SphCell(midLat, cell->maxLat, cell->minLong, midLong, cell->minRad, midRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "7", new SphCell(midLat, cell->maxLat, midLong, cell->maxLong, cell->minRad, midRad)));
 	}
 	else if (cell->type() == CellType::LG) {
-		map[code + "0"] = new SphCell(cell->minLat, midLat, cell->minLong, midLong, midRad, cell->maxRad);
-		map[code + "1"] = new SphCell(cell->minLat, midLat, midLong, cell->maxLong, midRad, cell->maxRad);
-		map[code + "2"] = new SphCell(midLat, cell->maxLat, cell->minLong, cell->maxLong, midRad, cell->maxRad);
 
-		map[code + "3"] = new SphCell(cell->minLat, midLat, cell->minLong, midLong, cell->minRad, midRad);
-		map[code + "4"] = new SphCell(cell->minLat, midLat, midLong, cell->maxLong, cell->minRad, midRad);
-		map[code + "5"] = new SphCell(midLat, cell->maxLat, cell->minLong, cell->maxLong, cell->minRad, midRad);
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "0", new SphCell(cell->minLat, midLat, cell->minLong, midLong, midRad, cell->maxRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "1", new SphCell(cell->minLat, midLat, midLong, cell->maxLong, midRad, cell->maxRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "2", new SphCell(midLat, cell->maxLat, cell->minLong, cell->maxLong, midRad, cell->maxRad)));
+
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "3", new SphCell(cell->minLat, midLat, cell->minLong, midLong, cell->minRad, midRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "4", new SphCell(cell->minLat, midLat, midLong, cell->maxLong, cell->minRad, midRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "5", new SphCell(midLat, cell->maxLat, cell->minLong, cell->maxLong, cell->minRad, midRad)));
 	}
 	else {// cell.type() == CellType::SG
-		map[code + "0"] = new SphCell(cell->minLat, midLat, cell->minLong, midLong, midRad, cell->maxRad);
-		map[code + "1"] = new SphCell(cell->minLat, midLat, midLong, cell->maxLong, midRad, cell->maxRad);
-		map[code + "2"] = new SphCell(midLat, cell->maxLat, cell->minLong, cell->maxLong, midRad, cell->maxRad);
 
-		map[code + "3"] = new SphCell(cell->minLat, cell->maxLat, cell->minLong, cell->maxLong, cell->minRad, midRad);
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "0", new SphCell(cell->minLat, midLat, cell->minLong, midLong, midRad, cell->maxRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "1", new SphCell(cell->minLat, midLat, midLong, cell->maxLong, midRad, cell->maxRad)));
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "2", new SphCell(midLat, cell->maxLat, cell->minLong, cell->maxLong, midRad, cell->maxRad)));
+
+		toAdd.push_back(std::pair<std::string, SphCell*>(code + "3", new SphCell(cell->minLat, cell->maxLat, cell->minLong, cell->maxLong, cell->minRad, midRad)));
 	}
 }
 

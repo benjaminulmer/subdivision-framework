@@ -33,7 +33,7 @@ public:
 
 	void subdivideTo(int level);
 	void subdivide();
-	void subdivideCell(std::string code, SphCell* cell);
+	void subdivideCell(std::string code, SphCell* cell, std::vector<std::pair<std::string, SphCell*>>& toAdd);
 	void fillData(const SphericalData& data);
 	void createRenderable(Renderable& r, int level);
 	int countLeafs();

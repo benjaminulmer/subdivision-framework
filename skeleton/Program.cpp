@@ -181,10 +181,11 @@ void Program::createGrid(Scheme scheme) {
 	int level = 0;
 	while (true) {
 
-		//std::cout << level << std::endl;
-
 		int numGrids = root->countLeafs();
-		std::cout << numGrids << std::endl;
+
+		std::cout << level << " : " << numGrids << std::endl;
+
+
 		if (numGrids < max) {
 			level++;
 			root->subdivide();
@@ -195,6 +196,11 @@ void Program::createGrid(Scheme scheme) {
 			root->fillData(sampleData2);
 		}
 		else {
+			maxTreeDepth = level;
+			break;
+		}
+		if (level > 17) {
+			system("pause");
 			maxTreeDepth = level;
 			break;
 		}
