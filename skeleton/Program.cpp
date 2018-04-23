@@ -13,7 +13,12 @@
 #include "Frustum.h"
 #include "InputHandler.h"
 
+#include <sqlite/sqlite3.h>
+
 Program::Program() {
+
+	sqlite3* db;
+	sqlite3_open("test.db", &db);
 
 	window = nullptr;
 	renderEngine = nullptr;
