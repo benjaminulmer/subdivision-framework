@@ -32,7 +32,8 @@ Program::Program() {
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
 
-	//std::cout << root->codeForPos(-3.0, -91.0, RADIUS_EARTH_KM + 1.0, 5) << std::endl;
+	//info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
+	//root = new SphGrid(info.radius);
 
 	setupWindow();
 	GLenum err = glewInit();
@@ -47,6 +48,11 @@ void Program::start() {
 	InputHandler::setUp(camera, renderEngine, this);
 
 	// Assign buffers
+
+	RenderEngine::assignBuffers(target, false);
+	RenderEngine::assignBuffers(neighbours, false);
+
+
 	RenderEngine::assignBuffers(cells, false);
 	cells.fade = true;
 
@@ -73,7 +79,7 @@ void Program::start() {
 	rapidjson::Document m4 = ContentReadWrite::readJSON("data/samplePath2m.json");
 	sampleData2 = SphericalData(d4, m4);
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 1; i++) {
 		pathsData.linSub();
 		sampleData.linSub();
 		sampleData.linSub();
@@ -96,7 +102,9 @@ void Program::start() {
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
-	objects.push_back(&cells);
+	//objects.push_back(&cells);
+	objects.push_back(&target);
+	objects.push_back(&neighbours);
 
 	mainLoop();
 }
@@ -154,6 +162,9 @@ void Program::mainLoop() {
 		cells.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 		coastLines.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 
+		target.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+		neighbours.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+
 		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
 	}
@@ -198,11 +209,15 @@ void Program::createGrid(Scheme scheme) {
 			break;
 		}
 		if (level > 20) {
-			system("pause");
+			//system("pause");
 			maxTreeDepth = level;
 			break;
 		}
 	}
+
+	targetCode = "5321";
+	root->neighbours(targetCode, neighbourCodes);
+
 	updateGrid();
 }
 
@@ -214,6 +229,19 @@ void Program::updateGrid() {
 
 	root->createRenderable(cells, viewLevel);
 	RenderEngine::setBufferData(cells, false);
+
+
+	std::vector<std::string> tar;
+	tar.push_back(targetCode);
+
+	target.lineColour = glm::vec3(1.0, 0.0, 0.0);
+	neighbours.lineColour = glm::vec3(0.0, 1.0, 0.0);
+
+	root->createRenderable(target, tar);
+	root->createRenderable(neighbours, neighbourCodes);
+
+	RenderEngine::setBufferData(target, false);
+	RenderEngine::setBufferData(neighbours, false);
 }
 
 // Updates camera rotation
@@ -287,6 +315,9 @@ void Program::updateScale(float inc) {
 	float s = 1.f + std::numeric_limits<float>::epsilon();
 	cells.scale = glm::scale(glm::vec3(info.scale, info.scale, info.scale));
 	coastLines.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
+
+	target.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
+	neighbours.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
 }
 
 // Updates radial bounds for culling

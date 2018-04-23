@@ -52,6 +52,11 @@ private:
 	Renderable cells;
 	Renderable coastLines;
 
+	std::string targetCode;
+	std::vector<std::string> neighbourCodes;
+	Renderable target;
+	Renderable neighbours;
+
 	std::vector<Renderable*> objects;
 
 	int maxTreeDepth;

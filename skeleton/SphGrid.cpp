@@ -2,6 +2,7 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <algorithm>
 
 #include "Constants.h"
 #include "Geometry.h"
@@ -12,7 +13,7 @@ SphCell::SphCell() :
 SphCell::SphCell(double minLat, double maxLat, double minLong, double maxLong, double minRad, double maxRad) :
 	minLat(minLat), maxLat(maxLat), minLong(minLong), maxLong(maxLong), minRad(minRad), maxRad(maxRad) {}
 
-CellType SphCell::type() {
+CellType SphCell::type() const {
 	if (minRad == 0.0) {
 		return CellType::SG;
 	}
@@ -50,7 +51,7 @@ void SphGrid::subdivide() {
 
 	for (const std::pair<std::string, SphCell*>& p : map) {
 
-		if (p.first.size() == maxDepth + 1 && p.second->dataSets.size() != 0) {
+		if (p.first.size() == maxDepth + 1 /*&& p.second->dataSets.size() != 0*/) {
 
 			subdivideCell(p.first, p.second, toAdd);
 		}
@@ -61,7 +62,7 @@ void SphGrid::subdivide() {
 	maxDepth++;
 }
 
-void SphGrid::subdivideCell(std::string code, SphCell* cell, std::vector<std::pair<std::string, SphCell*>>& toAdd) {
+void SphGrid::subdivideCell(const std::string& code, const SphCell* cell, std::vector<std::pair<std::string, SphCell*>>& toAdd) {
 
 	double midLat = 0.5 * cell->minLat + 0.5 * cell->maxLat;
 	double midLong = 0.5 * cell->minLong + 0.5 * cell->maxLong;
@@ -140,7 +141,6 @@ void SphGrid::createRenderable(Renderable& r, int level) {
 			double minLat = p.second->minLat; double maxLat = p.second->maxLat;
 			double minRad = p.second->minRad; double maxRad = p.second->maxRad;
 
-			// fill renderable here
 			r.drawMode = GL_LINES;
 			glm::vec3 origin(0.f, 0.f, 0.f);
 
@@ -177,9 +177,60 @@ void SphGrid::createRenderable(Renderable& r, int level) {
 	}
 }
 
+void SphGrid::createRenderable(Renderable& r, std::vector<std::string>& codes) {
+
+	for (const std::string& code : codes) {
+
+		SphCell* cell = map[code];
+		double minLong = cell->minLong; double maxLong = cell->maxLong;
+		double minLat = cell->minLat; double maxLat = cell->maxLat;
+		double minRad = cell->minRad; double maxRad = cell->maxRad;
+
+		r.drawMode = GL_LINES;
+		glm::vec3 origin(0.f, 0.f, 0.f);
+
+		// Outer points
+		glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRad;
+		glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRad;
+		glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRad;
+		glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRad;
+
+		// Inner points
+		glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRad;
+		glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRad;
+		glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRad;
+		glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRad;
+
+		// Straight lines connect each inner point to coresponding outer point
+		Geometry::createLineR(i1, o1, r);
+		Geometry::createLineR(i2, o2, r);
+		Geometry::createLineR(i3, o3, r);
+		Geometry::createLineR(i4, o4, r);
+
+		// Great circle arcs connect points on same longtitude line
+		Geometry::createArcR(o1, o3, origin, r);
+		Geometry::createArcR(o2, o4, origin, r);
+		Geometry::createArcR(i1, i3, origin, r);
+		Geometry::createArcR(i2, i4, origin, r);
+
+		// Small circle arcs connect points on same latitude line
+		Geometry::createArcR(o1, o2, glm::vec3(0.f, sin(minLat), 0.f) * (float)maxRad, r);
+		Geometry::createArcR(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)maxRad, r);
+		Geometry::createArcR(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRad, r);
+		Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRad, r);
+	}
+
+}
+
 std::string SphGrid::codeForPos(double latRad, double longRad, double radius, int level) {
 
 	std::string code = "";
+	if (longRad < -M_PI) {
+		longRad += 2.0 * M_PI;
+	}
+	if (longRad > M_PI) {
+		longRad -= 2.0 * M_PI;
+	}
 
 	double minLat, maxLat, minLong, maxLong, minRad, maxRad;
 	minLat = 0.0;
@@ -187,6 +238,7 @@ std::string SphGrid::codeForPos(double latRad, double longRad, double radius, in
 	minRad = 0.0;
 	maxRad = maxRadius;
 
+	// Determine which otcant the point is in
 	int octCode = 0;
 	if (latRad < 0.0) {
 		octCode += 4;
@@ -208,8 +260,9 @@ std::string SphGrid::codeForPos(double latRad, double longRad, double radius, in
 
 	code += std::to_string(octCode);
 
+	// Loop for desired number of levels and determine
+	// which child point is in for each itteration
 	CellType curType = CellType::SG;
-
 	for (int i = 0; i < level; i++) {
 
 		int childCode = 0;
@@ -252,7 +305,7 @@ std::string SphGrid::codeForPos(double latRad, double longRad, double radius, in
 				childCode += 3;
 			}
 			if (latRad < midLat) {
-
+				maxLat = midLat;
 				curType = CellType::NG;
 
 				if (longRad < midLong) {
@@ -305,7 +358,231 @@ std::string SphGrid::codeForPos(double latRad, double longRad, double radius, in
 	return code;
 }
 
-const SphCell* SphGrid::cellFromCode(std::string code) {
+bool SphGrid::cellInfoFromCode(const std::string& code, SphCellInfo& out) {
+
+	out.minRad = 0.0;
+	out.maxRad = maxRadius;
+
+	// Set initial values based on which octanct cell is in
+	if (code[0] == '0') {
+		out.minLat = 0.0;
+		out.maxLat = M_PI_2;
+		out.minLong = 0.0;
+		out.maxLong = M_PI_2;
+	}
+	else if (code[0] == '1') {
+		out.minLat= 0.0;
+		out.maxLat = M_PI_2;
+		out.minLong = M_PI_2;
+		out.maxLong = M_PI;
+	}
+	else if (code[0] == '2') {
+		out.minLat = 0.0;
+		out.maxLat = M_PI_2;
+		out.minLong = 0.0;
+		out.maxLong = -M_PI_2;
+	}
+	else if (code[0] == '3') {
+		out.minLat = 0.0;
+		out.maxLat = M_PI_2;
+		out.minLong = -M_PI_2;
+		out.maxLong = -M_PI;
+	}
+	else if (code[0] == '4') {
+		out.minLat = 0.0;
+		out.maxLat = -M_PI_2;
+		out.minLong = 0.0;
+		out.maxLong = M_PI_2;
+	}
+	else if (code[0] == '5') {
+		out.minLat = 0.0;
+		out.maxLat = -M_PI_2;
+		out.minLong = M_PI_2;
+		out.maxLong = M_PI;
+	}
+	else if (code[0] == '6') {
+		out.minLat = 0.0;
+		out.maxLat = -M_PI_2;
+		out.minLong = 0.0;
+		out.maxLong = -M_PI_2;
+	}
+	else if (code[0] == '7') {
+		out.minLat = 0.0;
+		out.maxLat = -M_PI_2;
+		out.minLong = -M_PI_2;
+		out.maxLong = -M_PI;
+	}
+	else {
+		return false;
+	}
+
+	// Loop for each char in code and determine properties based on code
+	out.type = CellType::SG;
+	for (int i = 1; i < code.length(); i++) {
+
+		double midLat = 0.5 * out.minLat + 0.5 * out.maxLat;
+		double midLong = 0.5 * out.minLong + 0.5 * out.maxLong;
+		double midRad = 0.5 * out.minRad + 0.5 * out.maxRad;
+
+		if (out.type == CellType::NG) {
+
+			if (code[i] == '0') {
+				out.minRad = midRad;
+				out.maxLat = midLat;
+				out.maxLong = midLong;
+			}
+			else if (code[i] == '1') {
+				out.minRad = midRad;
+				out.maxLat = midLat;
+				out.minLong = midLong;
+			}
+			else if (code[i] == '2') {
+				out.minRad = midRad;
+				out.minLat = midLat;
+				out.maxLong = midLong;
+			}
+			else if (code[i] == '3') {
+				out.minRad = midRad;
+				out.minLat = midLat;
+				out.minLong = midLong;
+			}
+			else if (code[i] == '4') {
+				out.maxRad = midRad;
+				out.maxLat = midLat;
+				out.maxLong = midLong;
+			}
+			else if (code[i] == '5') {
+				out.maxRad = midRad;
+				out.maxLat = midLat;
+				out.minLong = midLong;
+			}
+			else if (code[i] == '6') {
+				out.maxRad = midRad;
+				out.minLat = midLat;
+				out.maxLong = midLong;
+			}
+			else if (code[i] == '7') {
+				out.maxRad = midRad;
+				out.minLat = midLat;
+				out.minLong = midLong;
+			}
+			else {
+				return false;
+			}
+			// type doesn't change
+		}
+		else if (out.type == CellType::LG) {
+
+			if (code[i] == '0') {
+				out.minRad = midRad;
+				out.maxLat = midLat;
+				out.maxLong = midLong;
+				out.type = CellType::NG;
+			}
+			else if (code[i] == '1') {
+				out.minRad = midRad;
+				out.maxLat = midLat;
+				out.minLong = midLong;
+				out.type = CellType::NG;
+			}
+			else if (code[i] == '2') {
+				out.minRad = midRad;
+				out.minLat = midLat;
+				// type doesn't change
+			}
+			else if (code[i] == '3') {
+				out.maxRad = midRad;
+				out.maxLat = midLat;
+				out.maxLong = midLong;
+				out.type = CellType::NG;
+			}
+			else if (code[i] == '4') {
+				out.maxRad = midRad;
+				out.maxLat = midLat;
+				out.minLong = midLong;
+				out.type = CellType::NG;
+			}
+			else if (code[i] == '5') {
+				out.maxRad = midRad;
+				out.minLat = midLat;
+				// type doesn't change
+			}
+			else {
+				return false;
+			}
+		}
+		else {// out.type == CellType::SG
+
+			if (code[i] == '0') {
+				out.minRad = midRad;
+				out.maxLat = midLat;
+				out.maxLong = midLong;
+				out.type = CellType::NG;
+			}
+			else if (code[i] == '1') {
+				out.minRad = midRad;
+				out.maxLat = midLat;
+				out.minLong = midLong;
+				out.type = CellType::NG;
+			}
+			else if (code[i] == '2') {
+				out.minRad = midRad;
+				out.minLat = midLat;
+				out.type = CellType::LG;
+			}
+			else if (code[i] == '3') {
+				out.maxRad = midRad;
+				// type doesn't change
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool SphGrid::neighbours(const std::string& code, std::vector<std::string>& out) {
+
+	SphCellInfo i;
+	if (!cellInfoFromCode(code, i)) {
+		return false;
+	}
+	int level = code.length() - 1;
+
+	double midLat = 0.5 * i.minLat + 0.5 * i.maxLat;
+	double midLong = 0.5 * i.minLong + 0.5 * i.maxLong;
+	double midRad = 0.5 * i.minRad + 0.5 * i.maxRad;
+
+	double latDist = i.maxLat - i.minLat;
+	double longDist = i.maxLong - i.minLong;
+	double radDist = i.maxRad - i.minRad;
+
+	out.push_back(codeForPos(midLat + latDist, midLong, midRad, level));
+	out.push_back(codeForPos(midLat, midLong + longDist, midRad, level));
+	out.push_back(codeForPos(midLat, midLong - longDist, midRad, level));
+	out.push_back(codeForPos(midLat, midLong, midRad - radDist, level));
+
+	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, level));
+	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, level));
+
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, level));
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, level));
+
+	std::sort(out.begin(), out.end());
+	out.erase(std::unique(out.begin(), out.end()), out.end());
+	out.erase(std::remove(out.begin(), out.end(), code), out.end());
+
+	for (std::string s : out) {
+		std::cout << s << std::endl;
+	}
+
+	return true;
+}
+
+const SphCell* SphGrid::getCell(const std::string& code) {
 	if (map.count(code) == 1) {
 		return map[code];
 	}
