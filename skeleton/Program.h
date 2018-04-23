@@ -5,16 +5,14 @@
 
 #include "Camera.h"
 #include "RenderEngine.h"
-#include "SphericalGrid.h"
 
-#include "SphGrid.h"
+#include "SDOG.h"
 
 enum class RadialBound {
 	MAX,
 	MIN,
 	BOTH
 };
-
 
 class Program {
 
@@ -23,8 +21,8 @@ public:
 
 	void start();
 
-	void refreshGrid() { createGrid(info.scheme); }
-	void createGrid(Scheme scheme);
+	void refreshGrid() { createGrid(); }
+	void createGrid();
 	void updateGrid();
 
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
@@ -32,7 +30,7 @@ public:
 	void updateRadialBounds(RadialBound b, int dir);
 	void toggleSurfaceLocation();
 
-	void setDisplayMode(DisplayMode mode);
+	void setDisplayMode();
 	void updateViewLevel(int inc);
 
 private:
@@ -42,7 +40,6 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
-	GridInfo info;
 	SphericalData eqData;
 	SphericalData pathsData;
 	SphericalData sampleData;
@@ -62,10 +59,11 @@ private:
 	int maxTreeDepth;
 	int viewLevel;
 
+	float scale;
+	float radius;
+
 	float latRot;
 	float longRot;
-
-	DisplayMode dispMode;
 
 	void setupWindow();
 	void mainLoop();

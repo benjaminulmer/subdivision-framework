@@ -49,16 +49,16 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			//program->refreshGrid();
 		}
 		else if (key == SDLK_1) {
-			program->createGrid(Scheme::SDOG);
+			//program->createGrid(Scheme::SDOG);
 		}
 		else if (key == SDLK_2) {
-			program->createGrid(Scheme::OPT_SDOG);
+			//program->createGrid(Scheme::OPT_SDOG);
 		}
 		else if (key == SDLK_8) {
-			program->setDisplayMode(DisplayMode::LINES);
+			//program->setDisplayMode(DisplayMode::LINES);
 		}
 		else if (key == SDLK_9) {
-			program->setDisplayMode(DisplayMode::DATA);
+			//program->setDisplayMode(DisplayMode::DATA);
 		}
 		else if (key == SDLK_f) {
 			renderEngine->toggleFade();

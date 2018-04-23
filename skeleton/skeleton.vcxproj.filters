@@ -50,16 +50,10 @@
     <ClInclude Include="Constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SphericalCell.h">
+    <ClInclude Include="SDOG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SphericalGrid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Frustum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SphGrid.h">
+    <ClInclude Include="_3dDGGS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -100,16 +94,7 @@
     <ClCompile Include="Renderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SphericalCell.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SphericalGrid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Frustum.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SphGrid.cpp">
+    <ClCompile Include="SDOG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

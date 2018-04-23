@@ -158,7 +158,6 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="ContentReadWrite.h" />
-    <ClInclude Include="Frustum.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="lodepng.h" />
@@ -166,16 +165,14 @@
     <ClInclude Include="Renderable.h" />
     <ClInclude Include="RenderEngine.h" />
     <ClInclude Include="SphericalData.h" />
-    <ClInclude Include="SphericalCell.h" />
     <ClInclude Include="ShaderTools.h" />
-    <ClInclude Include="SphGrid.h" />
+    <ClInclude Include="SDOG.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="SphericalGrid.h" />
+    <ClInclude Include="_3dDGGS.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ContentReadWrite.cpp" />
-    <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="lodepng.cpp" />
@@ -184,11 +181,9 @@
     <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="RenderEngine.cpp" />
     <ClCompile Include="SphericalData.cpp" />
-    <ClCompile Include="SphericalCell.cpp" />
     <ClCompile Include="ShaderTools.cpp" />
-    <ClCompile Include="SphGrid.cpp" />
+    <ClCompile Include="SDOG.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="SphericalGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\main.frag" />

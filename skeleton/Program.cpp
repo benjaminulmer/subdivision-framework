@@ -10,7 +10,6 @@
 
 #include "Constants.h"
 #include "ContentReadWrite.h"
-#include "Frustum.h"
 #include "InputHandler.h"
 
 #include <sqlite/sqlite3.h>
@@ -29,7 +28,6 @@ Program::Program() {
 	viewLevel = 7;
 	longRot = 0;
 	latRot = 0;
-	dispMode = DisplayMode::DATA;
 
 	width = height = 800;
 }
@@ -62,10 +60,10 @@ void Program::start() {
 	cells.fade = true;
 
 	// Set starting radius
-	info.scale = 1.f;
-	info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
-	info.cullMaxRadius = 0.75 * info.radius + (20.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
-	info.cullMinRadius = 0.75 * info.radius - (10.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
+	scale = 1.f;
+	radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
+	//info.cullMaxRadius = 0.75 * info.radius + (20.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
+	//info.cullMinRadius = 0.75 * info.radius - (10.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
 
 	// Load earthquake data set
 	rapidjson::Document d1 = ContentReadWrite::readJSON("data/eq-2017.json");
@@ -100,10 +98,10 @@ void Program::start() {
 	RenderEngine::setBufferData(coastLines, false);
 
 	float s = 1.f + std::numeric_limits<float>::epsilon();
-	coastLines.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
+	coastLines.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
 	// Create grid
-	createGrid(Scheme::SDOG);
+	createGrid();
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
@@ -157,7 +155,7 @@ void Program::mainLoop() {
 		}
 
 		float far = glm::length(camera->getPosition() - glm::vec3(0.f, 0.f, 0.f));
-		info.frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), far);
+		//info.frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), far);
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
 		glm::vec3 cameraPos = camera->getPosition();
@@ -176,11 +174,10 @@ void Program::mainLoop() {
 }
 
 // Sets the scheme that will be used for subdivision
-void Program::createGrid(Scheme scheme) {
+void Program::createGrid() {
 
 	delete root;
-	info.scheme = scheme;
-	root = new SphGrid(info.radius);
+	root = new SphGrid(radius);
 
 	// Set max number of grids depending on subdivision scheme
 	// These might need to be tweaked
@@ -282,7 +279,7 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 	glm::vec3 rayO = camera->getPosition();
 	glm::vec3 rayDOld = glm::normalize(glm::vec3(worldOld) - rayO);
 	glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
-	float sphereRad = RADIUS_EARTH_MODEL * info.scale;
+	float sphereRad = RADIUS_EARTH_MODEL * scale;
 	glm::vec3 sphereO = glm::vec3(0.f, 0.f, 0.f);
 
 	glm::vec3 iPosOld, iPosNew, iNorm;
@@ -310,65 +307,65 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 void Program::updateScale(float inc) {
 
 	if (inc < 0) {
-		info.scale /= 1.4f;
+		scale /= 1.4f;
 	}
 	else {
-		info.scale *= 1.4f;
+		scale *= 1.4f;
 	}
-	camera->setScale(info.scale);
+	camera->setScale(scale);
 
 	float s = 1.f + std::numeric_limits<float>::epsilon();
-	cells.scale = glm::scale(glm::vec3(info.scale, info.scale, info.scale));
-	coastLines.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
+	cells.scale = glm::scale(glm::vec3(scale, scale, scale));
+	coastLines.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
-	target.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
-	neighbours.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
+	target.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
+	neighbours.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 }
 
 // Updates radial bounds for culling
 void Program::updateRadialBounds(RadialBound b, int dir) {
 
-	double amount = info.radius / maxTreeDepth / 2.0;
+	double amount = radius / maxTreeDepth / 2.0;
 
-	if (b == RadialBound::MAX) {
-		info.cullMaxRadius += dir * amount;
+	//if (b == RadialBound::MAX) {
+	//	info.cullMaxRadius += dir * amount;
 
-	}
-	else if (b == RadialBound::MIN) {
-		info.cullMinRadius += dir * amount;
+	//}
+	//else if (b == RadialBound::MIN) {
+	//	info.cullMinRadius += dir * amount;
 
-	}
-	else {//b == RadialBound::BOTH
-		info.cullMinRadius += dir * amount;
-		info.cullMaxRadius += dir * amount;
-	}
+	//}
+	//else {//b == RadialBound::BOTH
+	//	info.cullMinRadius += dir * amount;
+	//	info.cullMaxRadius += dir * amount;
+	//}
 
-	// Bounds enforcing
-	if (info.cullMinRadius < 0.0) info.cullMinRadius = 0.0;
-	if (info.cullMaxRadius > info.radius) info.cullMaxRadius = info.radius;
-	if (info.cullMinRadius > info.cullMaxRadius) info.cullMinRadius = info.cullMaxRadius;
-	if (info.cullMaxRadius < info.cullMinRadius) info.cullMaxRadius = info.cullMinRadius;
+	//// Bounds enforcing
+	//if (info.cullMinRadius < 0.0) info.cullMinRadius = 0.0;
+	//if (info.cullMaxRadius > info.radius) info.cullMaxRadius = info.radius;
+	//if (info.cullMinRadius > info.cullMaxRadius) info.cullMinRadius = info.cullMaxRadius;
+	//if (info.cullMaxRadius < info.cullMinRadius) info.cullMaxRadius = info.cullMinRadius;
 
-	// Temp until visual representation
-	std::cout << info.cullMinRadius << ", " << info.cullMaxRadius << std::endl;
+	//// Temp until visual representation
+	//std::cout << info.cullMinRadius << ", " << info.cullMaxRadius << std::endl;
 }
 
 // Toggles location of surface between 0.5 and 0.75
 void Program::toggleSurfaceLocation() {
 
-	if (info.radius == RADIUS_EARTH_MODEL * 2.0) {
-		info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
+	if (radius == RADIUS_EARTH_MODEL * 2.0) {
+		radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
 	}
 	else {
-		info.radius = RADIUS_EARTH_MODEL * 2.0;
+		radius = RADIUS_EARTH_MODEL * 2.0;
 	}
 	refreshGrid();
 }
 
 // Sets display mode for rendering
-void Program::setDisplayMode(DisplayMode mode) {
-	dispMode = mode;
-	updateGrid();
+void Program::setDisplayMode() {
+	//dispMode = mode;
+	//updateGrid();
 }
 
 // Update subdivision level of rendering

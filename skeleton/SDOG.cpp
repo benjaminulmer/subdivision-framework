@@ -1,4 +1,4 @@
-#include "SphGrid.h"
+#include "SDOG.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -575,9 +575,6 @@ bool SphGrid::neighbours(const std::string& code, std::vector<std::string>& out)
 	out.erase(std::unique(out.begin(), out.end()), out.end());
 	out.erase(std::remove(out.begin(), out.end(), code), out.end());
 
-	for (std::string s : out) {
-		std::cout << s << std::endl;
-	}
 
 	return true;
 }

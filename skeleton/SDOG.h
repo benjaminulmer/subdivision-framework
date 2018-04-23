@@ -1,10 +1,5 @@
 #pragma once
 
-//temp
-#include "SphericalCell.h"
-#include <iostream>
-//
-
 #include "Renderable.h"
 #include "SphericalData.h"
 
@@ -12,6 +7,11 @@
 #include <unordered_map>
 #include <vector>
 
+enum class CellType {
+	NG,
+	LG,
+	SG
+};
 
 struct SphCellInfo {
 
