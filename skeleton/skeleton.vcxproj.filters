@@ -50,10 +50,13 @@
     <ClInclude Include="Constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SDOG.h">
+    <ClInclude Include="test.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="_3dDGGS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SdogDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -94,7 +97,10 @@
     <ClCompile Include="Renderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SDOG.cpp">
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SdogDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

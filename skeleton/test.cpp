@@ -1,4 +1,4 @@
-#include "SDOG.h"
+#include "test.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -73,6 +73,8 @@ SphGrid::SphGrid(double radius) : maxDepth(0), maxRadius(radius) {
 
 	sqlite3_open("test1.db", &db);
 
+	char* sql = "CREATE TABLE `Cells` ( `CellID` INTEGER PRIMARY KEY AUTOINCREMENT, `Code` TEXT NOT NULL UNIQUE, `MinLat` REAL, `MaxLat` REAL, `MinLong` REAL, `MaxLong` REAL, `MinRad` REAL, `MaxRad` REAL )";
+
 	insertCell("0", 0.0, M_PI_2, 0.0, M_PI_2, 0.0, radius);
 	insertCell("1", 0.0, M_PI_2, M_PI_2, M_PI, 0.0, radius);
 	insertCell("2", 0.0, M_PI_2, 0.0, -M_PI_2, 0.0, radius);
@@ -111,28 +113,28 @@ void SphGrid::subdivide() {
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL);
 
-	//while (sqlite3_step(stmt) != SQLITE_DONE) {
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
 
-	//	SphCell i;
-	//	i.minLat = sqlite3_column_double(stmt, 1);
-	//	i.maxLat = sqlite3_column_double(stmt, 2);
-	//	i.minLong = sqlite3_column_double(stmt, 3);
-	//	i.maxLong = sqlite3_column_double(stmt, 4);
-	//	i.minRad = sqlite3_column_double(stmt, 5);
-	//	i.maxRad = sqlite3_column_double(stmt, 6);
+		SphCell i;
+		i.minLat = sqlite3_column_double(stmt, 1);
+		i.maxLat = sqlite3_column_double(stmt, 2);
+		i.minLong = sqlite3_column_double(stmt, 3);
+		i.maxLong = sqlite3_column_double(stmt, 4);
+		i.minRad = sqlite3_column_double(stmt, 5);
+		i.maxRad = sqlite3_column_double(stmt, 6);
 
-	//	std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
 
-	//	subdivideCell(code, &i, toAdd);
-	//}
-
-	for (const std::pair<std::string, SphCell*>& p : map) {
-
-		if (p.first.size() == maxDepth + 1 /*&& p.second->dataSets.size() != 0*/) {
-
-			subdivideCell(p.first, p.second, toAdd);
-		}
+		subdivideCell(code, &i, toAdd);
 	}
+
+	//for (const std::pair<std::string, SphCell*>& p : map) {
+
+	//	if (p.first.size() == maxDepth + 1 /*&& p.second->dataSets.size() != 0*/) {
+
+	//		subdivideCell(p.first, p.second, toAdd);
+	//	}
+	//}
 
 	for (const std::pair<std::string, SphCell*>& p : toAdd) {
 		map[p.first] = p.second;

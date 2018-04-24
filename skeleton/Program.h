@@ -6,7 +6,7 @@
 #include "Camera.h"
 #include "RenderEngine.h"
 
-#include "SDOG.h"
+#include "test.h"
 
 enum class RadialBound {
 	MAX,
