@@ -27,18 +27,41 @@ CellType SphCell::type() const {
 
 void SphGrid::insertCell(const std::string& code, double minLat, double maxLat, double minLong, double maxLong, double minRad, double maxRad) {
 
-	char* sqlEmpty = "insert or ignore into Cells (CellID, MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad) "
+	char* sqlEmpty = "insert or ignore into Cells (Code, MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad) "
 		             "values ('%s', %.17g, %.17g, %.17g, %.17g, %.17g, %.17g);";
 
 	char* sqlFilled = sqlite3_mprintf(sqlEmpty, code, minLat, maxLat, minLong, maxLong, minRad, maxRad);
 
-	std::cout << sqlFilled << std::endl;
-
-	sqlite3_stmt* stmt;
-	std::cout << sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL) << " ";
-	std::cout << sqlite3_step(stmt) << " ";
-	std::cout << sqlite3_finalize(stmt) << std::endl;
+	sqlite3_exec(db, sqlFilled, NULL, NULL, NULL);
 	sqlite3_free(sqlFilled);
+
+
+	//sqlite3_stmt* stmt;
+	//sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL);
+	//sqlite3_step(stmt);
+	//sqlite3_finalize(stmt);
+	
+}
+
+void SphGrid::insertCells(std::vector<std::pair<std::string, SphCell*>>& toAdd) {
+
+	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+
+	char* sqlEmpty = "insert or ignore into Cells (Code, MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad)\n"
+		"values ('%s', %.17g, %.17g, %.17g, %.17g, %.17g, %.17g);\n";
+
+	for (std::pair<std::string, SphCell*> p : toAdd) {
+		char* line = sqlite3_mprintf(sqlEmpty, p.first, p.second->minLat, p.second->maxLat, p.second->minLong, p.second->maxLong, p.second->minRad, p.second->maxRad);
+		sqlite3_exec(db, line, NULL, NULL, NULL);
+		sqlite3_free(line);
+	}
+	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+	 
+
+	//sqlite3_stmt* stmt;
+	//std::cout << sqlite3_prepare_v2(db, sqlFull.c_str(), -1, &stmt, NULL) << " ";
+	//std::cout << sqlite3_step(stmt) << std::endl;
+	//sqlite3_finalize(stmt);
 }
 
 SphGrid::SphGrid(double radius) : maxDepth(0), maxRadius(radius) {
@@ -55,15 +78,15 @@ SphGrid::SphGrid(double radius) : maxDepth(0), maxRadius(radius) {
 	insertCell("6", 0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, radius);
 	insertCell("7", 0.0, -M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
 
-	map["0"] = new SphCell(0.0, M_PI_2, 0.0, M_PI_2, 0.0, radius);
-	map["1"] = new SphCell(0.0, M_PI_2, M_PI_2, M_PI, 0.0, radius);
-	map["2"] = new SphCell(0.0, M_PI_2, 0.0, -M_PI_2, 0.0, radius);
-	map["3"] = new SphCell(0.0, M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
+	//map["0"] = new SphCell(0.0, M_PI_2, 0.0, M_PI_2, 0.0, radius);
+	//map["1"] = new SphCell(0.0, M_PI_2, M_PI_2, M_PI, 0.0, radius);
+	//map["2"] = new SphCell(0.0, M_PI_2, 0.0, -M_PI_2, 0.0, radius);
+	//map["3"] = new SphCell(0.0, M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
 
-	map["4"] = new SphCell(0.0, -M_PI_2, 0.0, M_PI_2, 0.0, radius);
-	map["5"] = new SphCell(0.0, -M_PI_2, M_PI_2, M_PI, 0.0, radius);
-	map["6"] = new SphCell(0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, radius);
-	map["7"] = new SphCell(0.0, -M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
+	//map["4"] = new SphCell(0.0, -M_PI_2, 0.0, M_PI_2, 0.0, radius);
+	//map["5"] = new SphCell(0.0, -M_PI_2, M_PI_2, M_PI, 0.0, radius);
+	//map["6"] = new SphCell(0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, radius);
+	//map["7"] = new SphCell(0.0, -M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
 }
 
 void SphGrid::subdivideTo(int level) {
@@ -77,17 +100,52 @@ void SphGrid::subdivide() {
 
 	std::vector<std::pair<std::string, SphCell*>> toAdd;
 
-	for (const std::pair<std::string, SphCell*>& p : map) {
+	char* sqlEmpty = "select Code, MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad from cells where length(Code) = %i;";
+	char* sqlFilled = sqlite3_mprintf(sqlEmpty, maxDepth + 1);
 
-		if (p.first.size() == maxDepth + 1 /*&& p.second->dataSets.size() != 0*/) {
+	sqlite3_stmt* stmt;
+	sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL);
 
-			subdivideCell(p.first, p.second, toAdd);
-		}
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+
+		SphCell i;
+		i.minLat = sqlite3_column_double(stmt, 1);
+		i.maxLat = sqlite3_column_double(stmt, 2);
+		i.minLong = sqlite3_column_double(stmt, 3);
+		i.maxLong = sqlite3_column_double(stmt, 4);
+		i.minRad = sqlite3_column_double(stmt, 5);
+		i.maxRad = sqlite3_column_double(stmt, 6);
+
+		std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+
+		subdivideCell(code, &i, toAdd);
 	}
-	for (const std::pair<std::string, SphCell*>& p : toAdd) {
-		map[p.first] = p.second;
-	}
+	//for (const std::pair<std::string, SphCell*>& p : toAdd) {
+	//	//map[p.first] = p.second;
+	//	insertCell(p.first, p.second->minLat, p.second->maxLat, p.second->minLong, p.second->maxLong, p.second->minRad, p.second->maxRad);
+	//}
+	insertCells(toAdd);
 	maxDepth++;
+
+
+	sqlite3_finalize(stmt);
+	sqlite3_free(sqlFilled);
+
+
+	//for (const std::pair<std::string, SphCell*>& p : map) {
+
+	//	if (p.first.size() == maxDepth + 1 /*&& p.second->dataSets.size() != 0*/) {
+
+	//		subdivideCell(p.first, p.second, toAdd);
+	//	}
+	//}
+	//for (const std::pair<std::string, SphCell*>& p : toAdd) {
+	//	map[p.first] = p.second;
+	//}
+	//maxDepth++;
+
+
+
 }
 
 void SphGrid::subdivideCell(const std::string& code, const SphCell* cell, std::vector<std::pair<std::string, SphCell*>>& toAdd) {
@@ -130,89 +188,107 @@ void SphGrid::subdivideCell(const std::string& code, const SphCell* cell, std::v
 
 void SphGrid::fillData(const SphericalData& data) {
 
-	const std::vector<SphericalDatum>& dataPoints = data.getData();
-	const DataSetInfo& info = data.getInfo();
+	//const std::vector<SphericalDatum>& dataPoints = data.getData();
+	//const DataSetInfo& info = data.getInfo();
 
-	for (const SphericalDatum& d : dataPoints) {
-		
-		std::string code = codeForPos(d.latitude, d.longitude, d.radius, maxDepth);
-		SphCell* c = map[code];
+	//for (const SphericalDatum& d : dataPoints) {
+	//	
+	//	std::string code = codeForPos(d.latitude, d.longitude, d.radius, maxDepth);
+	//	SphCell* c = map[code];
 
-		// Find index in list of data sets for the point
-		int index = -1;
-		int i = 0;
-		for (DataPoints& ds : c->dataSets) {
+	//	// Find index in list of data sets for the point
+	//	int index = -1;
+	//	int i = 0;
+	//	for (DataPoints& ds : c->dataSets) {
 
-			if (ds.info.id == info.id) {
-				index = i;
-				break;
-			}
-			i++;
-		}
+	//		if (ds.info.id == info.id) {
+	//			index = i;
+	//			break;
+	//		}
+	//		i++;
+	//	}
 
-		// If data point belongs to new data set add a new data set
-		if (index == -1) {
-			c->dataSets.push_back(DataPoints(info));
-			index = c->dataSets.size() - 1;
-		}
-		c->dataSets[index].data.push_back(d);
-	}
+	//	// If data point belongs to new data set add a new data set
+	//	if (index == -1) {
+	//		c->dataSets.push_back(DataPoints(info));
+	//		index = c->dataSets.size() - 1;
+	//	}
+	//	c->dataSets[index].data.push_back(d);
+	//}
 }
 
 void SphGrid::createRenderable(Renderable& r, int level) {
 
-	for (std::pair<std::string, SphCell*> p : map) {
+	//for (std::pair<std::string, SphCell*> p : map) {
 
-		if (p.first.size() == level + 1 && p.second->dataSets.size() != 0) {
+	//	if (p.first.size() == level + 1 && p.second->dataSets.size() != 0) {
 
-			double minLong = p.second->minLong; double maxLong = p.second->maxLong;
-			double minLat = p.second->minLat; double maxLat = p.second->maxLat;
-			double minRad = p.second->minRad; double maxRad = p.second->maxRad;
+	//		double minLong = p.second->minLong; double maxLong = p.second->maxLong;
+	//		double minLat = p.second->minLat; double maxLat = p.second->maxLat;
+	//		double minRad = p.second->minRad; double maxRad = p.second->maxRad;
 
-			r.drawMode = GL_LINES;
-			glm::vec3 origin(0.f, 0.f, 0.f);
+	//		r.drawMode = GL_LINES;
+	//		glm::vec3 origin(0.f, 0.f, 0.f);
 
-			// Outer points
-			glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRad;
-			glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRad;
-			glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRad;
-			glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRad;
+	//		// Outer points
+	//		glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRad;
+	//		glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRad;
+	//		glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRad;
+	//		glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRad;
 
-			// Inner points
-			glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRad;
-			glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRad;
-			glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRad;
-			glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRad;
+	//		// Inner points
+	//		glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRad;
+	//		glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRad;
+	//		glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRad;
+	//		glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRad;
 
-			// Straight lines connect each inner point to coresponding outer point
-			Geometry::createLineR(i1, o1, r);
-			Geometry::createLineR(i2, o2, r);
-			Geometry::createLineR(i3, o3, r);
-			Geometry::createLineR(i4, o4, r);
+	//		// Straight lines connect each inner point to coresponding outer point
+	//		Geometry::createLineR(i1, o1, r);
+	//		Geometry::createLineR(i2, o2, r);
+	//		Geometry::createLineR(i3, o3, r);
+	//		Geometry::createLineR(i4, o4, r);
 
-			// Great circle arcs connect points on same longtitude line
-			Geometry::createArcR(o1, o3, origin, r);
-			Geometry::createArcR(o2, o4, origin, r);
-			Geometry::createArcR(i1, i3, origin, r);
-			Geometry::createArcR(i2, i4, origin, r);
+	//		// Great circle arcs connect points on same longtitude line
+	//		Geometry::createArcR(o1, o3, origin, r);
+	//		Geometry::createArcR(o2, o4, origin, r);
+	//		Geometry::createArcR(i1, i3, origin, r);
+	//		Geometry::createArcR(i2, i4, origin, r);
 
-			// Small circle arcs connect points on same latitude line
-			Geometry::createArcR(o1, o2, glm::vec3(0.f, sin(minLat), 0.f) * (float)maxRad, r);
-			Geometry::createArcR(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)maxRad, r);
-			Geometry::createArcR(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRad, r);
-			Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRad, r);
-		}
-	}
+	//		// Small circle arcs connect points on same latitude line
+	//		Geometry::createArcR(o1, o2, glm::vec3(0.f, sin(minLat), 0.f) * (float)maxRad, r);
+	//		Geometry::createArcR(o3, o4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)maxRad, r);
+	//		Geometry::createArcR(i1, i2, glm::vec3(0.f, sin(minLat), 0.f) * (float)minRad, r);
+	//		Geometry::createArcR(i3, i4, glm::vec3(0.f, sin(maxLat), 0.f) * (float)minRad, r);
+	//	}
+	//}
 }
 
 void SphGrid::createRenderable(Renderable& r, std::vector<std::string>& codes) {
 
+
+
+
+
 	for (const std::string& code : codes) {
 
-		SphCell* cell = map[code];
-		double minLong = cell->minLong; double maxLong = cell->maxLong;
-		double minLat = cell->minLat; double maxLat = cell->maxLat;
-		double minRad = cell->minRad; double maxRad = cell->maxRad;
+		char* sqlEmpty = "select MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad from cells where Code = %s;";
+		char* sqlFilled = sqlite3_mprintf(sqlEmpty, code);
+
+		sqlite3_stmt* stmt;
+		sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL);
+		sqlite3_step(stmt);
+
+		double minLat = sqlite3_column_double(stmt, 0);
+		double maxLat = sqlite3_column_double(stmt, 1);
+		double minLong = sqlite3_column_double(stmt, 2);
+		double maxLong = sqlite3_column_double(stmt, 3);
+		double minRad = sqlite3_column_double(stmt, 4);
+		double maxRad = sqlite3_column_double(stmt, 5);
+
+		//SphCell* cell = map[code];
+		//double minLong = cell->minLong; double maxLong = cell->maxLong;
+		//double minLat = cell->minLat; double maxLat = cell->maxLat;
+		//double minRad = cell->minRad; double maxRad = cell->maxRad;
 
 		r.drawMode = GL_LINES;
 		glm::vec3 origin(0.f, 0.f, 0.f);
@@ -608,10 +684,10 @@ bool SphGrid::neighbours(const std::string& code, std::vector<std::string>& out)
 }
 
 const SphCell* SphGrid::getCell(const std::string& code) {
-	if (map.count(code) == 1) {
-		return map[code];
-	}
-	else {
-		return nullptr;
-	}
+	//if (map.count(code) == 1) {
+	//	return map[code];
+	//}
+	//else {
+	//	return nullptr;
+	//}
 }

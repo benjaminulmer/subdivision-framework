@@ -182,10 +182,10 @@ void Program::createGrid() {
 	// These might need to be tweaked
 	int max = 4000000;
 
-	root->fillData(eqData);
-	root->fillData(pathsData);
-	root->fillData(sampleData);
-	root->fillData(sampleData2);
+	//root->fillData(eqData);
+	//root->fillData(pathsData);
+	//root->fillData(sampleData);
+	//root->fillData(sampleData2);
 
 	std::cout << "first fill" << std::endl;
 
@@ -193,23 +193,24 @@ void Program::createGrid() {
 	int level = 0;
 	while (true) {
 
-		int numGrids = root->size();
+		//int numGrids = root->size();
+		int numGrids = 1;
 		std::cout << level << " : " << numGrids << std::endl;
 
 		if (numGrids < max) {
 			level++;
 			root->subdivide();
 
-			root->fillData(eqData);
-			root->fillData(pathsData);
-			root->fillData(sampleData);
-			root->fillData(sampleData2);
+			//root->fillData(eqData);
+			//root->fillData(pathsData);
+			//root->fillData(sampleData);
+			//root->fillData(sampleData2);
 		}
 		else {
 			maxTreeDepth = level;
 			break;
 		}
-		if (level > 20) {
+		if (level >= 8) {
 			//system("pause");
 			maxTreeDepth = level;
 			break;

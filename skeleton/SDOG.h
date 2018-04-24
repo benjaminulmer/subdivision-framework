@@ -54,7 +54,7 @@ public:
 
 	void createRenderable(Renderable& r, std::vector<std::string>& codes);
 
-	int size() { return map.size(); }
+	//int size() { return map.size(); }
 
 	std::string codeForPos(double latRad, double longRad, double radius, int level);
 	bool neighbours(const std::string& code, std::vector<std::string>& out);
@@ -64,10 +64,11 @@ private:
 	int maxDepth;
 	double maxRadius;
 
-	std::unordered_map<std::string, SphCell*> map;
+	//std::unordered_map<std::string, SphCell*> map;
 	sqlite3* db;
 
 	void insertCell(const std::string& code, double minLat, double maxLat, double minLong, double maxLong, double minRad, double maxRad);
+	void insertCells(std::vector<std::pair<std::string, SphCell*>>& toAdd);
 
 	void subdivideCell(const std::string& code, const SphCell* cell, std::vector<std::pair<std::string, SphCell*>>& toAdd);
 	bool cellInfoFromCode(const std::string& code, SphCellInfo& out);
