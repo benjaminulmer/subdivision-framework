@@ -16,9 +16,6 @@
 
 Program::Program() {
 
-	sqlite3* db;
-	sqlite3_open("test.db", &db);
-
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
@@ -171,6 +168,8 @@ void Program::mainLoop() {
 		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
 	}
+
+	delete root;
 }
 
 // Sets the scheme that will be used for subdivision

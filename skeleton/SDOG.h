@@ -1,5 +1,10 @@
 #pragma once
 
+//
+#include <iostream>
+//
+
+#include "_3dDGGS.h"
 #include "Renderable.h"
 #include "SphericalData.h"
 
@@ -60,6 +65,9 @@ private:
 	double maxRadius;
 
 	std::unordered_map<std::string, SphCell*> map;
+	sqlite3* db;
+
+	void insertCell(const std::string& code, double minLat, double maxLat, double minLong, double maxLong, double minRad, double maxRad);
 
 	void subdivideCell(const std::string& code, const SphCell* cell, std::vector<std::pair<std::string, SphCell*>>& toAdd);
 	bool cellInfoFromCode(const std::string& code, SphCellInfo& out);

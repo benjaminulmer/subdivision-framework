@@ -25,7 +25,35 @@ CellType SphCell::type() const {
 	}
 }
 
+void SphGrid::insertCell(const std::string& code, double minLat, double maxLat, double minLong, double maxLong, double minRad, double maxRad) {
+
+	char* sqlEmpty = "insert or ignore into Cells (CellID, MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad) "
+		             "values ('%s', %.17g, %.17g, %.17g, %.17g, %.17g, %.17g);";
+
+	char* sqlFilled = sqlite3_mprintf(sqlEmpty, code, minLat, maxLat, minLong, maxLong, minRad, maxRad);
+
+	std::cout << sqlFilled << std::endl;
+
+	sqlite3_stmt* stmt;
+	std::cout << sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL) << " ";
+	std::cout << sqlite3_step(stmt) << " ";
+	std::cout << sqlite3_finalize(stmt) << std::endl;
+	sqlite3_free(sqlFilled);
+}
+
 SphGrid::SphGrid(double radius) : maxDepth(0), maxRadius(radius) {
+
+	sqlite3_open("test1.db", &db);
+
+	insertCell("0", 0.0, M_PI_2, 0.0, M_PI_2, 0.0, radius);
+	insertCell("1", 0.0, M_PI_2, M_PI_2, M_PI, 0.0, radius);
+	insertCell("2", 0.0, M_PI_2, 0.0, -M_PI_2, 0.0, radius);
+	insertCell("3", 0.0, M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
+
+	insertCell("4", 0.0, -M_PI_2, 0.0, M_PI_2, 0.0, radius);
+	insertCell("5", 0.0, -M_PI_2, M_PI_2, M_PI, 0.0, radius);
+	insertCell("6", 0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, radius);
+	insertCell("7", 0.0, -M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
 
 	map["0"] = new SphCell(0.0, M_PI_2, 0.0, M_PI_2, 0.0, radius);
 	map["1"] = new SphCell(0.0, M_PI_2, M_PI_2, M_PI, 0.0, radius);
