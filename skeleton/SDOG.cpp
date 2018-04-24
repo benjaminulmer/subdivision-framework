@@ -30,7 +30,7 @@ void SphGrid::insertCell(const std::string& code, double minLat, double maxLat, 
 	char* sqlEmpty = "insert or ignore into Cells (Code, MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad) "
 		             "values ('%s', %.17g, %.17g, %.17g, %.17g, %.17g, %.17g);";
 
-	char* sqlFilled = sqlite3_mprintf(sqlEmpty, code, minLat, maxLat, minLong, maxLong, minRad, maxRad);
+	char* sqlFilled = sqlite3_mprintf(sqlEmpty, code.c_str(), minLat, maxLat, minLong, maxLong, minRad, maxRad);
 
 	sqlite3_exec(db, sqlFilled, NULL, NULL, NULL);
 	sqlite3_free(sqlFilled);
@@ -50,8 +50,13 @@ void SphGrid::insertCells(std::vector<std::pair<std::string, SphCell*>>& toAdd) 
 	char* sqlEmpty = "insert or ignore into Cells (Code, MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad)\n"
 		"values ('%s', %.17g, %.17g, %.17g, %.17g, %.17g, %.17g);\n";
 
-	for (std::pair<std::string, SphCell*> p : toAdd) {
-		char* line = sqlite3_mprintf(sqlEmpty, p.first, p.second->minLat, p.second->maxLat, p.second->minLong, p.second->maxLong, p.second->minRad, p.second->maxRad);
+	for (std::pair<std::string, SphCell*>& p : toAdd) {
+
+		if (p.first == "5322") {
+			std::cout << "br" << std::endl;
+		}
+
+		char* line = sqlite3_mprintf(sqlEmpty, p.first.c_str(), p.second->minLat, p.second->maxLat, p.second->minLong, p.second->maxLong, p.second->minRad, p.second->maxRad);
 		sqlite3_exec(db, line, NULL, NULL, NULL);
 		sqlite3_free(line);
 	}
@@ -78,15 +83,15 @@ SphGrid::SphGrid(double radius) : maxDepth(0), maxRadius(radius) {
 	insertCell("6", 0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, radius);
 	insertCell("7", 0.0, -M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
 
-	//map["0"] = new SphCell(0.0, M_PI_2, 0.0, M_PI_2, 0.0, radius);
-	//map["1"] = new SphCell(0.0, M_PI_2, M_PI_2, M_PI, 0.0, radius);
-	//map["2"] = new SphCell(0.0, M_PI_2, 0.0, -M_PI_2, 0.0, radius);
-	//map["3"] = new SphCell(0.0, M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
+	map["0"] = new SphCell(0.0, M_PI_2, 0.0, M_PI_2, 0.0, radius);
+	map["1"] = new SphCell(0.0, M_PI_2, M_PI_2, M_PI, 0.0, radius);
+	map["2"] = new SphCell(0.0, M_PI_2, 0.0, -M_PI_2, 0.0, radius);
+	map["3"] = new SphCell(0.0, M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
 
-	//map["4"] = new SphCell(0.0, -M_PI_2, 0.0, M_PI_2, 0.0, radius);
-	//map["5"] = new SphCell(0.0, -M_PI_2, M_PI_2, M_PI, 0.0, radius);
-	//map["6"] = new SphCell(0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, radius);
-	//map["7"] = new SphCell(0.0, -M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
+	map["4"] = new SphCell(0.0, -M_PI_2, 0.0, M_PI_2, 0.0, radius);
+	map["5"] = new SphCell(0.0, -M_PI_2, M_PI_2, M_PI, 0.0, radius);
+	map["6"] = new SphCell(0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, radius);
+	map["7"] = new SphCell(0.0, -M_PI_2, -M_PI_2, -M_PI, 0.0, radius);
 }
 
 void SphGrid::subdivideTo(int level) {
@@ -106,30 +111,39 @@ void SphGrid::subdivide() {
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL);
 
-	while (sqlite3_step(stmt) != SQLITE_DONE) {
+	//while (sqlite3_step(stmt) != SQLITE_DONE) {
 
-		SphCell i;
-		i.minLat = sqlite3_column_double(stmt, 1);
-		i.maxLat = sqlite3_column_double(stmt, 2);
-		i.minLong = sqlite3_column_double(stmt, 3);
-		i.maxLong = sqlite3_column_double(stmt, 4);
-		i.minRad = sqlite3_column_double(stmt, 5);
-		i.maxRad = sqlite3_column_double(stmt, 6);
+	//	SphCell i;
+	//	i.minLat = sqlite3_column_double(stmt, 1);
+	//	i.maxLat = sqlite3_column_double(stmt, 2);
+	//	i.minLong = sqlite3_column_double(stmt, 3);
+	//	i.maxLong = sqlite3_column_double(stmt, 4);
+	//	i.minRad = sqlite3_column_double(stmt, 5);
+	//	i.maxRad = sqlite3_column_double(stmt, 6);
 
-		std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+	//	std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
 
-		subdivideCell(code, &i, toAdd);
-	}
-	//for (const std::pair<std::string, SphCell*>& p : toAdd) {
-	//	//map[p.first] = p.second;
-	//	insertCell(p.first, p.second->minLat, p.second->maxLat, p.second->minLong, p.second->maxLong, p.second->minRad, p.second->maxRad);
+	//	subdivideCell(code, &i, toAdd);
 	//}
+
+	for (const std::pair<std::string, SphCell*>& p : map) {
+
+		if (p.first.size() == maxDepth + 1 /*&& p.second->dataSets.size() != 0*/) {
+
+			subdivideCell(p.first, p.second, toAdd);
+		}
+	}
+
+	for (const std::pair<std::string, SphCell*>& p : toAdd) {
+		map[p.first] = p.second;
+		//insertCell(p.first, p.second->minLat, p.second->maxLat, p.second->minLong, p.second->maxLong, p.second->minRad, p.second->maxRad);
+	}
 	insertCells(toAdd);
 	maxDepth++;
 
 
-	sqlite3_finalize(stmt);
-	sqlite3_free(sqlFilled);
+	//sqlite3_finalize(stmt);
+	//sqlite3_free(sqlFilled);
 
 
 	//for (const std::pair<std::string, SphCell*>& p : map) {
@@ -265,11 +279,12 @@ void SphGrid::createRenderable(Renderable& r, int level) {
 
 void SphGrid::createRenderable(Renderable& r, std::vector<std::string>& codes) {
 
-
-
-
-
 	for (const std::string& code : codes) {
+
+		SphCellInfo i;
+		cellInfoFromCode(code, i);
+
+		SphCell* ii = map[code];
 
 		char* sqlEmpty = "select MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad from cells where Code = %s;";
 		char* sqlFilled = sqlite3_mprintf(sqlEmpty, code);
@@ -285,6 +300,19 @@ void SphGrid::createRenderable(Renderable& r, std::vector<std::string>& codes) {
 		double minRad = sqlite3_column_double(stmt, 4);
 		double maxRad = sqlite3_column_double(stmt, 5);
 
+		double mminLat = i.minLat; double mmaxLat = i.maxLat;
+		double mminLong = i.minLong; double mmaxLong = i.maxLong;
+		double mminRad = i.minRad; double mmaxRad = i.maxRad;
+
+		std::cout << "\n\n" << code << std::endl;
+		std::cout << minLat << " : " << mminLat << " : " << ii->minLat << std::endl;
+		std::cout << maxLat << " : " << mmaxLat << " : " << ii->maxLat << std::endl;
+		std::cout << minLong << " : " << mminLong << " : " << ii->minLong << std::endl;
+		std::cout << maxLong << " : " << mmaxLong << " : " << ii->maxLong << std::endl;
+		std::cout << minRad << " : " << mminRad << " : " << ii->minRad << std::endl;
+		std::cout << maxRad << " : " << mmaxRad << " : " << ii->maxRad << std::endl;
+
+		sqlite3_finalize(stmt);
 		//SphCell* cell = map[code];
 		//double minLong = cell->minLong; double maxLong = cell->maxLong;
 		//double minLat = cell->minLat; double maxLat = cell->maxLat;
@@ -690,4 +718,5 @@ const SphCell* SphGrid::getCell(const std::string& code) {
 	//else {
 	//	return nullptr;
 	//}
+	return nullptr;
 }

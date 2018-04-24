@@ -210,7 +210,7 @@ void Program::createGrid() {
 			maxTreeDepth = level;
 			break;
 		}
-		if (level >= 8) {
+		if (level >= 5) {
 			//system("pause");
 			maxTreeDepth = level;
 			break;
