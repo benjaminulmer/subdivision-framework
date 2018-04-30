@@ -27,9 +27,9 @@ struct DataPoints {
 	std::vector<SphericalDatum> data;
 	const DataSetInfo& info;
 
-	float mean() {
+	float mean() const {
 		float mean = 0.f;
-		for (SphericalDatum d : data) {
+		for (const SphericalDatum& d : data) {
 			mean += d.datum;
 		}
 		return mean / data.size();

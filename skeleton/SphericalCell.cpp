@@ -66,7 +66,7 @@ void SphericalCell::addDataPoint(const SphericalDatum & d, const DataSetInfo & i
 	// Find index in list of data sets for the point
 	int index = -1;
 	int i = 0;
-	for (DataPoints ds : dataSets) {
+	for (const DataPoints& ds : dataSets) {
 
 		if (ds.info.id == info.id) {
 			index = i;
@@ -135,8 +135,8 @@ void SphericalCell::subdivide() {
 	if (children.size() == 0) {
 		performSubdivision();
 
-		for (DataPoints dps : dataSets) {
-			for (SphericalDatum d : dps.data) {
+		for (const DataPoints& dps : dataSets) {
+			for (const SphericalDatum& d : dps.data) {
 				for (SphericalCell* c : children) {
 
 					// If contained in child no other child can contain point
@@ -337,7 +337,7 @@ glm::vec3 SphericalCell::getDataColour() {
 	glm::vec3 colour;
 
 	// Loop over all data sets to colour cell
-	for (DataPoints dp : dataSets) {
+	for (const DataPoints& dp : dataSets) {
 		float selfValue = dp.mean();
 		float min = dp.info.min;
 		float max = dp.info.max;
