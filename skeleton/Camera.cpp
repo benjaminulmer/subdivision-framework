@@ -1,6 +1,9 @@
+#define _USE_MATH_DEFINES
 #include "Camera.h"
 
 #include <glm/gtx/rotate_vector.hpp>
+
+#include <cmath>
 
 #include "Constants.h"
 

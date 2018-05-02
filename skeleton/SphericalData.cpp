@@ -86,10 +86,10 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 
 	float datum;
 	if (feature["properties"][keyword].IsDouble() || feature["properties"][keyword].IsInt()) {
-		datum = feature["properties"][keyword].GetDouble();
+		datum = (float) feature["properties"][keyword].GetDouble();
 	}
 	else {
-		datum = atof(feature["properties"][keyword].GetString());
+		datum = (float) atof(feature["properties"][keyword].GetString());
 	}
 	data.push_back(SphericalDatum(latitude, longitude, radius, datum));
 }
@@ -117,10 +117,10 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 
 	float datum;
 	if (feature["properties"][keyword].IsDouble() || feature["properties"][keyword].IsInt()) {
-		datum = feature["properties"][keyword].GetDouble();
+		datum = (float) feature["properties"][keyword].GetDouble();
 	}
 	else {
-		datum = atof(feature["properties"][keyword].GetString());
+		datum = (float) atof(feature["properties"][keyword].GetString());
 	}
 	data.push_back(SphericalDatum(latitude, longitude, radius, datum));
 }
@@ -148,10 +148,10 @@ void SphericalData::readAndPushDatum(rapidjson::Value& feature, const char* keyw
 
 	float datum;
 	if (feature["properties"][keyword].IsDouble() || feature["properties"][keyword].IsInt()) {
-		datum = feature["properties"][keyword].GetDouble();
+		datum = (float) feature["properties"][keyword].GetDouble();
 	}
 	else {
-		datum = atof(feature["properties"][keyword].GetString());
+		datum = (float) atof(feature["properties"][keyword].GetString());
 	}
 	data.push_back(SphericalDatum(latitude, longitude, radius, datum));
 }

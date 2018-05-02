@@ -64,7 +64,7 @@ void Program::start() {
 
 	// Set starting radius
 	scale = 1.f;
-	radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
+	radius = RADIUS_EARTH_MODEL * 4.f / 3.f;
 	//info.cullMaxRadius = 0.75 * info.radius + (20.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
 	//info.cullMinRadius = 0.75 * info.radius - (10.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
 
@@ -259,16 +259,16 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 	glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();
 	glm::mat4 invProjView = glm::inverse(projView);
 
-	float oldXN = (2.0 * oldX) / (width) - 1.0; 
-	float oldYN = (2.0 * oldY) / (height) - 1.0;
+	float oldXN = (2.f * oldX) / (width) - 1.f; 
+	float oldYN = (2.f * oldY) / (height) - 1.f;
 	oldYN *= -1.0;
 
-	float newXN = (2.0 * newX) / (width) - 1.0; 
-	float newYN = (2.0 * newY) / (height) - 1.0;
-	newYN *= -1.0;
+	float newXN = (2.f * newX) / (width) - 1.f; 
+	float newYN = (2.f * newY) / (height) - 1.f;
+	newYN *= -1.f;
 
-	glm::vec4 worldOld(oldXN, oldYN, -1.0, 1.0);
-	glm::vec4 worldNew(newXN, newYN, -1.0, 1.0);
+	glm::vec4 worldOld(oldXN, oldYN, -1.f, 1.f);
+	glm::vec4 worldNew(newXN, newYN, -1.f, 1.f);
 
 	worldOld = invProjView * worldOld; 
 
@@ -294,10 +294,10 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 			glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
 
 		float longOld = atan(iPosOld.x / iPosOld.z);
-		float latOld = M_PI / 2.0 - acos(iPosOld.y / sphereRad);
+		float latOld = (float)( M_PI / 2.f - acos(iPosOld.y / sphereRad) );
 
 		float longNew = atan(iPosNew.x / iPosNew.z);
-		float latNew = M_PI / 2.0 - acos(iPosNew.y / sphereRad);
+		float latNew = (float)( M_PI / 2.f - acos(iPosNew.y / sphereRad) );
 
 		if (skew) {
 			camera->updateLatitudeRotation(latNew - latOld);
@@ -310,7 +310,7 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 }
 
 // Changes scale of model
-void Program::updateScale(float inc) {
+void Program::updateScale(int inc) {
 
 	if (inc < 0) {
 		scale /= 1.4f;
@@ -359,11 +359,11 @@ void Program::updateRadialBounds(RadialBound b, int dir) {
 // Toggles location of surface between 0.5 and 0.75
 void Program::toggleSurfaceLocation() {
 
-	if (radius == RADIUS_EARTH_MODEL * 2.0) {
-		radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
+	if (radius == RADIUS_EARTH_MODEL * 2.f) {
+		radius = RADIUS_EARTH_MODEL * 4.f / 3.f;
 	}
 	else {
-		radius = RADIUS_EARTH_MODEL * 2.0;
+		radius = RADIUS_EARTH_MODEL * 2.f;
 	}
 	refreshGrid();
 }

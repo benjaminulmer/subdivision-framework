@@ -1,7 +1,7 @@
+#define _USE_MATH_DEFINES
 #include "test.h"
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 
 #include "Constants.h"
@@ -289,7 +289,7 @@ void SphGrid::createRenderable(Renderable& r, std::vector<std::string>& codes) {
 		SphCell* ii = map[code];
 
 		char* sqlEmpty = "select MinLat, MaxLat, MinLong, MaxLong, MinRad, MaxRad from cells where Code = %s;";
-		char* sqlFilled = sqlite3_mprintf(sqlEmpty, code);
+		char* sqlFilled = sqlite3_mprintf(sqlEmpty, code.c_str());
 
 		sqlite3_stmt* stmt;
 		sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL);
@@ -682,7 +682,7 @@ bool SphGrid::neighbours(const std::string& code, std::vector<std::string>& out)
 	if (!cellInfoFromCode(code, i)) {
 		return false;
 	}
-	int level = code.length() - 1;
+	unsigned int level = (unsigned int) code.length() - 1;
 
 	double midLat = 0.5 * i.minLat + 0.5 * i.maxLat;
 	double midLong = 0.5 * i.minLong + 0.5 * i.maxLong;

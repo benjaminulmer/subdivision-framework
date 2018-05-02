@@ -71,7 +71,7 @@ public:
 				if (longg > 180.0) longg -=  360.0;
 
 				double rad = data[i/2].radius * 0.5 + data[i/2+1].radius * 0.5;
-				float datum = data[i/2].datum * 0.5 + data[i/2+1].datum * 0.5;
+				float datum = data[i/2].datum * 0.5f + data[i/2+1].datum * 0.5f;
 				nData[i] = SphericalDatum(lat, longg, rad, datum);
 			}
 		}

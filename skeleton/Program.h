@@ -26,7 +26,7 @@ public:
 	void updateGrid();
 
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
-	void updateScale(float inc);
+	void updateScale(int inc);
 	void updateRadialBounds(RadialBound b, int dir);
 	void toggleSurfaceLocation();
 

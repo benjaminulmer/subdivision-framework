@@ -50,11 +50,10 @@ public:
 	SdogDB(const std::string& path, int depth);
 	virtual ~SdogDB();
 
-	static bool codeIsValid(std::string code);
-
-	std::string codeForPos(double latRad, double longRad, double radius, int level);
+	std::string codeForPos(double latRad, double longRad, double radius, unsigned int level);
 	bool neighbours(const std::string& code, std::vector<std::string>& out);
 
+	static bool codeIsValid(std::string code);
 
 private:
 	sqlite3* db;

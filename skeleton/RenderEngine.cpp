@@ -57,7 +57,7 @@ void RenderEngine::render(const std::vector<Renderable*>& objects, const glm::ma
 			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), false);
 		}
 
-		glDrawArrays(r->drawMode, 0, r->verts.size());
+		glDrawArrays(r->drawMode, 0, (GLsizei)r->verts.size());
 		glBindVertexArray(0);
 	}
 }
