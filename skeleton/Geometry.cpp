@@ -34,7 +34,7 @@ void Geometry::createArcR(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 		r.colours.push_back(r.lineColour);
 	}
 
-	// #num line segments ~= angle of arc in degrees / 4
+	// #num line segments ~= angle of arc in degrees / 6
 	angleDeg /= 6;
 	angleDeg++;
 	for (int i = 0; i <= angleDeg; i++) {

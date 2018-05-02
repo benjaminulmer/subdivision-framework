@@ -37,9 +37,9 @@ void Program::start() {
 	//info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
 	//root = new SphGrid(info.radius);
 
-	SdogDB db("test2.db", 7);
-	system("pause");
-	exit(0);
+	//SdogDB db("test2.db", 7);
+	//system("pause");
+	//exit(0);
 
 	setupWindow();
 	GLenum err = glewInit();

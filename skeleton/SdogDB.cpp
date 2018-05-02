@@ -7,7 +7,7 @@
 //
 // code - index code of the desired SDOG cell
 // maxRadius - maximum radius of the SDOG grid the cell belongs to
-SdogCell::SdogCell(const std::string& code, double maxRadius) {
+SdogCell::SdogCell(const std::string& code, double maxRadius) : code(code) {
 
 	minRad = 0.0;
 	maxRad = maxRadius;
@@ -223,6 +223,7 @@ SdogDB::SdogDB(const std::string& path, int depth) {
 	insertCell("5");
 	insertCell("6");
 	insertCell("7");
+	maxDepth = 0;
 
 	while (maxDepth < depth) {
 		
@@ -275,13 +276,64 @@ SdogDB::SdogDB(const std::string& path, int depth) {
 		insertCells(toAdd);
 		maxDepth++;
 	}
-
 }
 
 
 // Ends connection with the database
 SdogDB::~SdogDB() {
 	sqlite3_close(db);
+}
+
+
+// Returns if the provided SDOG code is a valid cell or not
+bool SdogDB::codeIsValid(std::string code) {
+
+	if (code.length() < 1) {
+		return false;
+	}
+
+	// Ensure octant code is valid
+	char o = code[0];
+	if (!(o == '0' || o == '1' || o == '2' || o == '3' || o == '4' || o == '5' || o == '6' || o == '7')) {
+		return false;
+	}
+
+	// Loop through code to ensure each character is valid given the cell type of the previous element
+	SdogCellType prevType = SdogCellType::SG;
+	for (int i = 1; i < code.length(); i++) {
+		
+		char c = code[1];
+		if (prevType == SdogCellType::NG) {
+			if (!(c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7')) {
+				return false;
+			}
+		}
+		else if (prevType == SdogCellType::LG) {
+			if (c == '0' || c == '1' || c == '3' || c == '4') {
+				prevType == SdogCellType::NG;
+			}
+			else if (c == '2' || c == '5') {
+				prevType == SdogCellType::LG;
+			}
+			else {
+				return false;
+			}
+		}
+		else {// prevType == SdogCellType::SG
+			if (c == '0' || c == '1') {
+				prevType == SdogCellType::NG;
+			}
+			else if (c == '2') {
+				prevType == SdogCellType::LG;
+			}
+			else if (c == '3') {
+				prevType == SdogCellType::SG;
+			}
+			else {
+				return false;
+			}
+		}
+	}
 }
 
 
