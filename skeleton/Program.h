@@ -54,7 +54,7 @@ private:
 	Renderable target;
 	Renderable neighbours;
 
-	std::vector<Renderable*> objects;
+	std::vector<const Renderable*> objects;
 
 	int maxTreeDepth;
 	int viewLevel;

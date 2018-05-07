@@ -9,8 +9,7 @@
 #include "ShaderTools.h"
 #include "Texture.h"
 
-RenderEngine::RenderEngine(SDL_Window* window) :
-	window(window), fade(true) {
+RenderEngine::RenderEngine(SDL_Window* window) : window(window), fade(true) {
 
 	SDL_GetWindowSize(window, &width, &height);
 
@@ -34,7 +33,8 @@ RenderEngine::RenderEngine(SDL_Window* window) :
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const std::vector<Renderable*>& objects, const glm::mat4& view, float max, float min) {
+void RenderEngine::render(const std::vector<const Renderable*>& objects, const glm::mat4& view, float max, float min) {
+
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glUseProgram(mainProgram);
 
@@ -64,6 +64,7 @@ void RenderEngine::render(const std::vector<Renderable*>& objects, const glm::ma
 
 // Assigns buffers for a renderable
 void RenderEngine::assignBuffers(Renderable& renderable, bool texture) {
+
 	glGenVertexArrays(1, &renderable.vao);
 	glBindVertexArray(renderable.vao);
 
@@ -90,6 +91,7 @@ void RenderEngine::assignBuffers(Renderable& renderable, bool texture) {
 
 // Sets buffer data for a renderable
 void RenderEngine::setBufferData(Renderable& renderable, bool texture) {
+
 	// Vertex buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.verts.size(), renderable.verts.data(), GL_STATIC_DRAW);
@@ -107,6 +109,7 @@ void RenderEngine::setBufferData(Renderable& renderable, bool texture) {
 
 // Deletes buffers for a renderable
 void RenderEngine::deleteBufferData(Renderable & renderable, bool texture) {
+
 	glDeleteBuffers(1, &renderable.vertexBuffer);
 	glDeleteBuffers(1, &renderable.colourBuffer);
 	if (texture) {

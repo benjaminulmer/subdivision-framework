@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include "Geometry.h"
 
-#include <math.h>
+#include <cmath>
 
 // Geometric slerp between two vectors
 glm::vec3 Geometry::geomSlerp(const glm::vec3& v1, const glm::vec3& v2, float t) {
