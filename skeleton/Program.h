@@ -7,6 +7,7 @@
 #include "RenderEngine.h"
 
 #include "test.h"
+#include "SphCoord.h"
 
 enum class RadialBound {
 	MAX,
@@ -49,10 +50,12 @@ private:
 	Renderable cells;
 	Renderable coastLines;
 
+	SphCoord a0, a1, b0, b1, inter;
+
 	std::string targetCode;
 	std::vector<std::string> neighbourCodes;
-	Renderable target;
-	Renderable neighbours;
+	Renderable arcs;
+	Renderable interPoint;
 
 	std::vector<const Renderable*> objects;
 

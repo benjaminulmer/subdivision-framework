@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "Program.h"
 
 #include <GL/glew.h>
@@ -29,8 +30,20 @@ Program::Program() {
 	width = height = 800;
 }
 
+#include "SphCoord.h"
+
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
+
+	a0 = SphCoord(0.0, -1.56);
+	a1 = SphCoord(0.0, 1.56);
+	b0 = SphCoord(-1.56, 0.0);
+	b1 = SphCoord(1.56, 0.0);
+	inter = SphCoord(-999, -999);
+
+	SphCoord::greatCircleArc2Intersect(a1, a0, b0, b1, inter);
+
+	std::cout << inter.latitude << ", " << inter.longitude << std::endl;
 
 	setupWindow();
 	GLenum err = glewInit();
@@ -46,8 +59,8 @@ void Program::start() {
 
 	// Assign buffers
 
-	RenderEngine::assignBuffers(target, false);
-	RenderEngine::assignBuffers(neighbours, false);
+	RenderEngine::assignBuffers(arcs, false);
+	RenderEngine::assignBuffers(interPoint, false);
 
 
 	RenderEngine::assignBuffers(cells, false);
@@ -100,8 +113,8 @@ void Program::start() {
 	// Objects to draw initially
 	objects.push_back(&coastLines);
 	//objects.push_back(&cells);
-	objects.push_back(&target);
-	objects.push_back(&neighbours);
+	objects.push_back(&arcs);
+	objects.push_back(&interPoint);
 
 	mainLoop();
 }
@@ -159,8 +172,8 @@ void Program::mainLoop() {
 		cells.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 		coastLines.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 
-		target.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
-		neighbours.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+		arcs.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+		interPoint.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 
 		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
@@ -220,6 +233,8 @@ void Program::createGrid() {
 	updateGrid();
 }
 
+#include "Geometry.h"
+
 // Updates the level of subdivision being shown
 void Program::updateGrid() {
 
@@ -229,18 +244,28 @@ void Program::updateGrid() {
 	root->createRenderable(cells, viewLevel);
 	RenderEngine::setBufferData(cells, false);
 
-
 	std::vector<std::string> tar;
 	tar.push_back(targetCode);
 
-	target.lineColour = glm::vec3(1.0, 0.0, 0.0);
-	neighbours.lineColour = glm::vec3(0.0, 1.0, 0.0);
+	arcs.lineColour = glm::vec3(1.0, 0.0, 0.5);
+	interPoint.lineColour = glm::vec3(0.0, 1.0, 0.0);
 
-	root->createRenderable(target, tar);
-	root->createRenderable(neighbours, neighbourCodes);
+	root->createRenderable(arcs, tar);
+	root->createRenderable(interPoint, neighbourCodes);
 
-	RenderEngine::setBufferData(target, false);
-	RenderEngine::setBufferData(neighbours, false);
+	arcs.verts.clear();
+	arcs.colours.clear();
+	interPoint.verts.clear();
+	interPoint.colours.clear();
+
+	Geometry::createArcR(a0.toCartesian(radius), a1.toCartesian(radius), glm::vec3(), arcs);
+	Geometry::createArcR(b0.toCartesian(radius), b1.toCartesian(radius), glm::vec3(), arcs);
+	interPoint.drawMode = GL_POINTS;
+	interPoint.verts.push_back(inter.toCartesian(radius));
+	interPoint.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
+
+	RenderEngine::setBufferData(arcs, false);
+	RenderEngine::setBufferData(interPoint, false);
 }
 
 // Updates camera rotation
@@ -315,8 +340,8 @@ void Program::updateScale(int inc) {
 	cells.scale = glm::scale(glm::vec3(scale, scale, scale));
 	coastLines.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
-	target.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
-	neighbours.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
+	arcs.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
+	interPoint.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 }
 
 // Updates radial bounds for culling
