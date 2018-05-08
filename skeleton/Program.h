@@ -22,13 +22,11 @@ public:
 
 	void start();
 
-	void refreshGrid() { createGrid(); }
 	void createGrid();
 	void updateGrid();
 
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
 	void updateScale(int inc);
-	void updateRadialBounds(RadialBound b, int dir);
 	void toggleSurfaceLocation();
 
 	void setDisplayMode();
@@ -41,22 +39,10 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
-	SphericalData eqData;
-	SphericalData pathsData;
-	SphericalData sampleData;
-	SphericalData sampleData2;
 	SphGrid* root;
 
 	Renderable cells;
 	Renderable coastLines;
-
-	SphCoord a0, a1, b0, b1, inter;
-	double lat, long0, long1;
-
-	std::string targetCode;
-	std::vector<std::string> neighbourCodes;
-	Renderable arcs;
-	Renderable interPoint;
 
 	std::vector<const Renderable*> objects;
 

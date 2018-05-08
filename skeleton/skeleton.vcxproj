@@ -164,6 +164,7 @@
     <ClInclude Include="Program.h" />
     <ClInclude Include="Renderable.h" />
     <ClInclude Include="RenderEngine.h" />
+    <ClInclude Include="SdogCell.h" />
     <ClInclude Include="SdogDB.h" />
     <ClInclude Include="SphCoord.h" />
     <ClInclude Include="SphericalData.h" />
@@ -182,6 +183,7 @@
     <ClCompile Include="Program.cpp" />
     <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="RenderEngine.cpp" />
+    <ClCompile Include="SdogCell.cpp" />
     <ClCompile Include="SdogDB.cpp" />
     <ClCompile Include="SphCoord.cpp" />
     <ClCompile Include="SphericalData.cpp" />

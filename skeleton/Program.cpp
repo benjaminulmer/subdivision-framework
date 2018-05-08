@@ -35,17 +35,6 @@ Program::Program() {
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
 
-	a0 = SphCoord(-1.1, -1.0);
-	a1 = SphCoord(0.1, 0.0);
-	lat = -0.85;
-	long0 = -0.3;
-	long1 = -0.90;
-	inter = SphCoord(-999, -999);
-
-	SphCoord::greatCircleArcLatIntersect(a0, a1, lat, long0, long1, inter);
-
-	std::cout << inter.latitude << ", " << inter.longitude << std::endl;
-
 	setupWindow();
 	GLenum err = glewInit();
 	if (glewInit() != GLEW_OK) {
@@ -59,44 +48,12 @@ void Program::start() {
 	InputHandler::setUp(camera, renderEngine, this);
 
 	// Assign buffers
-
-	RenderEngine::assignBuffers(arcs, false);
-	RenderEngine::assignBuffers(interPoint, false);
-
-
 	RenderEngine::assignBuffers(cells, false);
 	cells.fade = true;
 
 	// Set starting radius
 	scale = 1.f;
 	radius = RADIUS_EARTH_MODEL * 4.f / 3.f;
-	//info.cullMaxRadius = 0.75 * info.radius + (20.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
-	//info.cullMinRadius = 0.75 * info.radius - (10.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
-
-	// Load earthquake data set
-	rapidjson::Document d1 = ContentReadWrite::readJSON("data/eq-2017.json");
-	rapidjson::Document m1 = ContentReadWrite::readJSON("data/eq-2017m.json");
-	eqData = SphericalData(d1, m1);
-
-	rapidjson::Document d2 = ContentReadWrite::readJSON("data/cat5paths.json");
-	rapidjson::Document m2 = ContentReadWrite::readJSON("data/cat5pathsm.json");
-	pathsData = SphericalData(d2, m2);
-
-	rapidjson::Document d3 = ContentReadWrite::readJSON("data/samplePath.json");
-	rapidjson::Document m3 = ContentReadWrite::readJSON("data/samplePathm.json");
-	sampleData = SphericalData(d3, m3);
-
-	rapidjson::Document d4 = ContentReadWrite::readJSON("data/samplePath2.json");
-	rapidjson::Document m4 = ContentReadWrite::readJSON("data/samplePath2m.json");
-	sampleData2 = SphericalData(d4, m4);
-
-	for (int i = 0; i < 1; i++) {
-		pathsData.linSub();
-		sampleData.linSub();
-		sampleData.linSub();
-		sampleData2.linSub();
-		sampleData2.linSub();
-	}
 
 	// Load coatline data set
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
@@ -113,9 +70,7 @@ void Program::start() {
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
-	//objects.push_back(&cells);
-	objects.push_back(&arcs);
-	objects.push_back(&interPoint);
+	objects.push_back(&cells);
 
 	mainLoop();
 }
@@ -173,9 +128,6 @@ void Program::mainLoop() {
 		cells.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 		coastLines.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 
-		arcs.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
-		interPoint.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
-
 		renderEngine->render(objects, camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
 	}
@@ -193,13 +145,6 @@ void Program::createGrid() {
 	// These might need to be tweaked
 	int max = 4000000;
 
-	//root->fillData(eqData);
-	//root->fillData(pathsData);
-	//root->fillData(sampleData);
-	//root->fillData(sampleData2);
-
-	std::cout << "first fill" << std::endl;
-
 	// Determine max number of subdivision levels that can be reasonably supported
 	int level = 0;
 	while (true) {
@@ -211,11 +156,6 @@ void Program::createGrid() {
 		if (numGrids < max) {
 			level++;
 			root->subdivide();
-
-			//root->fillData(eqData);
-			//root->fillData(pathsData);
-			//root->fillData(sampleData);
-			//root->fillData(sampleData2);
 		}
 		else {
 			maxTreeDepth = level;
@@ -227,14 +167,8 @@ void Program::createGrid() {
 			break;
 		}
 	}
-
-	targetCode = "5321";
-	root->neighbours(targetCode, neighbourCodes);
-
 	updateGrid();
 }
-
-#include "Geometry.h"
 
 // Updates the level of subdivision being shown
 void Program::updateGrid() {
@@ -244,30 +178,6 @@ void Program::updateGrid() {
 
 	root->createRenderable(cells, viewLevel);
 	RenderEngine::setBufferData(cells, false);
-
-	std::vector<std::string> tar;
-	tar.push_back(targetCode);
-
-	arcs.lineColour = glm::vec3(1.0, 0.0, 0.5);
-	interPoint.lineColour = glm::vec3(0.0, 1.0, 0.0);
-
-	root->createRenderable(arcs, tar);
-	root->createRenderable(interPoint, neighbourCodes);
-
-	arcs.verts.clear();
-	arcs.colours.clear();
-	interPoint.verts.clear();
-	interPoint.colours.clear();
-
-	Geometry::createArcR(a0.toCartesian(radius), a1.toCartesian(radius), glm::vec3(), arcs);
-	SphCoord l0(lat, long0); SphCoord l1(lat, long1);
-	Geometry::createArcR(l0.toCartesian(radius), l1.toCartesian(radius), glm::vec3(0.f, sin(lat) * radius, 0.f), arcs);
-	interPoint.drawMode = GL_POINTS;
-	interPoint.verts.push_back(inter.toCartesian(radius));
-	interPoint.colours.push_back(glm::vec3(0.f, 1.f, 0.f));
-
-	RenderEngine::setBufferData(arcs, false);
-	RenderEngine::setBufferData(interPoint, false);
 }
 
 // Updates camera rotation
@@ -341,37 +251,6 @@ void Program::updateScale(int inc) {
 	float s = 1.f + std::numeric_limits<float>::epsilon();
 	cells.scale = glm::scale(glm::vec3(scale, scale, scale));
 	coastLines.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
-
-	arcs.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
-	interPoint.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
-}
-
-// Updates radial bounds for culling
-void Program::updateRadialBounds(RadialBound b, int dir) {
-
-	double amount = radius / maxTreeDepth / 2.0;
-
-	//if (b == RadialBound::MAX) {
-	//	info.cullMaxRadius += dir * amount;
-
-	//}
-	//else if (b == RadialBound::MIN) {
-	//	info.cullMinRadius += dir * amount;
-
-	//}
-	//else {//b == RadialBound::BOTH
-	//	info.cullMinRadius += dir * amount;
-	//	info.cullMaxRadius += dir * amount;
-	//}
-
-	//// Bounds enforcing
-	//if (info.cullMinRadius < 0.0) info.cullMinRadius = 0.0;
-	//if (info.cullMaxRadius > info.radius) info.cullMaxRadius = info.radius;
-	//if (info.cullMinRadius > info.cullMaxRadius) info.cullMinRadius = info.cullMaxRadius;
-	//if (info.cullMaxRadius < info.cullMinRadius) info.cullMaxRadius = info.cullMinRadius;
-
-	//// Temp until visual representation
-	//std::cout << info.cullMinRadius << ", " << info.cullMaxRadius << std::endl;
 }
 
 // Toggles location of surface between 0.5 and 0.75
@@ -383,7 +262,7 @@ void Program::toggleSurfaceLocation() {
 	else {
 		radius = RADIUS_EARTH_MODEL * 2.f;
 	}
-	refreshGrid();
+	createGrid();
 }
 
 // Sets display mode for rendering
