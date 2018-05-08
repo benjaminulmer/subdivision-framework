@@ -73,10 +73,10 @@ double SphCoord::longitudeDeg() const {
 bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, const SphCoord& b0, const SphCoord& b1, SphCoord& intersection) {
 
 	// Calculate planes for the two arcs
-	glm::vec3 planeA = glm::cross(a0.toCartesian(1.0), a1.toCartesian(1.0));
-	glm::vec3 planeB = glm::cross(b0.toCartesian(1.0), b1.toCartesian(1.0));
+	glm::vec3 planeA = glm::normalize(glm::cross(a0.toCartesian(1.0), a1.toCartesian(1.0)));
+	glm::vec3 planeB = glm::normalize(glm::cross(b0.toCartesian(1.0), b1.toCartesian(1.0)));
 
-	// If planes are equal, treat as no intersection
+	// If planes are parallel, treat as no intersection
 	glm::bvec3 equal = glm::epsilonEqual(planeA, planeB, 0.0001f);
 	if (equal.x && equal.y && equal.z) {
 		return false;
@@ -131,5 +131,57 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 // intersection - output for intersection point
 bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1, double latRad, double minLongRad, double maxLongRad, SphCoord& intersection) {
 
+	glm::vec3 planeA = glm::normalize(glm::cross(a0.toCartesian(1.0), a1.toCartesian(1.0)));
+	glm::vec3 planeLat = glm::vec3(0.f, 1.f, 0.f);
 
+	// If planes are parallel, treat as no intersection
+	glm::bvec3 equal = glm::epsilonEqual(planeA, planeLat, 0.0001f);
+	if (equal.x && equal.y && equal.z) {
+		return false;
+	}
+
+	// Planes are not the same, get the line of intersection between them
+	glm::vec3 lineDir = glm::cross(planeA, planeLat);
+	glm::vec3 linePoint;
+	float y = sin(latRad);
+
+	if (abs(planeA.x) > 0.0001f) {
+		float x = -(planeA.y / planeA.x) * y;
+		linePoint = glm::vec3(x, y, 0.f);
+	}
+	else {
+		float z = -(planeA.y / planeA.z) * y;
+		linePoint = glm::vec3(0.f, y, z);
+	}
+
+	// Find the candidate intersection points by intersecting the line with the sphere
+	glm::vec3 inter1, inter2, norm1, norm2;
+	if (glm::intersectLineSphere(linePoint, linePoint + lineDir, glm::vec3(), 1.0, inter1, norm1, inter2, norm2)) {
+
+		double arcA = a0.arcLength(a1);
+
+		// Test if point 1 is on both arcs
+		double distA0 = a0.arcLength(SphCoord(inter1));
+		double distA1 = a1.arcLength(SphCoord(inter1));
+		SphCoord sph1(inter1);
+
+		double eps = 0.0001;
+		if (abs(arcA - distA0 - distA1) < eps && ((sph1.longitude > minLongRad && sph1.longitude < maxLongRad) || (sph1.longitude > maxLongRad && sph1.longitude < minLongRad))) {
+			intersection = sph1;
+			return true;
+		}
+
+		// Test if point 2 is on both arcs
+		distA0 = a0.arcLength(SphCoord(inter2));
+		distA1 = a1.arcLength(SphCoord(inter2));
+		SphCoord sph2(inter2);
+
+		if (abs(arcA - distA0 - distA1) < eps && ((sph2.longitude > minLongRad && sph2.longitude < maxLongRad) || (sph2.longitude > maxLongRad && sph2.longitude < minLongRad))) {
+			intersection = sph2;
+			return true;
+		}
+	}
+	else {
+		return false;
+	}
 }

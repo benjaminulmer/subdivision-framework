@@ -35,13 +35,14 @@ Program::Program() {
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
 
-	a0 = SphCoord(0.0, -1.56);
-	a1 = SphCoord(0.0, 1.56);
-	b0 = SphCoord(-1.56, 0.0);
-	b1 = SphCoord(1.56, 0.0);
+	a0 = SphCoord(-1.1, -1.0);
+	a1 = SphCoord(0.1, 0.0);
+	lat = -0.85;
+	long0 = -0.3;
+	long1 = -0.90;
 	inter = SphCoord(-999, -999);
 
-	SphCoord::greatCircleArc2Intersect(a1, a0, b0, b1, inter);
+	SphCoord::greatCircleArcLatIntersect(a0, a1, lat, long0, long1, inter);
 
 	std::cout << inter.latitude << ", " << inter.longitude << std::endl;
 
@@ -259,7 +260,8 @@ void Program::updateGrid() {
 	interPoint.colours.clear();
 
 	Geometry::createArcR(a0.toCartesian(radius), a1.toCartesian(radius), glm::vec3(), arcs);
-	Geometry::createArcR(b0.toCartesian(radius), b1.toCartesian(radius), glm::vec3(), arcs);
+	SphCoord l0(lat, long0); SphCoord l1(lat, long1);
+	Geometry::createArcR(l0.toCartesian(radius), l1.toCartesian(radius), glm::vec3(0.f, sin(lat) * radius, 0.f), arcs);
 	interPoint.drawMode = GL_POINTS;
 	interPoint.verts.push_back(inter.toCartesian(radius));
 	interPoint.colours.push_back(glm::vec3(0.f, 1.f, 0.f));

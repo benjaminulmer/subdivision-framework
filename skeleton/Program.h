@@ -51,6 +51,7 @@ private:
 	Renderable coastLines;
 
 	SphCoord a0, a1, b0, b1, inter;
+	double lat, long0, long1;
 
 	std::string targetCode;
 	std::vector<std::string> neighbourCodes;
