@@ -60,6 +60,8 @@ void Program::start() {
 
 	RenderEngine::assignBuffers(cells2, false);
 	cells2.fade = true;
+	RenderEngine::assignBuffers(poly, false);
+	poly.drawMode = GL_LINES;
 
 
 	// Set starting radius
@@ -83,6 +85,7 @@ void Program::start() {
 	objects.push_back(&coastLines);
 	//objects.push_back(&cells);
 	objects.push_back(&cells2);
+	objects.push_back(&poly);
 
 
 
@@ -92,14 +95,22 @@ void Program::start() {
 	double minRad = radius * 0.750001f;
 	double maxRad = radius * 0.76f;
 	std::vector<SphCoord> bounds;
-	bounds.push_back(SphCoord(49.0, -113.83, false));
-	bounds.push_back(SphCoord(47.85, -112.8, false));
-	bounds.push_back(SphCoord(45.36, -113.58, false));
-	bounds.push_back(SphCoord(45.0, -118.47, false));
-	bounds.push_back(SphCoord(47.51, -117.23, false));
-	bounds.push_back(SphCoord(48.98, -116.58, false));
+	bounds.push_back(SphCoord(43.7314, -124.6716, false));
+	bounds.push_back(SphCoord(42.7314, -123.7461, false));
+	bounds.push_back(SphCoord(41.0248, -123.7585, false));
+	bounds.push_back(SphCoord(39.7477, -123.7337, false));
+	bounds.push_back(SphCoord(39.8974, -124.6467, false));
+	bounds.push_back(SphCoord(41.1384, -124.8541, false));
 
-	int maxLevel = 13;
+	poly.lineColour = glm::vec3(0.f, 1.f, 0.f);
+	for (int i = 0; i < bounds.size(); i++) {
+		glm::vec3 v1 = bounds[i].toCartesian(maxRad);
+		glm::vec3 v2 = bounds[(i + 1) % bounds.size()].toCartesian(maxRad);
+		Geometry::createArcR(v1, v2, glm::vec3(), poly);
+	}
+	RenderEngine::setBufferData(poly, false);
+
+	int maxLevel = 10;
 
 	// Create list of cells to process and populate with octants
 	std::vector<SdogCell> toTest;
@@ -117,6 +128,10 @@ void Program::start() {
 
 		SdogCell c = toTest[toTest.size() - 1];
 		toTest.pop_back();
+
+		if (c.getCode() == "72") {
+			std::cout << std::endl;
+		}
 
 		int horizontal = NONE;
 		int vertical = NONE;
@@ -162,7 +177,6 @@ void Program::start() {
 				glm::vec3 testNorm = testPoint.toCartesian(1.0);
 
 				float sum = 0.f;
-
 				for (int i = 0; i < bounds.size(); i++) {
 
 					glm::vec3 plane1 = glm::normalize(glm::cross(testNorm, bounds[i].toCartesian(1.0)));
@@ -176,7 +190,8 @@ void Program::start() {
 					}
 					sum += angle;
 				}
-				if (abs(sum) < 0.0001f) {
+
+				if (abs(sum) < 0.01f) {
 					horizontal = EXTER;
 				}
 				else {
@@ -214,8 +229,8 @@ void Program::start() {
 			}
 		}
 	}
-	std::cout << interior.size() << std::endl;
-	std::cout << boundary.size() << std::endl;
+	//std::cout << interior.size() << std::endl;
+	//std::cout << boundary.size() << std::endl;
 
 	// end SIGMET insert prototype
 
@@ -276,6 +291,7 @@ void Program::mainLoop() {
 
 		cells.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 		cells2.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+		poly.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 		coastLines.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 
 		renderEngine->render(objects, camera->getLookAt(), max, min);
@@ -410,6 +426,7 @@ void Program::updateScale(int inc) {
 	float s = 1.f + std::numeric_limits<float>::epsilon();
 	cells.scale = glm::scale(glm::vec3(scale, scale, scale));
 	cells2.scale = glm::scale(glm::vec3(scale, scale, scale));
+	poly.scale = glm::scale(glm::vec3(scale, scale, scale));
 	coastLines.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 }
 

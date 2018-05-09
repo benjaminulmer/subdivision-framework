@@ -39,7 +39,11 @@ double SphCoord::arcLength(const SphCoord& other) const {
 
 	glm::vec3 cart1 = this->toCartesian(1.0);
 	glm::vec3 cart2 = other.toCartesian(1.0);
-	return acos(glm::dot(cart1, cart2));
+
+	float sin = glm::length(glm::cross(cart1, cart2));
+	float cos = glm::dot(cart1, cart2);
+
+	return atan(sin / cos);
 }
 
 

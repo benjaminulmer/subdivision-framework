@@ -37,6 +37,7 @@ private:
 	std::vector<std::string> interior;
 	std::vector<std::string> boundary;
 	Renderable cells2;
+	Renderable poly;
 	//
 
 	SDL_Window* window;
