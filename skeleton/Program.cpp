@@ -13,7 +13,8 @@
 #include "ContentReadWrite.h"
 #include "InputHandler.h"
 
-#include "SdogDB.h"
+#include "SdogCell.h"
+#include "SphCoord.h"
 
 Program::Program() {
 
@@ -30,7 +31,12 @@ Program::Program() {
 	width = height = 800;
 }
 
-#include "SphCoord.h"
+enum {
+	NONE = -1,
+	INTER = 0,
+	EXTER = 1,
+	BOUND = 2
+};
 
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
@@ -51,6 +57,11 @@ void Program::start() {
 	RenderEngine::assignBuffers(cells, false);
 	cells.fade = true;
 
+
+	RenderEngine::assignBuffers(cells2, false);
+	cells2.fade = true;
+
+
 	// Set starting radius
 	scale = 1.f;
 	radius = RADIUS_EARTH_MODEL * 4.f / 3.f;
@@ -70,8 +81,146 @@ void Program::start() {
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
-	objects.push_back(&cells);
+	//objects.push_back(&cells);
+	objects.push_back(&cells2);
 
+
+
+	// SIGMET insert prototype
+
+	// Set up dummy data
+	double minRad = radius * 0.750001f;
+	double maxRad = radius * 0.76f;
+	std::vector<SphCoord> bounds;
+	bounds.push_back(SphCoord(49.0, -113.83, false));
+	bounds.push_back(SphCoord(47.85, -112.8, false));
+	bounds.push_back(SphCoord(45.36, -113.58, false));
+	bounds.push_back(SphCoord(45.0, -118.47, false));
+	bounds.push_back(SphCoord(47.51, -117.23, false));
+	bounds.push_back(SphCoord(48.98, -116.58, false));
+
+	int maxLevel = 13;
+
+	// Create list of cells to process and populate with octants
+	std::vector<SdogCell> toTest;
+	toTest.push_back(SdogCell("0", radius));
+	toTest.push_back(SdogCell("1", radius));
+	toTest.push_back(SdogCell("2", radius));
+	toTest.push_back(SdogCell("3", radius));
+	toTest.push_back(SdogCell("4", radius));
+	toTest.push_back(SdogCell("5", radius));
+	toTest.push_back(SdogCell("6", radius));
+	toTest.push_back(SdogCell("7", radius));
+
+	// Loop until no more cells to process
+	while (toTest.size() > 0) {
+
+		SdogCell c = toTest[toTest.size() - 1];
+		toTest.pop_back();
+
+		int horizontal = NONE;
+		int vertical = NONE;
+
+		// Horizontal test
+		// Test cells against all arcs of boudnary
+		for (int i = 0; i < bounds.size(); i++) {
+
+			SphCoord start = bounds[i];
+			SphCoord end = bounds[(i + 1) % bounds.size()];
+			SphCoord inter;
+
+			if (SphCoord::greatCircleArc2Intersect(start, end, SphCoord(c.getMinLat(), c.getMinLong()), SphCoord(c.getMaxLat(), c.getMinLong()), inter)) {
+				horizontal = BOUND;
+				break;
+			}
+			if (SphCoord::greatCircleArc2Intersect(start, end, SphCoord(c.getMinLat(), c.getMaxLong()), SphCoord(c.getMaxLat(), c.getMaxLong()), inter)) {
+				horizontal = BOUND;
+				break;
+			}
+			if (SphCoord::greatCircleArcLatIntersect(start, end, c.getMaxLat(), c.getMinLong(), c.getMaxLong(), inter)) {
+				horizontal = BOUND;
+				break;
+			}
+			if (SphCoord::greatCircleArcLatIntersect(start, end, c.getMinLat(), c.getMinLong(), c.getMaxLong(), inter)) {
+				horizontal = BOUND;
+				break;
+			}
+		}
+
+		// No intersections, test for disjoint and contained cases
+		if (horizontal == NONE) {
+
+			double tLat = bounds[0].latitude;
+			double tLong = bounds[0].longitude;
+
+			if (((c.getMinLat() < tLat && tLat < c.getMaxLat()) || (c.getMaxLat() < tLat && tLat < c.getMinLat())) &&
+					((c.getMinLong() < tLong && tLong < c.getMaxLong()) || (c.getMaxLong() < tLong && tLong < c.getMinLong()))) {
+				horizontal = BOUND;
+			}
+			else {
+				SphCoord testPoint(c.getMaxLat(), c.getMaxLong());
+				glm::vec3 testNorm = testPoint.toCartesian(1.0);
+
+				float sum = 0.f;
+
+				for (int i = 0; i < bounds.size(); i++) {
+
+					glm::vec3 plane1 = glm::normalize(glm::cross(testNorm, bounds[i].toCartesian(1.0)));
+					glm::vec3 plane2 = glm::normalize(glm::cross(testNorm, bounds[(i + 1) % bounds.size()].toCartesian(1.0)));
+
+					glm::vec3 cross = glm::cross(plane1, plane2);
+					float angle = acos(glm::dot(plane1, plane2));
+
+					if (glm::dot(cross, testNorm) < 0) {
+						angle *= -1;
+					}
+					sum += angle;
+				}
+				if (abs(sum) < 0.0001f) {
+					horizontal = EXTER;
+				}
+				else {
+					horizontal = INTER;
+				}
+			}
+		}
+		// Veritcal test
+		if (c.getMinRad() > minRad && c.getMaxRad() < maxRad ) {
+			vertical = INTER;
+		}
+		else if (c.getMaxRad() < minRad || c.getMinRad() > maxRad) {
+			vertical = EXTER;
+		}
+		else {
+			vertical = BOUND;
+		}
+
+		if (horizontal == INTER && vertical == INTER) {
+			interior.push_back(c.getCode()); // update state in DB
+		}
+		else if (horizontal == EXTER || vertical == EXTER) {
+			// do nothing
+		}
+		else {
+			boundary.push_back(c.getCode()); // update state in DB
+
+			if (c.getCode().length() < maxLevel + 1) {
+				std::vector<std::string> children;
+				c.children(children);
+
+				for (std::string child : children) {
+					toTest.push_back(SdogCell(child, radius));
+				}
+			}
+		}
+	}
+	std::cout << interior.size() << std::endl;
+	std::cout << boundary.size() << std::endl;
+
+	// end SIGMET insert prototype
+
+
+	updateGrid();
 	mainLoop();
 }
 
@@ -126,6 +275,7 @@ void Program::mainLoop() {
 		float min = glm::length(cameraPos) - RADIUS_EARTH_MODEL;
 
 		cells.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+		cells2.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 		coastLines.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
 
 		renderEngine->render(objects, camera->getLookAt(), max, min);
@@ -139,34 +289,34 @@ void Program::mainLoop() {
 void Program::createGrid() {
 
 	delete root;
-	root = new SphGrid(radius);
+	root = new SdogDB("test.db", 0);
 
 	// Set max number of grids depending on subdivision scheme
 	// These might need to be tweaked
-	int max = 4000000;
+	//int max = 4000000;
 
-	// Determine max number of subdivision levels that can be reasonably supported
-	int level = 0;
-	while (true) {
+	//// Determine max number of subdivision levels that can be reasonably supported
+	//int level = 0;
+	//while (true) {
 
-		//int numGrids = root->size();
-		int numGrids = 1;
-		std::cout << level << " : " << numGrids << std::endl;
+	//	//int numGrids = root->size();
+	//	int numGrids = 1;
+	//	std::cout << level << " : " << numGrids << std::endl;
 
-		if (numGrids < max) {
-			level++;
-			root->subdivide();
-		}
-		else {
-			maxTreeDepth = level;
-			break;
-		}
-		if (level >= 5) {
-			//system("pause");
-			maxTreeDepth = level;
-			break;
-		}
-	}
+	//	if (numGrids < max) {
+	//		level++;
+	//		root->subdivide();
+	//	}
+	//	else {
+	//		maxTreeDepth = level;
+	//		break;
+	//	}
+	//	if (level >= 5) {
+	//		//system("pause");
+	//		maxTreeDepth = level;
+	//		break;
+	//	}
+	//}
 	updateGrid();
 }
 
@@ -176,8 +326,17 @@ void Program::updateGrid() {
 	cells.verts.clear();
 	cells.colours.clear();
 
-	root->createRenderable(cells, viewLevel);
+	cells2.verts.clear();
+	cells2.colours.clear();
+
+	cells2.lineColour = glm::vec3(1.f, 0.f, 0.f);
+
+	//root->createRenderable(cells, viewLevel);
+	SdogDB::createRenderable(cells, boundary, radius);
 	RenderEngine::setBufferData(cells, false);
+
+	SdogDB::createRenderable(cells2, interior, radius);
+	RenderEngine::setBufferData(cells2, false);
 }
 
 // Updates camera rotation
@@ -250,6 +409,7 @@ void Program::updateScale(int inc) {
 
 	float s = 1.f + std::numeric_limits<float>::epsilon();
 	cells.scale = glm::scale(glm::vec3(scale, scale, scale));
+	cells2.scale = glm::scale(glm::vec3(scale, scale, scale));
 	coastLines.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 }
 

@@ -114,6 +114,7 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 			intersection = SphCoord(inter2);
 			return true;
 		}
+		return false;
 	}
 	else {
 		// Should never happen
@@ -143,7 +144,7 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 	// Planes are not the same, get the line of intersection between them
 	glm::vec3 lineDir = glm::cross(planeA, planeLat);
 	glm::vec3 linePoint;
-	float y = sin(latRad);
+	float y = (float) sin(latRad);
 
 	if (abs(planeA.x) > 0.0001f) {
 		float x = -(planeA.y / planeA.x) * y;
@@ -166,7 +167,7 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 		SphCoord sph1(inter1);
 
 		double eps = 0.0001;
-		if (abs(arcA - distA0 - distA1) < eps && ((sph1.longitude > minLongRad && sph1.longitude < maxLongRad) || (sph1.longitude > maxLongRad && sph1.longitude < minLongRad))) {
+		if (abs(arcA - distA0 - distA1) < eps && ((minLongRad < sph1.longitude && sph1.longitude < maxLongRad) || (maxLongRad < sph1.longitude && sph1.longitude < minLongRad))) {
 			intersection = sph1;
 			return true;
 		}
@@ -176,10 +177,11 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 		distA1 = a1.arcLength(SphCoord(inter2));
 		SphCoord sph2(inter2);
 
-		if (abs(arcA - distA0 - distA1) < eps && ((sph2.longitude > minLongRad && sph2.longitude < maxLongRad) || (sph2.longitude > maxLongRad && sph2.longitude < minLongRad))) {
+		if (abs(arcA - distA0 - distA1) < eps && ((minLongRad < sph2.longitude && sph2.longitude < maxLongRad) || (maxLongRad < sph2.longitude && sph2.longitude < minLongRad))) {
 			intersection = sph2;
 			return true;
 		}
+		return false;
 	}
 	else {
 		return false;

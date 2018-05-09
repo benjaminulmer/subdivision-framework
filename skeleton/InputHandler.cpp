@@ -119,13 +119,13 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 
 	const Uint8 *state = SDL_GetKeyboardState(0);
 	if (state[SDL_SCANCODE_U]) {
-		program->updateRadialBounds(RadialBound::MAX, -dy);
+		//program->updateRadialBounds(RadialBound::MAX, -dy);
 	}
 	else if (state[SDL_SCANCODE_J]) {
-		program->updateRadialBounds(RadialBound::MIN, -dy);
+		//program->updateRadialBounds(RadialBound::MIN, -dy);
 	}
 	else if (state[SDL_SCANCODE_M]) {
-		program->updateRadialBounds(RadialBound::BOTH, -dy);
+		//program->updateRadialBounds(RadialBound::BOTH, -dy);
 	}
 	else {
 		program->updateScale(-dy);

@@ -1,10 +1,10 @@
+#define _USE_MATH_DEFINES
 #include "Renderable.h"
 
 #include "Constants.h"
 #include "Geometry.h"
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 // Creates a renderable of the geometry specified in json document
 Renderable::Renderable(rapidjson::Document& d) : Renderable() {

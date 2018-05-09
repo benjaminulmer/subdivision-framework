@@ -15,7 +15,7 @@ enum class SdogCellType {
 class SdogCell {
 
 public:
-	SdogCell(const std::string& code, double maxRadius);
+	SdogCell(const std::string& code, double gridRadius);
 
 	std::string getCode() { return code; }
 	double getMinLat() { return minLat; }
@@ -26,6 +26,8 @@ public:
 	double getMaxRad() { return maxRad; }
 	double getGridRad() { return gridRadius; }
 	SdogCellType getType() { return type; }
+
+	bool contains(double latRad, double longRad, double radius);
 
 	void children(std::vector<std::string>& out);
 	void neighbours(std::vector<std::string>& out);

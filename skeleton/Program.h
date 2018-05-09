@@ -6,8 +6,7 @@
 #include "Camera.h"
 #include "RenderEngine.h"
 
-#include "test.h"
-#include "SphCoord.h"
+#include "SdogDB.h"
 
 enum class RadialBound {
 	MAX,
@@ -33,13 +32,20 @@ public:
 	void updateViewLevel(int inc);
 
 private:
+
+	//
+	std::vector<std::string> interior;
+	std::vector<std::string> boundary;
+	Renderable cells2;
+	//
+
 	SDL_Window* window;
 	int width, height;
 
 	RenderEngine* renderEngine;
 	Camera* camera;
 
-	SphGrid* root;
+	SdogDB* root;
 
 	Renderable cells;
 	Renderable coastLines;

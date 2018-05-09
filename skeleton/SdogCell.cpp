@@ -9,10 +9,10 @@
 //
 // code - index code of the desired SDOG cell
 // maxRadius - maximum radius of the SDOG grid the cell belongs to
-SdogCell::SdogCell(const std::string& code, double maxRadius) : code(code), gridRadius(maxRadius) {
+SdogCell::SdogCell(const std::string& code, double gridRadius) : code(code), gridRadius(gridRadius) {
 
 	minRad = 0.0;
-	maxRad = maxRadius;
+	maxRad = gridRadius;
 
 	// Set initial values based on which octanct cell is in
 	if (code[0] == '0') {
@@ -193,6 +193,32 @@ SdogCell::SdogCell(const std::string& code, double maxRadius) : code(code), grid
 			}
 		}
 	}
+}
+
+
+// Returns if the cell contains the provided point
+bool SdogCell::contains(double latRad, double longRad, double radius) {
+	
+	// Special cases for negative numbers
+	double rMinLat, rMaxLat, rMinLong, rMaxLong;
+	if (maxLat < 0.0) {
+		rMinLat = maxLat;
+		rMaxLat = minLat;
+	}
+	else {
+		rMinLat = minLat;
+		rMaxLat = maxLat;
+	}
+	if (maxLong < 0.0) {
+		rMinLong = maxLong;
+		rMaxLong = minLong;
+	}
+	else {
+		rMinLong = minLong;
+		rMaxLong = maxLong;
+	}
+	return (latRad <= rMaxLat && latRad > rMinLat && longRad <= rMaxLong && longRad > rMinLong &&
+		radius <= maxRad && radius > minRad);
 }
 
 
