@@ -4,6 +4,7 @@
 #include "Renderable.h"
 #include "SdogCell.h"
 #include "Geometry.h"
+#include <iostream>
 //
 
 #include <sqlite\sqlite3.h>
@@ -19,7 +20,7 @@ public:
 	SdogDB(const std::string& path, double radius);
 	virtual ~SdogDB();
 
-	void insertAirSigment(const std::vector<std::string>& interior, const std::vector<std::string>& boundary);
+	void insertAirSigmet(const std::vector<std::string>& interior, const std::vector<std::string>& boundary);
 
 private:
 	sqlite3* db;
@@ -28,6 +29,7 @@ private:
 
 	void insertCell(const std::string& code);
 	void insertCells(const std::vector<std::string>& codes);
+	void insertAirSigmetHelper(const std::vector<std::string>& cells, bool boundary);
 
 public:
 	static void createRenderable(Renderable& r, const std::vector<std::string>& codes, double gridRad) {
