@@ -7,8 +7,7 @@
 #include "SdogCell.h"
 
 
-// Creates connection to the provided database. Does not add any
-// new data to the DB. Used for connecting with an existing DB file.
+// Creates a connection to the provided database. Does not populate with any data
 //
 // path - path to SQLite3 DB file
 SdogDB::SdogDB(const std::string& path) {
@@ -16,20 +15,35 @@ SdogDB::SdogDB(const std::string& path) {
 }
 
 
-// Creates connection to the provided database and creates cells
-// up to the provided depth. Used for populating a new DB file.
+// Creates connection to the provided database and creates the needed tables.
+// Inserts the eight SDOG octants into the data base
 //
 // path - path to SQLite3 DB file
-// depth - depth to subdivide grid to
-SdogDB::SdogDB(const std::string& path, int depth) {
+SdogDB::SdogDB(const std::string& path, double radius) {
 
 	sqlite3_open(path.c_str(), &db);
 
-//	sqlite3_exec(db, "PRAGMA schema.journal_mode = OFF", NULL, NULL, NULL);
-//	sqlite3_exec(db, "PRAGMA schema.synchronous = OFF", NULL, NULL, NULL);
+	char* tab0 = "CREATE TABLE info(lock INTEGER, gridRadius REAL,"
+		         "PRIMARY KEY(Lock), CONSTRAINT info_locked CHECK(lock = 0))";
+	char* tab1 = "CREATE TABLE cells (cellID INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE);";
+	char* tab2 = "CREATE TABLE airSigmet (airSigmetID INTEGER PRIMARY KEY AUTOINCREMENT)";
+	char* tab3 = "CREATE TABLE cell_airSigmet (cellID INTEGER, airSigmetID INTEGER,"
+		         "PRIMARY KEY(cellID, airSigmetID),"
+		         "FOREIGN KEY(airSigmetID) REFERENCES airSigmet(airSigmetID),"
+		         "FOREIGN KEY(cellID) REFERENCES cells(cellID) )";
 
-	char* sql = "CREATE TABLE Cells (CellID INTEGER PRIMARY KEY AUTOINCREMENT, Code TEXT NOT NULL UNIQUE, State INTEGER DEFAULT 0);";
-	sqlite3_exec(db, sql, NULL, NULL, NULL);
+	sqlite3_exec(db, tab0, NULL, NULL, NULL);
+	sqlite3_exec(db, tab1, NULL, NULL, NULL);
+	sqlite3_exec(db, tab2, NULL, NULL, NULL);
+	sqlite3_exec(db, tab3, NULL, NULL, NULL);
+
+	char* config = "INSERT OR IGNORE INTO info(lock, gridRadius) VALUES (0, @RA)";
+	sqlite3_stmt* stmt;
+	sqlite3_prepare_v2(db, config, -1, &stmt, NULL);
+
+	sqlite3_bind_double(stmt, 1, radius);
+	sqlite3_step(stmt);
+	sqlite3_finalize(stmt);
 
 	insertCell("0");
 	insertCell("1");
@@ -39,57 +53,6 @@ SdogDB::SdogDB(const std::string& path, int depth) {
 	insertCell("5");
 	insertCell("6");
 	insertCell("7");
-	maxDepth = 0;
-
-	while (maxDepth < depth) {
-
-		constexpr int batchSize = 1000000;
-		std::vector<std::string> toAdd;
-
-		char* sqlEmpty = "SELECT Code FROM cells WHERE length(Code) = %i;";
-		char* sqlFilled = sqlite3_mprintf(sqlEmpty, maxDepth + 1);
-
-		sqlite3_stmt* stmt;
-		sqlite3_prepare_v2(db, sqlFilled, -1, &stmt, NULL);
-
-		while (sqlite3_step(stmt) != SQLITE_DONE) {
-
-			std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-			SdogCell cell(code, maxRadius);
-
-			if (toAdd.size() >= batchSize) {
-				insertCells(toAdd);
-				toAdd.clear();
-			}
-
-			if (cell.getType() == SdogCellType::NG) {
-				toAdd.push_back(code + "0");
-				toAdd.push_back(code + "1");
-				toAdd.push_back(code + "2");
-				toAdd.push_back(code + "3");
-				toAdd.push_back(code + "4");
-				toAdd.push_back(code + "5");
-				toAdd.push_back(code + "6");
-				toAdd.push_back(code + "7");
-			}
-			else if (cell.getType() == SdogCellType::LG) {
-				toAdd.push_back(code + "0");
-				toAdd.push_back(code + "1");
-				toAdd.push_back(code + "2");
-				toAdd.push_back(code + "3");
-				toAdd.push_back(code + "4");
-				toAdd.push_back(code + "5");
-			}
-			else {// cell.getType() == SdogCellType::SG
-				toAdd.push_back(code + "0");
-				toAdd.push_back(code + "1");
-				toAdd.push_back(code + "2");
-				toAdd.push_back(code + "3");
-			}
-		}
-		insertCells(toAdd);
-		maxDepth++;
-	}
 }
 
 
@@ -99,16 +62,27 @@ SdogDB::~SdogDB() {
 }
 
 
+// Inserts a new AIRMET/SIGMET into the data base with the provided interior and boundary cells
+//
+// interior - list of cells that are completely inside the SIGMET/AIRMET
+// boundary - list of cells that are on the boundary of the SIGMET/AIRMET
+void SdogDB::insertAirSigment(const std::vector<std::string>& interior, const std::vector<std::string>& boundary) {
+
+}
+
+
 // Inserts the given code into the DB
 //
-// code - index code of cell to insert
+// code - code of the cell to insert
 void SdogDB::insertCell(const std::string& code) {
 
-	char* sqlEmpty = "INSERT OR IGNORE into Cells (Code) VALUES ('%s');";
-	char* sqlFilled = sqlite3_mprintf(sqlEmpty, code.c_str());
+	char* sqlEmpty = "INSERT OR IGNORE INTO cells(code) VALUES (@CO)";
+	sqlite3_stmt* stmt;
+	sqlite3_prepare_v2(db, sqlEmpty, -1, &stmt, NULL);
 
-	sqlite3_exec(db, sqlFilled, NULL, NULL, NULL);
-	sqlite3_free(sqlFilled);
+	sqlite3_bind_text(stmt, 1, code.c_str(), -1, SQLITE_STATIC);
+	sqlite3_step(stmt);
+	sqlite3_finalize(stmt);
 }
 
 
@@ -117,8 +91,8 @@ void SdogDB::insertCell(const std::string& code) {
 // codes - vector of codes for cells to insert
 void SdogDB::insertCells(const std::vector<std::string>& codes) {
 
-	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
-	char* sqlEmpty = "INSERT OR IGNORE into Cells (Code) VALUES (@CO);";
+	sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, NULL);
+	char* sqlEmpty = "INSERT OR IGNORE INTO cells(code) VALUES (@CO)";
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sqlEmpty, -1, &stmt, NULL);
 
@@ -130,5 +104,6 @@ void SdogDB::insertCells(const std::vector<std::string>& codes) {
 		sqlite3_clear_bindings(stmt);
 		sqlite3_reset(stmt);
 	}
-	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+	sqlite3_finalize(stmt);
+	sqlite3_exec(db, "END TRANSACTION", NULL, NULL, NULL);
 }

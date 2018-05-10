@@ -102,6 +102,7 @@ void Program::start() {
 	bounds.push_back(SphCoord(39.8974, -124.6467, false));
 	bounds.push_back(SphCoord(41.1384, -124.8541, false));
 
+	// Create renderable for polygon
 	poly.lineColour = glm::vec3(0.f, 1.f, 0.f);
 	for (int i = 0; i < bounds.size(); i++) {
 		glm::vec3 v1 = bounds[i].toCartesian(maxRad);
@@ -128,10 +129,6 @@ void Program::start() {
 
 		SdogCell c = toTest[toTest.size() - 1];
 		toTest.pop_back();
-
-		if (c.getCode() == "72") {
-			std::cout << std::endl;
-		}
 
 		int horizontal = NONE;
 		int vertical = NONE;
@@ -168,6 +165,7 @@ void Program::start() {
 			double tLat = bounds[0].latitude;
 			double tLong = bounds[0].longitude;
 
+			// Polygon inside of cell, treat as boundary case (need to subdivide)
 			if (((c.getMinLat() < tLat && tLat < c.getMaxLat()) || (c.getMaxLat() < tLat && tLat < c.getMinLat())) &&
 					((c.getMinLong() < tLong && tLong < c.getMaxLong()) || (c.getMaxLong() < tLong && tLong < c.getMinLong()))) {
 				horizontal = BOUND;
@@ -176,6 +174,7 @@ void Program::start() {
 				SphCoord testPoint(c.getMaxLat(), c.getMaxLong());
 				glm::vec3 testNorm = testPoint.toCartesian(1.0);
 
+				// Calculate winding number of a point in the cell with respect to the polygon
 				float sum = 0.f;
 				for (int i = 0; i < bounds.size(); i++) {
 
@@ -190,7 +189,7 @@ void Program::start() {
 					}
 					sum += angle;
 				}
-
+				
 				if (abs(sum) < 0.01f) {
 					horizontal = EXTER;
 				}
@@ -210,13 +209,11 @@ void Program::start() {
 			vertical = BOUND;
 		}
 
+		// If cell is interior or boundary act accordingly - do nothing with exterior cells
 		if (horizontal == INTER && vertical == INTER) {
 			interior.push_back(c.getCode()); // update state in DB
 		}
-		else if (horizontal == EXTER || vertical == EXTER) {
-			// do nothing
-		}
-		else {
+		else if (horizontal != EXTER && vertical != EXTER) {
 			boundary.push_back(c.getCode()); // update state in DB
 
 			if (c.getCode().length() < maxLevel + 1) {
@@ -229,8 +226,6 @@ void Program::start() {
 			}
 		}
 	}
-	//std::cout << interior.size() << std::endl;
-	//std::cout << boundary.size() << std::endl;
 
 	// end SIGMET insert prototype
 
@@ -305,7 +300,7 @@ void Program::mainLoop() {
 void Program::createGrid() {
 
 	delete root;
-	root = new SdogDB("test.db", 0);
+	root = new SdogDB("test.db", radius);
 
 	// Set max number of grids depending on subdivision scheme
 	// These might need to be tweaked

@@ -16,14 +16,15 @@ class SdogDB {
 
 public:
 	SdogDB(const std::string& path);
-	SdogDB(const std::string& path, int depth);
+	SdogDB(const std::string& path, double radius);
 	virtual ~SdogDB();
+
+	void insertAirSigment(const std::vector<std::string>& interior, const std::vector<std::string>& boundary);
 
 private:
 	sqlite3* db;
 
-	int maxDepth;
-	double maxRadius;
+	double radius;
 
 	void insertCell(const std::string& code);
 	void insertCells(const std::vector<std::string>& codes);
