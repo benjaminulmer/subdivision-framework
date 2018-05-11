@@ -31,14 +31,18 @@ private:
 	void insertCells(const std::vector<std::string>& codes);
 
 public:
-	static void createRenderable(Renderable& r, const std::vector<std::string>& codes, double gridRad) {
+	static void createRenderable(Renderable& r, const std::vector<std::string>& codes, double gridRad, int min) {
 
 		for (const std::string& code : codes) {
+
+			if (code.length() < min) continue;
 
 			SdogCell c(code, gridRad);
 			float minLong = c.getMinLong(); float maxLong = c.getMaxLong();
 			float minLat = c.getMinLat(); float maxLat = c.getMaxLat();
 			float minRad = c.getMinRad(); float maxRad = c.getMaxRad();
+
+			if (maxRad > gridRad * 0.755 || maxRad < gridRad * 0.752) continue;
 
 			r.drawMode = GL_LINES;
 			glm::vec3 origin(0.f, 0.f, 0.f);

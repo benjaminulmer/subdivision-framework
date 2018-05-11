@@ -89,12 +89,15 @@ void Program::start() {
 	airSig.minRad = radius * 0.750001f;
 	airSig.maxRad = radius * 0.76f;
 
-	airSig.polygon.push_back(SphCoord(43.7314, -124.6716, false));
-	airSig.polygon.push_back(SphCoord(42.7314, -123.7461, false));
-	airSig.polygon.push_back(SphCoord(41.0248, -123.7585, false));
-	airSig.polygon.push_back(SphCoord(39.7477, -122.7337, false));
-	airSig.polygon.push_back(SphCoord(39.8974, -124.6467, false));
-	airSig.polygon.push_back(SphCoord(41.1384, -124.8541, false));
+	airSig.polygon.push_back(SphCoord(43.3982, 78.0031, false));
+	airSig.polygon.push_back(SphCoord(41.9321, 75.7328, false));
+	airSig.polygon.push_back(SphCoord(40.3859, 75.0698, false));
+	airSig.polygon.push_back(SphCoord(39.5829, 75.68, false));
+	airSig.polygon.push_back(SphCoord(39.8169, 78.83, false));
+	airSig.polygon.push_back(SphCoord(39.555, 81.0697, false));
+	airSig.polygon.push_back(SphCoord(40.98, 85.19, false));
+	airSig.polygon.push_back(SphCoord(42.6453, 82.3742, false));
+	airSig.polygon.push_back(SphCoord(42.608, 81.1026, false));
 
 	// Create renderable for polygon
 	poly.lineColour = glm::vec3(0.f, 1.f, 0.f);
@@ -220,16 +223,17 @@ void Program::updateGrid() {
 	cells2.verts.clear();
 	cells2.colours.clear();
 
-	cells2.lineColour = glm::vec3(1.f, 0.f, 0.f);
+	cells.lineColour = glm::vec3(0.9, 0.f, 0.f);
+	cells2.lineColour = glm::vec3(1.f, 1.f, 0.f);
 
 	//root->createRenderable(cells, viewLevel);
-	SdogDB::createRenderable(cells, boundary, radius);
+	SdogDB::createRenderable(cells, boundary, radius, 13);
 	RenderEngine::setBufferData(cells, false);
 
-//	std::vector<std::string> cell;
-//	cell.push_back("3036775555555");
+	std::vector<std::string> cell;
+	cell.push_back("4137657747657");
 
-	SdogDB::createRenderable(cells2, interior, radius);
+	SdogDB::createRenderable(cells2, interior, radius, 0);
 	RenderEngine::setBufferData(cells2, false);
 }
 

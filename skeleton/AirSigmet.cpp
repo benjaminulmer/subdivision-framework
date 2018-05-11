@@ -2,14 +2,14 @@
 
 #include "SdogCell.h"
 
-enum {
-	NONE = -1,
-	INTER = 0,
-	EXTER = 1,
-	BOUND = 2
-};
-#include <iostream>
 void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) {
+
+	enum {
+		NONE = -1,
+		INTER = 0,
+		EXTER = 1,
+		BOUND = 2
+	};
 
 	// Create list of cells to process and populate with octants
 	std::vector<SdogCell> toTest;
@@ -27,10 +27,6 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 
 		SdogCell c = toTest[toTest.size() - 1];
 		toTest.pop_back();
-
-		if (c.getCode() == "3036775555555") {
-			std::cout << std::endl;
-		}
 
 		int horizontal = NONE;
 		int vertical = NONE;
@@ -84,7 +80,12 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 					glm::vec3 plane2 = glm::normalize(glm::cross(testNorm, polygon[(i + 1) % polygon.size()].toCartesian(1.0)));
 
 					glm::vec3 cross = glm::cross(plane1, plane2);
-					float angle = acos(glm::dot(plane1, plane2));
+					float dot = glm::dot(plane1, plane2);
+
+					if (dot > 1.f) dot = 1.f;
+					if (dot < -1.f) dot = -1.f;
+
+					float angle = acos(dot);
 
 					if (glm::dot(cross, testNorm) < 0) {
 						angle *= -1;
@@ -92,7 +93,7 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 					sum += angle;
 				}
 
-				if (abs(sum) < 0.01f) {
+				if (abs(sum) < 1.f) {
 					horizontal = EXTER;
 				}
 				else {
