@@ -19,7 +19,7 @@ SdogDB::SdogDB(const std::string& path) {
 // Inserts the eight SDOG octants into the data base
 //
 // path - path to SQLite3 DB file
-SdogDB::SdogDB(const std::string& path, double radius) {
+SdogDB::SdogDB(const std::string& path, double radius) : radius(radius) {
 
 	sqlite3_open(path.c_str(), &db);
 
@@ -44,31 +44,6 @@ SdogDB::SdogDB(const std::string& path, double radius) {
 	sqlite3_bind_double(stmt, 1, radius);
 	sqlite3_step(stmt);
 	sqlite3_finalize(stmt);
-
-	insertCell("0");
-	insertCell("1");
-	insertCell("2");
-	insertCell("3");
-	insertCell("4");
-	insertCell("5");
-	insertCell("6");
-	insertCell("7");
-
-
-	std::vector<std::string> test1;
-	test1.push_back("i1");
-	test1.push_back("i2");
-	test1.push_back("i3");
-	test1.push_back("i4");
-	test1.push_back("i5");
-
-	std::vector<std::string> test2;
-	test2.push_back("b1");
-	test2.push_back("b2");
-	test2.push_back("b3");
-	test2.push_back("b4");
-	test2.push_back("b5");
-	insertAirSigmet(test1, test2);
 }
 
 
@@ -153,7 +128,6 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 
 	sqlite3_finalize(insertStmt);
 	sqlite3_finalize(selectStmt);
-
 	sqlite3_exec(db, "END TRANSACTION", NULL, NULL, NULL);
 }
 
@@ -193,10 +167,4 @@ void SdogDB::insertCells(const std::vector<std::string>& codes) {
 	}
 	sqlite3_finalize(stmt);
 	sqlite3_exec(db, "END TRANSACTION", NULL, NULL, NULL);
-}
-
-
-// Helper for inserting AIRMET/SIGMET data. 
-void insertAirSigmetHelper(const std::vector<std::string>& cells, bool boundary) {
-
 }

@@ -172,7 +172,10 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 		SphCoord sph1(inter1);
 
 		double eps = 0.0001;
-		if (abs(arcA - distA0 - distA1) < eps && ((minLongRad < sph1.longitude && sph1.longitude < maxLongRad) || (maxLongRad < sph1.longitude && sph1.longitude < minLongRad))) {
+		if (abs(arcA - distA0 - distA1) < eps &&
+				((minLongRad < (sph1.longitude + eps) && sph1.longitude < (maxLongRad + eps)) ||
+				(maxLongRad < (sph1.longitude + eps) && sph1.longitude < (minLongRad + eps)))) {
+
 			intersection = sph1;
 			return true;
 		}
@@ -182,7 +185,10 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 		distA1 = a1.arcLength(SphCoord(inter2));
 		SphCoord sph2(inter2);
 
-		if (abs(arcA - distA0 - distA1) < eps && ((minLongRad < sph2.longitude && sph2.longitude < maxLongRad) || (maxLongRad < sph2.longitude && sph2.longitude < minLongRad))) {
+		if (abs(arcA - distA0 - distA1) < eps &&
+				((minLongRad < (sph2.longitude + eps) && sph2.longitude < (maxLongRad + eps)) ||
+				(maxLongRad < (sph2.longitude + eps) && sph2.longitude < (minLongRad + eps)))) {
+
 			intersection = sph2;
 			return true;
 		}

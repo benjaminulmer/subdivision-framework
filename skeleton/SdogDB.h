@@ -29,7 +29,6 @@ private:
 
 	void insertCell(const std::string& code);
 	void insertCells(const std::vector<std::string>& codes);
-	void insertAirSigmetHelper(const std::vector<std::string>& cells, bool boundary);
 
 public:
 	static void createRenderable(Renderable& r, const std::vector<std::string>& codes, double gridRad) {

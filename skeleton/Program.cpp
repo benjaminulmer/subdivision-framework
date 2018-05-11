@@ -12,7 +12,7 @@
 #include "Constants.h"
 #include "ContentReadWrite.h"
 #include "InputHandler.h"
-
+#include "AirSigmet.h"
 #include "SdogCell.h"
 #include "SphCoord.h"
 
@@ -30,13 +30,6 @@ Program::Program() {
 
 	width = height = 800;
 }
-
-enum {
-	NONE = -1,
-	INTER = 0,
-	EXTER = 1,
-	BOUND = 2
-};
 
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
@@ -92,141 +85,28 @@ void Program::start() {
 	// SIGMET insert prototype
 
 	// Set up dummy data
-	double minRad = radius * 0.750001f;
-	double maxRad = radius * 0.76f;
-	std::vector<SphCoord> bounds;
-	bounds.push_back(SphCoord(43.7314, -124.6716, false));
-	bounds.push_back(SphCoord(42.7314, -123.7461, false));
-	bounds.push_back(SphCoord(41.0248, -123.7585, false));
-	bounds.push_back(SphCoord(39.7477, -123.7337, false));
-	bounds.push_back(SphCoord(39.8974, -124.6467, false));
-	bounds.push_back(SphCoord(41.1384, -124.8541, false));
+	AirSigmet airSig;
+	airSig.minRad = radius * 0.750001f;
+	airSig.maxRad = radius * 0.76f;
+
+	airSig.polygon.push_back(SphCoord(43.7314, -124.6716, false));
+	airSig.polygon.push_back(SphCoord(42.7314, -123.7461, false));
+	airSig.polygon.push_back(SphCoord(41.0248, -123.7585, false));
+	airSig.polygon.push_back(SphCoord(39.7477, -122.7337, false));
+	airSig.polygon.push_back(SphCoord(39.8974, -124.6467, false));
+	airSig.polygon.push_back(SphCoord(41.1384, -124.8541, false));
 
 	// Create renderable for polygon
 	poly.lineColour = glm::vec3(0.f, 1.f, 0.f);
-	for (int i = 0; i < bounds.size(); i++) {
-		glm::vec3 v1 = bounds[i].toCartesian(maxRad);
-		glm::vec3 v2 = bounds[(i + 1) % bounds.size()].toCartesian(maxRad);
+	for (int i = 0; i < airSig.polygon.size(); i++) {
+		glm::vec3 v1 = airSig.polygon[i].toCartesian(airSig.maxRad);
+		glm::vec3 v2 = airSig.polygon[(i + 1) % airSig.polygon.size()].toCartesian(airSig.maxRad);
 		Geometry::createArcR(v1, v2, glm::vec3(), poly);
 	}
 	RenderEngine::setBufferData(poly, false);
 
-	int maxLevel = 10;
-
-	// Create list of cells to process and populate with octants
-	std::vector<SdogCell> toTest;
-	toTest.push_back(SdogCell("0", radius));
-	toTest.push_back(SdogCell("1", radius));
-	toTest.push_back(SdogCell("2", radius));
-	toTest.push_back(SdogCell("3", radius));
-	toTest.push_back(SdogCell("4", radius));
-	toTest.push_back(SdogCell("5", radius));
-	toTest.push_back(SdogCell("6", radius));
-	toTest.push_back(SdogCell("7", radius));
-
-	// Loop until no more cells to process
-	while (toTest.size() > 0) {
-
-		SdogCell c = toTest[toTest.size() - 1];
-		toTest.pop_back();
-
-		int horizontal = NONE;
-		int vertical = NONE;
-
-		// Horizontal test
-		// Test cells against all arcs of boudnary
-		for (int i = 0; i < bounds.size(); i++) {
-
-			SphCoord start = bounds[i];
-			SphCoord end = bounds[(i + 1) % bounds.size()];
-			SphCoord inter;
-
-			if (SphCoord::greatCircleArc2Intersect(start, end, SphCoord(c.getMinLat(), c.getMinLong()), SphCoord(c.getMaxLat(), c.getMinLong()), inter)) {
-				horizontal = BOUND;
-				break;
-			}
-			if (SphCoord::greatCircleArc2Intersect(start, end, SphCoord(c.getMinLat(), c.getMaxLong()), SphCoord(c.getMaxLat(), c.getMaxLong()), inter)) {
-				horizontal = BOUND;
-				break;
-			}
-			if (SphCoord::greatCircleArcLatIntersect(start, end, c.getMaxLat(), c.getMinLong(), c.getMaxLong(), inter)) {
-				horizontal = BOUND;
-				break;
-			}
-			if (SphCoord::greatCircleArcLatIntersect(start, end, c.getMinLat(), c.getMinLong(), c.getMaxLong(), inter)) {
-				horizontal = BOUND;
-				break;
-			}
-		}
-
-		// No intersections, test for disjoint and contained cases
-		if (horizontal == NONE) {
-
-			double tLat = bounds[0].latitude;
-			double tLong = bounds[0].longitude;
-
-			// Polygon inside of cell, treat as boundary case (need to subdivide)
-			if (((c.getMinLat() < tLat && tLat < c.getMaxLat()) || (c.getMaxLat() < tLat && tLat < c.getMinLat())) &&
-					((c.getMinLong() < tLong && tLong < c.getMaxLong()) || (c.getMaxLong() < tLong && tLong < c.getMinLong()))) {
-				horizontal = BOUND;
-			}
-			else {
-				SphCoord testPoint(c.getMaxLat(), c.getMaxLong());
-				glm::vec3 testNorm = testPoint.toCartesian(1.0);
-
-				// Calculate winding number of a point in the cell with respect to the polygon
-				float sum = 0.f;
-				for (int i = 0; i < bounds.size(); i++) {
-
-					glm::vec3 plane1 = glm::normalize(glm::cross(testNorm, bounds[i].toCartesian(1.0)));
-					glm::vec3 plane2 = glm::normalize(glm::cross(testNorm, bounds[(i + 1) % bounds.size()].toCartesian(1.0)));
-
-					glm::vec3 cross = glm::cross(plane1, plane2);
-					float angle = acos(glm::dot(plane1, plane2));
-
-					if (glm::dot(cross, testNorm) < 0) {
-						angle *= -1;
-					}
-					sum += angle;
-				}
-				
-				if (abs(sum) < 0.01f) {
-					horizontal = EXTER;
-				}
-				else {
-					horizontal = INTER;
-				}
-			}
-		}
-		// Veritcal test
-		if (c.getMinRad() > minRad && c.getMaxRad() < maxRad ) {
-			vertical = INTER;
-		}
-		else if (c.getMaxRad() < minRad || c.getMinRad() > maxRad) {
-			vertical = EXTER;
-		}
-		else {
-			vertical = BOUND;
-		}
-
-		// If cell is interior or boundary act accordingly - do nothing with exterior cells
-		if (horizontal == INTER && vertical == INTER) {
-			interior.push_back(c.getCode()); // update state in DB
-		}
-		else if (horizontal != EXTER && vertical != EXTER) {
-			boundary.push_back(c.getCode()); // update state in DB
-
-			if (c.getCode().length() < maxLevel + 1) {
-				std::vector<std::string> children;
-				c.children(children);
-
-				for (std::string child : children) {
-					toTest.push_back(SdogCell(child, radius));
-				}
-			}
-		}
-	}
-
+	airSig.gridInsertion(radius, 12, interior, boundary);
+	root->insertAirSigmet(interior, boundary);
 	// end SIGMET insert prototype
 
 
@@ -345,6 +225,9 @@ void Program::updateGrid() {
 	//root->createRenderable(cells, viewLevel);
 	SdogDB::createRenderable(cells, boundary, radius);
 	RenderEngine::setBufferData(cells, false);
+
+//	std::vector<std::string> cell;
+//	cell.push_back("3036775555555");
 
 	SdogDB::createRenderable(cells2, interior, radius);
 	RenderEngine::setBufferData(cells2, false);

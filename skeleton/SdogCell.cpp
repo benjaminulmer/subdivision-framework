@@ -197,6 +197,10 @@ SdogCell::SdogCell(const std::string& code, double gridRadius) : code(code), gri
 
 
 // Returns if the cell contains the provided point
+//
+// latRad - latitude of point in radians
+// longRad - longitude of point in radians
+// radius - radius of point
 bool SdogCell::contains(double latRad, double longRad, double radius) {
 	
 	// Special cases for negative numbers
