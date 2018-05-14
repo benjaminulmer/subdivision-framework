@@ -41,7 +41,7 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 	for (const Renderable* r : objects) {	
 		glBindVertexArray(r->vao);
 
-		glm::mat4 modelView = view * r->model();
+		glm::mat4 modelView = view * r->model;
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 

@@ -32,21 +32,13 @@ public:
 	void updateViewLevel(int inc);
 
 private:
-
-	//
-	std::vector<std::string> interior;
-	std::vector<std::string> boundary;
-	Renderable cells2;
-	Renderable poly;
-	//
-
 	SDL_Window* window;
 	int width, height;
 
 	RenderEngine* renderEngine;
 	Camera* camera;
 
-	SdogDB* root;
+	SdogDB* dataBase;
 
 	Renderable cells;
 	Renderable coastLines;
@@ -56,9 +48,9 @@ private:
 	int maxTreeDepth;
 	int viewLevel;
 
-	float scale;
 	float radius;
 
+	float scale;
 	float latRot;
 	float longRot;
 

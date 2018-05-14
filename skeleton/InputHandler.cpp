@@ -64,7 +64,7 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 			renderEngine->toggleFade();
 		}
 		else if (key == SDLK_s) {
-			program->toggleSurfaceLocation();
+			//program->toggleSurfaceLocation();
 		}
 		else if (key == SDLK_UP) {
 			program->updateViewLevel(1);

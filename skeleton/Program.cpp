@@ -21,7 +21,7 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
-	root = nullptr;
+	dataBase = nullptr;
 
 	maxTreeDepth = 0;
 	viewLevel = 7;
@@ -50,16 +50,9 @@ void Program::start() {
 	RenderEngine::assignBuffers(cells, false);
 	cells.fade = true;
 
-
-	RenderEngine::assignBuffers(cells2, false);
-	cells2.fade = true;
-	RenderEngine::assignBuffers(poly, false);
-	poly.drawMode = GL_LINES;
-
-
 	// Set starting radius
 	scale = 1.f;
-	radius = RADIUS_EARTH_MODEL * 4.f / 3.f;
+	radius = RADIUS_EARTH_KM * 4.f / 3.f;
 
 	// Load coatline data set
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
@@ -69,44 +62,40 @@ void Program::start() {
 	RenderEngine::setBufferData(coastLines, false);
 
 	float s = 1.f + std::numeric_limits<float>::epsilon();
-	coastLines.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
+	coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
 	// Create grid
 	createGrid();
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
-	//objects.push_back(&cells);
-	objects.push_back(&cells2);
-	objects.push_back(&poly);
-
-
+	objects.push_back(&cells);
 
 	// SIGMET insert prototype
 
 	// Set up dummy data
 	AirSigmet airSig;
-	airSig.minRad = radius * 0.750001f;
-	airSig.maxRad = radius * 0.76f;
+	airSig.validFrom = "test begin";
+	airSig.validUntil = "test end";
+	airSig.dirDeg = 69;
+	airSig.speedKT = 5;
+	airSig.type = -1;
+	airSig.hazard = 420;
+	airSig.severity = 999;
+
+
+	airSig.minAltKM = radius * 0.750001f;
+	airSig.maxAltKM = radius * 0.76f;
 
 	airSig.polygon.push_back(SphCoord(2.0, -3.0, false));
 	airSig.polygon.push_back(SphCoord(4.0, -1.0, false));
 	airSig.polygon.push_back(SphCoord(3.0, 2.0, false));
 	airSig.polygon.push_back(SphCoord(1.0, 0.0, false));
 
-	// Create renderable for polygon
-	poly.lineColour = glm::vec3(0.f, 1.f, 0.f);
-	for (int i = 0; i < airSig.polygon.size(); i++) {
-		glm::vec3 v1 = airSig.polygon[i].toCartesian(airSig.maxRad);
-		glm::vec3 v2 = airSig.polygon[(i + 1) % airSig.polygon.size()].toCartesian(airSig.maxRad);
-		Geometry::createArcR(v1, v2, glm::vec3(), poly);
-	}
-	RenderEngine::setBufferData(poly, false);
-
+	std::vector<std::string> interior, boundary;
 	airSig.gridInsertion(radius, 11, interior, boundary);
-	root->insertAirSigmet(interior, boundary);
+	dataBase->insertAirSigmet(interior, boundary, airSig);
 	// end SIGMET insert prototype
-
 
 	updateGrid();
 	mainLoop();
@@ -159,53 +148,27 @@ void Program::mainLoop() {
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
 		glm::vec3 cameraPos = camera->getPosition();
-		float max = glm::length(cameraPos) + RADIUS_EARTH_MODEL;
-		float min = glm::length(cameraPos) - RADIUS_EARTH_MODEL;
+		float max = glm::length(cameraPos) + RADIUS_EARTH_VIEW;
+		float min = glm::length(cameraPos) - RADIUS_EARTH_VIEW;
 
-		cells.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
-		cells2.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
-		poly.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
-		coastLines.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+		glm::mat4 worldModel(1.f);
+		float s = (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
+		worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
+		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
+		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
 
-		renderEngine->render(objects, camera->getLookAt(), max, min);
+		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
 		SDL_GL_SwapWindow(window);
 	}
 
-	delete root;
+	delete dataBase;
 }
 
 // Sets the scheme that will be used for subdivision
 void Program::createGrid() {
 
-	delete root;
-	root = new SdogDB("test.db", radius);
-
-	// Set max number of grids depending on subdivision scheme
-	// These might need to be tweaked
-	//int max = 4000000;
-
-	//// Determine max number of subdivision levels that can be reasonably supported
-	//int level = 0;
-	//while (true) {
-
-	//	//int numGrids = root->size();
-	//	int numGrids = 1;
-	//	std::cout << level << " : " << numGrids << std::endl;
-
-	//	if (numGrids < max) {
-	//		level++;
-	//		root->subdivide();
-	//	}
-	//	else {
-	//		maxTreeDepth = level;
-	//		break;
-	//	}
-	//	if (level >= 5) {
-	//		//system("pause");
-	//		maxTreeDepth = level;
-	//		break;
-	//	}
-	//}
+	delete dataBase;
+	dataBase = new SdogDB("test.db", radius);
 	updateGrid();
 }
 
@@ -215,21 +178,11 @@ void Program::updateGrid() {
 	cells.verts.clear();
 	cells.colours.clear();
 
-	cells2.verts.clear();
-	cells2.colours.clear();
-
 	cells.lineColour = glm::vec3(0.9, 0.f, 0.f);
-	cells2.lineColour = glm::vec3(1.f, 1.f, 0.f);
 
 	//root->createRenderable(cells, viewLevel);
-	SdogDB::createRenderable(cells, boundary, radius, 13);
+	//SdogDB::createRenderable(cells, interior, radius, 13);
 	RenderEngine::setBufferData(cells, false);
-
-	std::vector<std::string> cell;
-	cell.push_back("4137657747657");
-
-	SdogDB::createRenderable(cells2, interior, radius, 0);
-	RenderEngine::setBufferData(cells2, false);
 }
 
 // Updates camera rotation
@@ -265,7 +218,7 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 	glm::vec3 rayO = camera->getPosition();
 	glm::vec3 rayDOld = glm::normalize(glm::vec3(worldOld) - rayO);
 	glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
-	float sphereRad = RADIUS_EARTH_MODEL * scale;
+	float sphereRad = RADIUS_EARTH_VIEW * scale;
 	glm::vec3 sphereO = glm::vec3(0.f, 0.f, 0.f);
 
 	glm::vec3 iPosOld, iPosNew, iNorm;
@@ -299,22 +252,16 @@ void Program::updateScale(int inc) {
 		scale *= 1.4f;
 	}
 	camera->setScale(scale);
-
-	float s = 1.f + std::numeric_limits<float>::epsilon();
-	cells.scale = glm::scale(glm::vec3(scale, scale, scale));
-	cells2.scale = glm::scale(glm::vec3(scale, scale, scale));
-	poly.scale = glm::scale(glm::vec3(scale, scale, scale));
-	coastLines.scale = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 }
 
 // Toggles location of surface between 0.5 and 0.75
 void Program::toggleSurfaceLocation() {
 
-	if (radius == RADIUS_EARTH_MODEL * 2.f) {
-		radius = RADIUS_EARTH_MODEL * 4.f / 3.f;
+	if (radius == RADIUS_EARTH_VIEW * 2.f) {
+		radius = RADIUS_EARTH_VIEW * 4.f / 3.f;
 	}
 	else {
-		radius = RADIUS_EARTH_MODEL * 2.f;
+		radius = RADIUS_EARTH_VIEW * 2.f;
 	}
 	createGrid();
 }

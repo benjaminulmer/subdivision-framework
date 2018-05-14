@@ -203,6 +203,8 @@ SdogCell::SdogCell(const std::string& code, double gridRadius) : code(code), gri
 // radius - radius of point
 bool SdogCell::contains(double latRad, double longRad, double radius) {
 	
+	if (type == SdogCellType::INVALID) return false;
+
 	// Special cases for negative numbers
 	double rMinLat, rMaxLat, rMinLong, rMaxLong;
 	if (maxLat < 0.0) {
@@ -231,9 +233,7 @@ bool SdogCell::contains(double latRad, double longRad, double radius) {
 // out - output vector that stores the children - treats as empty
 void SdogCell::children(std::vector<std::string>& out) {
 
-	if (type == SdogCellType::INVALID) {
-		return;
-	}
+	if (type == SdogCellType::INVALID) return;
 
 	if (type == SdogCellType::NG) {
 		out.push_back(code + "0");
@@ -267,9 +267,7 @@ void SdogCell::children(std::vector<std::string>& out) {
 // out - output vector that stores the neighbours - treats as empty
 void SdogCell::neighbours(std::vector<std::string>& out) {
 
-	if (type == SdogCellType::INVALID) {
-		return;
-	}
+	if (type == SdogCellType::INVALID) return;
 
 	unsigned int level = (unsigned int)code.length() - 1;
 

@@ -98,10 +98,10 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 			}
 		}
 		// Veritcal test
-		if (c.getMinRad() > minRad && c.getMaxRad() < maxRad) {
+		if (c.getMinRad() > minAltKM && c.getMaxRad() < maxAltKM) {
 			vertical = INTER;
 		}
-		else if (c.getMaxRad() < minRad || c.getMinRad() > maxRad) {
+		else if (c.getMaxRad() < minAltKM || c.getMinRad() > maxAltKM) {
 			vertical = EXTER;
 		}
 		else {

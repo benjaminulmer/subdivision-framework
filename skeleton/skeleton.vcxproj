@@ -168,7 +168,6 @@
     <ClInclude Include="SdogCell.h" />
     <ClInclude Include="SdogDB.h" />
     <ClInclude Include="SphCoord.h" />
-    <ClInclude Include="SphericalData.h" />
     <ClInclude Include="ShaderTools.h" />
     <ClInclude Include="Texture.h" />
   </ItemGroup>
@@ -186,7 +185,6 @@
     <ClCompile Include="SdogCell.cpp" />
     <ClCompile Include="SdogDB.cpp" />
     <ClCompile Include="SphCoord.cpp" />
-    <ClCompile Include="SphericalData.cpp" />
     <ClCompile Include="ShaderTools.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
