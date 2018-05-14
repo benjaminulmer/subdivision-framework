@@ -69,8 +69,13 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 				horizontal = BOUND;
 			}
 			else {
-				SphCoord testPoint(c.getMaxLat(), c.getMaxLong());
-				glm::vec3 testNorm = testPoint.toCartesian(1.0);
+				SphCoord point1(c.getMinLat(), c.getMinLong());
+				SphCoord point2(c.getMaxLat(), c.getMaxLong());
+
+				float ang1 = acos(glm::dot(point1.toCartesian(1.0), polygon[0].toCartesian(1.0)));
+				float ang2 = acos(glm::dot(point2.toCartesian(1.0), polygon[0].toCartesian(1.0)));
+
+				glm::vec3 testNorm = (ang1 < ang2) ? point1.toCartesian(1.0) : point2.toCartesian(1.0);
 
 				// Calculate winding number of a point in the cell with respect to the polygon
 				float sum = 0.f;
@@ -85,20 +90,11 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 					if (dot > 1.f) dot = 1.f;
 					if (dot < -1.f) dot = -1.f;
 
-					float angle = acos(dot);
-
-					if (glm::dot(cross, testNorm) < 0) {
-						angle *= -1;
-					}
+					float angle = (glm::dot(cross, testNorm) < 0) ? -acos(dot) : acos(dot);
 					sum += angle;
 				}
 
-				if (abs(sum) < 1.f) {
-					horizontal = EXTER;
-				}
-				else {
-					horizontal = INTER;
-				}
+				horizontal = (abs(sum) < 1.f) ? EXTER : INTER;
 			}
 		}
 		// Veritcal test

@@ -89,15 +89,10 @@ void Program::start() {
 	airSig.minRad = radius * 0.750001f;
 	airSig.maxRad = radius * 0.76f;
 
-	airSig.polygon.push_back(SphCoord(43.3982, 78.0031, false));
-	airSig.polygon.push_back(SphCoord(41.9321, 75.7328, false));
-	airSig.polygon.push_back(SphCoord(40.3859, 75.0698, false));
-	airSig.polygon.push_back(SphCoord(39.5829, 75.68, false));
-	airSig.polygon.push_back(SphCoord(39.8169, 78.83, false));
-	airSig.polygon.push_back(SphCoord(39.555, 81.0697, false));
-	airSig.polygon.push_back(SphCoord(40.98, 85.19, false));
-	airSig.polygon.push_back(SphCoord(42.6453, 82.3742, false));
-	airSig.polygon.push_back(SphCoord(42.608, 81.1026, false));
+	airSig.polygon.push_back(SphCoord(2.0, -3.0, false));
+	airSig.polygon.push_back(SphCoord(4.0, -1.0, false));
+	airSig.polygon.push_back(SphCoord(3.0, 2.0, false));
+	airSig.polygon.push_back(SphCoord(1.0, 0.0, false));
 
 	// Create renderable for polygon
 	poly.lineColour = glm::vec3(0.f, 1.f, 0.f);
@@ -108,7 +103,7 @@ void Program::start() {
 	}
 	RenderEngine::setBufferData(poly, false);
 
-	airSig.gridInsertion(radius, 12, interior, boundary);
+	airSig.gridInsertion(radius, 11, interior, boundary);
 	root->insertAirSigmet(interior, boundary);
 	// end SIGMET insert prototype
 
