@@ -5,14 +5,14 @@
 
 #include "Camera.h"
 #include "RenderEngine.h"
-#include "SphericalGrid.h"
+
+#include "SdogDB.h"
 
 enum class RadialBound {
 	MAX,
 	MIN,
 	BOTH
 };
-
 
 class Program {
 
@@ -21,16 +21,14 @@ public:
 
 	void start();
 
-	void refreshGrid() { createGrid(info.scheme); }
-	void createGrid(Scheme scheme);
+	void createGrid();
 	void updateGrid();
 
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
-	void updateScale(float inc);
-	void updateRadialBounds(RadialBound b, int dir);
+	void updateScale(int inc);
 	void toggleSurfaceLocation();
 
-	void setDisplayMode(DisplayMode mode);
+	void setDisplayMode();
 	void updateViewLevel(int inc);
 
 private:
@@ -40,25 +38,21 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
-	GridInfo info;
-	SphericalData eqData;
-	SphericalData pathsData;
-	SphericalData sampleData;
-	SphericalData sampleData2;
-	SphericalGrid* root;
+	SdogDB* dataBase;
 
 	Renderable cells;
 	Renderable coastLines;
 
-	std::vector<Renderable*> objects;
+	std::vector<const Renderable*> objects;
 
 	int maxTreeDepth;
 	int viewLevel;
 
+	float radius;
+
+	float scale;
 	float latRot;
 	float longRot;
-
-	DisplayMode dispMode;
 
 	void setupWindow();
 	void mainLoop();

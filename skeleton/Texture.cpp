@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "Texture.h"
 
 #include <cmath>
@@ -8,8 +9,8 @@ GLuint Texture::create1DTexture(const std::vector<GLubyte>& rgbaValues) {
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_1D, textureID);
-    glTexStorage1D(GL_TEXTURE_1D, 1, GL_RGBA8, rgbaValues.size()*sizeof (GLubyte) / 4);
-    glTexSubImage1D(GL_TEXTURE_1D, 0, 0, rgbaValues.size()*sizeof (GLubyte) / 4, GL_RGBA, GL_UNSIGNED_BYTE, rgbaValues.data());
+    glTexStorage1D(GL_TEXTURE_1D, 1, GL_RGBA8, (GLsizei) rgbaValues.size()*sizeof (GLubyte) / 4);
+    glTexSubImage1D(GL_TEXTURE_1D, 0, 0, (GLsizei) rgbaValues.size()*sizeof (GLubyte) / 4, GL_RGBA, GL_UNSIGNED_BYTE, rgbaValues.data());
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

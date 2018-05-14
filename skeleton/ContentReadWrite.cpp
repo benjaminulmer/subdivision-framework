@@ -105,7 +105,7 @@ rapidjson::Document ContentReadWrite::readJSON(std::string path) {
 
 	// Get file length
 	file.seekg(0, file.end);
-	int length = file.tellg();
+	int length = (int) file.tellg();
 	file.seekg(0, file.beg);
 
 	// Read file into buffer and parse

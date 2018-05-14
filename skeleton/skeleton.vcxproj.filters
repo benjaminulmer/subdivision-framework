@@ -38,9 +38,6 @@
     <ClInclude Include="Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SphericalData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="lodepng.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -50,16 +47,16 @@
     <ClInclude Include="Constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SphericalCell.h">
+    <ClInclude Include="SdogDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SphericalGrid.h">
+    <ClInclude Include="SphCoord.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Frustum.h">
+    <ClInclude Include="SdogCell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SphGrid.h">
+    <ClInclude Include="AirSigmet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -88,9 +85,6 @@
     <ClCompile Include="Geometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SphericalData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="lodepng.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -100,16 +94,16 @@
     <ClCompile Include="Renderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SphericalCell.cpp">
+    <ClCompile Include="SdogDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SphericalGrid.cpp">
+    <ClCompile Include="SphCoord.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Frustum.cpp">
+    <ClCompile Include="SdogCell.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SphGrid.cpp">
+    <ClCompile Include="AirSigmet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

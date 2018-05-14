@@ -1,6 +1,9 @@
+#define _USE_MATH_DEFINES
 #include "Camera.h"
 
 #include <glm/gtx/rotate_vector.hpp>
+
+#include <cmath>
 
 #include "Constants.h"
 
@@ -54,8 +57,8 @@ glm::vec3 Camera::getLookDir() const {
 void Camera::setScale(float scale) {
 	curScale = scale;
 
-	eye = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL * scale + 30.f);
-	centre = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL * scale);
+	eye = glm::vec3(0.f, 0.f, RADIUS_EARTH_VIEW * scale + 30.f);
+	centre = glm::vec3(0.f, 0.f, RADIUS_EARTH_VIEW * scale);
 	latitudeRotRad = 0.f;
 }
 
@@ -73,12 +76,12 @@ void Camera::updateLatitudeRotation(float rad) {
 void Camera::updateZoom(int sign) {
 
 	if (sign < 0) {
-		eye.z = (eye.z - RADIUS_EARTH_MODEL) / zoomScale + RADIUS_EARTH_MODEL;
+		eye.z = (eye.z - RADIUS_EARTH_VIEW) / zoomScale + RADIUS_EARTH_VIEW;
 	}
 	else {
-		eye.z = (eye.z - RADIUS_EARTH_MODEL) * zoomScale + RADIUS_EARTH_MODEL;;
+		eye.z = (eye.z - RADIUS_EARTH_VIEW) * zoomScale + RADIUS_EARTH_VIEW;;
 	}
-	if (eye.z > 4.f * RADIUS_EARTH_MODEL) eye.z = 4.f * RADIUS_EARTH_MODEL;
+	if (eye.z > 4.f * RADIUS_EARTH_VIEW) eye.z = 4.f * RADIUS_EARTH_VIEW;
 }
 
 // Translates camera along x and y of view plane
@@ -103,9 +106,9 @@ void Camera::translate(const glm::vec3& planeTranslation) {
 
 // Reset camera to starting position
 void Camera::reset() {
-	eye = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL + 30.f);
+	eye = glm::vec3(0.f, 0.f, RADIUS_EARTH_VIEW + 30.f);
 	up = glm::vec3(0.f, 1.f, 0.f);
-	centre = glm::vec3(0.f, 0.f, RADIUS_EARTH_MODEL);
+	centre = glm::vec3(0.f, 0.f, RADIUS_EARTH_VIEW);
 
 	longitudeRotRad = 0;
 	latitudeRotRad = 0;

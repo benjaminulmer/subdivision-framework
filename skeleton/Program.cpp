@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "Program.h"
 
 #include <GL/glew.h>
@@ -10,31 +11,28 @@
 
 #include "Constants.h"
 #include "ContentReadWrite.h"
-#include "Frustum.h"
 #include "InputHandler.h"
+#include "AirSigmet.h"
+#include "SdogCell.h"
+#include "SphCoord.h"
 
 Program::Program() {
 
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
-	root = nullptr;
+	dataBase = nullptr;
 
 	maxTreeDepth = 0;
 	viewLevel = 7;
 	longRot = 0;
 	latRot = 0;
-	dispMode = DisplayMode::DATA;
 
 	width = height = 800;
 }
 
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
-
-	//std::cout << root->codeForPos(-3.0, -91.0, RADIUS_EARTH_KM + 1.0, 5) << std::endl;
-
-	std::cout << SphericalGrid::numCells(9) << std::endl;
 
 	setupWindow();
 	GLenum err = glewInit();
@@ -53,35 +51,8 @@ void Program::start() {
 	cells.fade = true;
 
 	// Set starting radius
-	info.scale = 1.f;
-	info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
-	info.cullMaxRadius = 0.75 * info.radius + (20.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
-	info.cullMinRadius = 0.75 * info.radius - (10.0 / RADIUS_EARTH_KM) * RADIUS_EARTH_MODEL;
-
-	// Load earthquake data set
-	rapidjson::Document d1 = ContentReadWrite::readJSON("data/eq-2017.json");
-	rapidjson::Document m1 = ContentReadWrite::readJSON("data/eq-2017m.json");
-	eqData = SphericalData(d1, m1);
-
-	rapidjson::Document d2 = ContentReadWrite::readJSON("data/cat5paths.json");
-	rapidjson::Document m2 = ContentReadWrite::readJSON("data/cat5pathsm.json");
-	pathsData = SphericalData(d2, m2);
-
-	rapidjson::Document d3 = ContentReadWrite::readJSON("data/samplePath.json");
-	rapidjson::Document m3 = ContentReadWrite::readJSON("data/samplePathm.json");
-	sampleData = SphericalData(d3, m3);
-
-	rapidjson::Document d4 = ContentReadWrite::readJSON("data/samplePath2.json");
-	rapidjson::Document m4 = ContentReadWrite::readJSON("data/samplePath2m.json");
-	sampleData2 = SphericalData(d4, m4);
-
-	for (int i = 0; i < 4; i++) {
-		pathsData.linSub();
-		sampleData.linSub();
-		sampleData.linSub();
-		sampleData2.linSub();
-		sampleData2.linSub();
-	}
+	scale = 1.f;
+	radius = RADIUS_EARTH_KM * 4.f / 3.f;
 
 	// Load coatline data set
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
@@ -91,15 +62,42 @@ void Program::start() {
 	RenderEngine::setBufferData(coastLines, false);
 
 	float s = 1.f + std::numeric_limits<float>::epsilon();
-	coastLines.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
+	coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
 	// Create grid
-	createGrid(Scheme::SDOG);
+	createGrid();
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
 	objects.push_back(&cells);
 
+	// SIGMET insert prototype
+
+	// Set up dummy data
+	AirSigmet airSig;
+	airSig.validFrom = "test begin";
+	airSig.validUntil = "test end";
+	airSig.dirDeg = 69;
+	airSig.speedKT = 5;
+	airSig.type = -1;
+	airSig.hazard = 420;
+	airSig.severity = 999;
+
+
+	airSig.minAltKM = radius * 0.750001f;
+	airSig.maxAltKM = radius * 0.76f;
+
+	airSig.polygon.push_back(SphCoord(2.0, -3.0, false));
+	airSig.polygon.push_back(SphCoord(4.0, -1.0, false));
+	airSig.polygon.push_back(SphCoord(3.0, 2.0, false));
+	airSig.polygon.push_back(SphCoord(1.0, 0.0, false));
+
+	std::vector<std::string> interior, boundary;
+	airSig.gridInsertion(radius, 11, interior, boundary);
+	dataBase->insertAirSigmet(interior, boundary, airSig);
+	// end SIGMET insert prototype
+
+	updateGrid();
 	mainLoop();
 }
 
@@ -146,53 +144,31 @@ void Program::mainLoop() {
 		}
 
 		float far = glm::length(camera->getPosition() - glm::vec3(0.f, 0.f, 0.f));
-		info.frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), far);
+		//info.frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), far);
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
 		glm::vec3 cameraPos = camera->getPosition();
-		float max = glm::length(cameraPos) + RADIUS_EARTH_MODEL;
-		float min = glm::length(cameraPos) - RADIUS_EARTH_MODEL;
+		float max = glm::length(cameraPos) + RADIUS_EARTH_VIEW;
+		float min = glm::length(cameraPos) - RADIUS_EARTH_VIEW;
 
-		cells.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
-		coastLines.rot = glm::rotate(latRot, glm::vec3(-1.f, 0.f, 0.f)) * glm::rotate(longRot, glm::vec3(0.f, 1.f, 0.f));
+		glm::mat4 worldModel(1.f);
+		float s = (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
+		worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
+		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
+		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
 
-		renderEngine->render(objects, camera->getLookAt(), max, min);
+		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
 		SDL_GL_SwapWindow(window);
 	}
+
+	delete dataBase;
 }
 
 // Sets the scheme that will be used for subdivision
-void Program::createGrid(Scheme scheme) {
+void Program::createGrid() {
 
-	delete root;
-	info.scheme = scheme;
-	root = new SphericalGrid(info);
-
-	// Set max number of grids depending on subdivision scheme
-	// These might need to be tweaked
-	int max = 1600000;
-
-	root->fillData(eqData);
-	root->fillData(pathsData);
-	root->fillData(sampleData);
-	root->fillData(sampleData2);
-
-	// Determine max number of subdivision levels that can be reasonably supported
-	int level = 0;
-	while (true) {
-
-		std::cout << level << std::endl;
-
-		int numGrids = root->countLeafs();
-		if (numGrids < max) {
-			level++;
-			root->subdivide();
-		}
-		else {
-			maxTreeDepth = level;
-			break;
-		}
-	}
+	delete dataBase;
+	dataBase = new SdogDB("test.db", radius);
 	updateGrid();
 }
 
@@ -202,7 +178,10 @@ void Program::updateGrid() {
 	cells.verts.clear();
 	cells.colours.clear();
 
-	root->createRenderable(cells, viewLevel, dispMode);
+	cells.lineColour = glm::vec3(0.9, 0.f, 0.f);
+
+	//root->createRenderable(cells, viewLevel);
+	//SdogDB::createRenderable(cells, interior, radius, 13);
 	RenderEngine::setBufferData(cells, false);
 }
 
@@ -213,16 +192,16 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 	glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();
 	glm::mat4 invProjView = glm::inverse(projView);
 
-	float oldXN = (2.0 * oldX) / (width) - 1.0; 
-	float oldYN = (2.0 * oldY) / (height) - 1.0;
+	float oldXN = (2.f * oldX) / (width) - 1.f; 
+	float oldYN = (2.f * oldY) / (height) - 1.f;
 	oldYN *= -1.0;
 
-	float newXN = (2.0 * newX) / (width) - 1.0; 
-	float newYN = (2.0 * newY) / (height) - 1.0;
-	newYN *= -1.0;
+	float newXN = (2.f * newX) / (width) - 1.f; 
+	float newYN = (2.f * newY) / (height) - 1.f;
+	newYN *= -1.f;
 
-	glm::vec4 worldOld(oldXN, oldYN, -1.0, 1.0);
-	glm::vec4 worldNew(newXN, newYN, -1.0, 1.0);
+	glm::vec4 worldOld(oldXN, oldYN, -1.f, 1.f);
+	glm::vec4 worldNew(newXN, newYN, -1.f, 1.f);
 
 	worldOld = invProjView * worldOld; 
 
@@ -239,7 +218,7 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 	glm::vec3 rayO = camera->getPosition();
 	glm::vec3 rayDOld = glm::normalize(glm::vec3(worldOld) - rayO);
 	glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
-	float sphereRad = RADIUS_EARTH_MODEL * info.scale;
+	float sphereRad = RADIUS_EARTH_VIEW * scale;
 	glm::vec3 sphereO = glm::vec3(0.f, 0.f, 0.f);
 
 	glm::vec3 iPosOld, iPosNew, iNorm;
@@ -248,10 +227,10 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 			glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
 
 		float longOld = atan(iPosOld.x / iPosOld.z);
-		float latOld = M_PI / 2.0 - acos(iPosOld.y / sphereRad);
+		float latOld = (float)( M_PI / 2.f - acos(iPosOld.y / sphereRad) );
 
 		float longNew = atan(iPosNew.x / iPosNew.z);
-		float latNew = M_PI / 2.0 - acos(iPosNew.y / sphereRad);
+		float latNew = (float)( M_PI / 2.f - acos(iPosNew.y / sphereRad) );
 
 		if (skew) {
 			camera->updateLatitudeRotation(latNew - latOld);
@@ -264,65 +243,33 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 }
 
 // Changes scale of model
-void Program::updateScale(float inc) {
+void Program::updateScale(int inc) {
 
 	if (inc < 0) {
-		info.scale /= 1.4f;
+		scale /= 1.4f;
 	}
 	else {
-		info.scale *= 1.4f;
+		scale *= 1.4f;
 	}
-	camera->setScale(info.scale);
-
-	float s = 1.f + std::numeric_limits<float>::epsilon();
-	cells.scale = glm::scale(glm::vec3(info.scale, info.scale, info.scale));
-	coastLines.scale = glm::scale(glm::vec3(s * info.scale, s * info.scale, s * info.scale));
-}
-
-// Updates radial bounds for culling
-void Program::updateRadialBounds(RadialBound b, int dir) {
-
-	double amount = info.radius / maxTreeDepth / 2.0;
-
-	if (b == RadialBound::MAX) {
-		info.cullMaxRadius += dir * amount;
-
-	}
-	else if (b == RadialBound::MIN) {
-		info.cullMinRadius += dir * amount;
-
-	}
-	else {//b == RadialBound::BOTH
-		info.cullMinRadius += dir * amount;
-		info.cullMaxRadius += dir * amount;
-	}
-
-	// Bounds enforcing
-	if (info.cullMinRadius < 0.0) info.cullMinRadius = 0.0;
-	if (info.cullMaxRadius > info.radius) info.cullMaxRadius = info.radius;
-	if (info.cullMinRadius > info.cullMaxRadius) info.cullMinRadius = info.cullMaxRadius;
-	if (info.cullMaxRadius < info.cullMinRadius) info.cullMaxRadius = info.cullMinRadius;
-
-	// Temp until visual representation
-	std::cout << info.cullMinRadius << ", " << info.cullMaxRadius << std::endl;
+	camera->setScale(scale);
 }
 
 // Toggles location of surface between 0.5 and 0.75
 void Program::toggleSurfaceLocation() {
 
-	if (info.radius == RADIUS_EARTH_MODEL * 2.0) {
-		info.radius = RADIUS_EARTH_MODEL * 4.0 / 3.0;
+	if (radius == RADIUS_EARTH_VIEW * 2.f) {
+		radius = RADIUS_EARTH_VIEW * 4.f / 3.f;
 	}
 	else {
-		info.radius = RADIUS_EARTH_MODEL * 2.0;
+		radius = RADIUS_EARTH_VIEW * 2.f;
 	}
-	refreshGrid();
+	createGrid();
 }
 
 // Sets display mode for rendering
-void Program::setDisplayMode(DisplayMode mode) {
-	dispMode = mode;
-	updateGrid();
+void Program::setDisplayMode() {
+	//dispMode = mode;
+	//updateGrid();
 }
 
 // Update subdivision level of rendering
