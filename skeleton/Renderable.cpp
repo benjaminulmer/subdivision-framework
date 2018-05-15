@@ -7,14 +7,14 @@
 #include <cmath>
 
 // Creates a renderable of the geometry specified in json document
-Renderable::Renderable(rapidjson::Document& d) : Renderable() {
+Renderable::Renderable(const rapidjson::Document& d) : Renderable() {
 	drawMode = GL_LINES;
 
-	rapidjson::Value& featuresArray = d["features"];
+	const rapidjson::Value& featuresArray = d["features"];
 
 	// Loop over lines in data file
 	for (rapidjson::SizeType i = 0; i < featuresArray.Size(); i++) {
-		rapidjson::Value& coordArray = featuresArray[i]["geometry"]["coordinates"];
+		const rapidjson::Value& coordArray = featuresArray[i]["geometry"]["coordinates"];
 
 		for (rapidjson::SizeType j = 0; j < coordArray.Size(); j++) {
 			float lng = (float)( coordArray[j][0].GetDouble() * M_PI / 180.f );

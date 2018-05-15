@@ -300,6 +300,47 @@ void SdogCell::neighbours(std::vector<std::string>& out) {
 }
 
 
+
+void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour) {
+
+	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRad;
+	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRad;
+	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRad;
+	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRad;
+
+	// Inner points
+	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRad;
+	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRad;
+	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRad;
+	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRad;
+
+	// Outside and inside
+	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
+	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
+
+	r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
+	r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
+
+	// Sides
+	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
+	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
+
+	r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
+	r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
+
+	// Top and bottom
+	r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
+	r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
+
+	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
+	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
+
+	for (int i = 0; i < 36; i++) {
+		r.colours.push_back(colour);
+	}
+}
+
+
 // Returns the SDOG cell code for the provided spherical point at a given subdivision level
 //
 // latRad - latitude of point, in radians

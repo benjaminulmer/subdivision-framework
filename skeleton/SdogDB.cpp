@@ -192,6 +192,27 @@ void SdogDB::insertCell(const std::string& code) {
 }
 
 
+void SdogDB::getAirSigmetCells(std::vector<std::string>& interior, std::vector<std::string>& boundary) {
+
+	char* sql = "SELECT c.code, r.boundary FROM cells AS c, cellHasAirSigmet AS r WHERE r.cellID = c.cellID";
+	sqlite3_stmt* stmt;
+	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+
+		std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		
+		if (sqlite3_column_int(stmt, 1)) {
+			boundary.push_back(code);
+		}
+		else {
+			interior.push_back(code);
+		}
+	}
+	sqlite3_finalize(stmt);
+}
+
+
 // Inserts a list of codes into the DB
 //
 // codes - vector of codes for cells to insert

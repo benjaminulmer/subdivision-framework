@@ -1,5 +1,7 @@
 #pragma once
 
+#include <rapidjson/document.h>
+
 #include <string>
 #include <vector>
 
@@ -43,6 +45,7 @@ struct AirSigmet {
 	int severity;
 	int type;
 
-	void gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary);
+	void gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) const;
+	static void readFromJson(const rapidjson::Document& d, std::vector<AirSigmet>& out);
 };
 

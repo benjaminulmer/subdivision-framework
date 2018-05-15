@@ -21,7 +21,7 @@ class Renderable {
 
 public:
 	Renderable() : lineColour(glm::vec3(1.f, 1.f, 1.f)), vao(0), vertexBuffer(0), colourBuffer(0), uvBuffer(0), textureID(0), fade(false), drawMode(0) {}
-	Renderable(rapidjson::Document& d);
+	Renderable(const rapidjson::Document& d);
 
 	std::vector<glm::vec3> verts;
 	std::vector<glm::vec3> colours;

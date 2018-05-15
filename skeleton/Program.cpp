@@ -64,40 +64,46 @@ void Program::start() {
 	float s = 1.f + std::numeric_limits<float>::epsilon();
 	coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
-	// Create grid
-	createGrid();
+	// Create grid database connection
+	dataBase = new SdogDB("test.db", radius);
+
+	// Load and insert sigmet data
+	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
+	std::vector<AirSigmet> airSigmets;
+	AirSigmet::readFromJson(sig, airSigmets);
+
+	for (const AirSigmet& a : airSigmets) {
+		std::vector<std::string> interior, boundary;
+		a.gridInsertion(radius, 10, interior, boundary);
+		dataBase->insertAirSigmet(interior, boundary, a);
+	}
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
 	objects.push_back(&cells);
 
-	// SIGMET insert prototype
-
-	// Set up dummy data
-	AirSigmet airSig;
-	airSig.validFrom = "test begin";
-	airSig.validUntil = "test end";
-	airSig.dirDeg = 69;
-	airSig.speedKT = 5;
-	airSig.type = -1;
-	airSig.hazard = 420;
-	airSig.severity = 999;
-
-
-	airSig.minAltKM = radius * 0.750001f;
-	airSig.maxAltKM = radius * 0.76f;
-
-	airSig.polygon.push_back(SphCoord(2.0, -3.0, false));
-	airSig.polygon.push_back(SphCoord(4.0, -1.0, false));
-	airSig.polygon.push_back(SphCoord(3.0, 2.0, false));
-	airSig.polygon.push_back(SphCoord(1.0, 0.0, false));
-
+	// Draw stuff
 	std::vector<std::string> interior, boundary;
-	airSig.gridInsertion(radius, 11, interior, boundary);
-	dataBase->insertAirSigmet(interior, boundary, airSig);
-	// end SIGMET insert prototype
+	dataBase->getAirSigmetCells(interior, boundary);
 
-	updateGrid();
+	cells.lineColour = glm::vec3(0.8, 0.6f, 0.f);
+	cells.drawMode = GL_TRIANGLES;
+
+	int i = 0;
+	for (std::string code : boundary) {
+	
+		if (code.length() < 11) continue;
+
+		double ratio = (double)i / (double)boundary.size();
+
+		SdogCell cell(code, radius);
+		cell.addToRenderable(cells, glm::vec3(ratio, ratio, 0.5f));
+
+		i++;
+	}
+	RenderEngine::setBufferData(cells, false);
+
+	//updateGrid();
 	mainLoop();
 }
 
@@ -152,7 +158,7 @@ void Program::mainLoop() {
 		float min = glm::length(cameraPos) - RADIUS_EARTH_VIEW;
 
 		glm::mat4 worldModel(1.f);
-		float s = (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
+		float s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
 		worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
 		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
 		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
@@ -168,7 +174,7 @@ void Program::mainLoop() {
 void Program::createGrid() {
 
 	delete dataBase;
-	dataBase = new SdogDB("test.db", radius);
+	
 	updateGrid();
 }
 

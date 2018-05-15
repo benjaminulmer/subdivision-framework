@@ -1,8 +1,10 @@
 #include "AirSigmet.h"
 
 #include "SdogCell.h"
+#include "Constants.h"
 
-void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) {
+#include <iostream>
+void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) const {
 
 	enum {
 		NONE = -1,
@@ -98,10 +100,10 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 			}
 		}
 		// Veritcal test
-		if (c.getMinRad() > minAltKM && c.getMaxRad() < maxAltKM) {
+		if (c.getMinRad() > minAltKM + RADIUS_EARTH_KM && c.getMaxRad() < maxAltKM + RADIUS_EARTH_KM) {
 			vertical = INTER;
 		}
-		else if (c.getMaxRad() < minAltKM || c.getMinRad() > maxAltKM) {
+		else if (c.getMaxRad() < minAltKM + RADIUS_EARTH_KM || c.getMinRad() > maxAltKM + RADIUS_EARTH_KM) {
 			vertical = EXTER;
 		}
 		else {
@@ -124,5 +126,40 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 				}
 			}
 		}
+	}
+}
+
+
+void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet>& out) {
+
+	const rapidjson::Value& airSigArray = d["data"]["AIRSIGMET"];
+
+	for (rapidjson::SizeType i = 0; i < airSigArray.Size(); i++) {
+
+		AirSigmet next;
+		const rapidjson::Value& entry = airSigArray[i];
+
+		next.validFrom = entry["valid_time_from"].GetString();
+		next.validUntil = entry["valid_time_to"].GetString();
+
+		next.dirDeg = (entry.HasMember("movement_dir_degrees")) ? std::stoi(entry["movement_dir_degrees"].GetString()) : 0;
+		next.speedKT = (entry.HasMember("movement_speed_kt")) ? std::stoi(entry["movement_speed_kt"].GetString()) : 0;
+
+		if (entry.HasMember("altitude")) {
+
+			int minFT = (entry["altitude"].HasMember("min_ft_msl")) ? std::stoi(entry["altitude"]["min_ft_msl"].GetString()) : 0;
+			int maxFT = (entry["altitude"].HasMember("max_ft_msl")) ? std::stoi(entry["altitude"]["max_ft_msl"].GetString()) : 0;
+
+			next.minAltKM = minFT * (0.3048 / 1000.0);
+			next.maxAltKM = (maxFT > 0) ? maxFT * (0.3048 / 1000.0) : 30.0;
+		}
+
+		const rapidjson::Value& pointArray = entry["area"]["point"];
+
+		for (rapidjson::SizeType j = 0; j < pointArray.Size() - 1; j++) {
+			next.polygon.push_back(SphCoord(std::stod(pointArray[j]["latitude"].GetString()), std::stod(pointArray[j]["longitude"].GetString()), false));
+		}
+
+		out.push_back(next);
 	}
 }

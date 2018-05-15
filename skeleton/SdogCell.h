@@ -1,7 +1,11 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include <string>
 #include <vector>
+
+#include "Renderable.h"
 
 // Enum for the three different SDOG cell types plus an invalid cell code flag
 enum class SdogCellType {
@@ -31,6 +35,8 @@ public:
 
 	void children(std::vector<std::string>& out);
 	void neighbours(std::vector<std::string>& out);
+
+	void addToRenderable(Renderable& r, const glm::vec3& colour);
 
 	static std::string codeForPos(double latRad, double longRad, double radius, double gridRadius, unsigned int level);
 	static bool codeIsValid(std::string code);
