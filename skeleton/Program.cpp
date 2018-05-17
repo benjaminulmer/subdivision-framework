@@ -106,7 +106,7 @@ void Program::start() {
 	int i = -1;
 	for (const AirSigmetCells& datum : data) {
 		i++;
-		if (i != 10) continue;
+		if (i != 11) continue;
 
 
 		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
