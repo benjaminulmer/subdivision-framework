@@ -29,7 +29,7 @@ SdogDB::SdogDB(const std::string& path, double radius) : radius(radius) {
 
 	char* tab1 = "CREATE TABLE cells (cellID INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE);";
 
-	char* tab2 = "CREATE TABLE airSigmet (airSigmetID INTEGER PRIMARY KEY AUTOINCREMENT, validFrom TEXT, validUntil TEXT,"
+	char* tab2 = "CREATE TABLE airSigmets (airSigmetID INTEGER PRIMARY KEY AUTOINCREMENT, validFrom TEXT, validUntil TEXT,"
 	             "minAltKM REAL, maxAltKM REAL, dirDeg INTEGER, speedKT INTEGER, hazard INTEGER, severity INTEGER, type INTEGER)";
 
 	char* tab3 = "CREATE TABLE airSigmetBounds (airSigmetID INTEGER, number INTEGER, latRad REAL, longRad REAL,"
@@ -74,7 +74,7 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 	sqlite3_stmt *insert0Stmt, *insert1Stmt, *insert2Stmt, *selectStmt;
 
 	// Insert AirSigmet data into DB
-	char* sqlInsert0 = "INSERT INTO airSigmet(validFrom, validUntil, minAltKM, maxAltKM, dirDeg, speedKT, hazard, severity, type)"
+	char* sqlInsert0 = "INSERT INTO airSigmets(validFrom, validUntil, minAltKM, maxAltKM, dirDeg, speedKT, hazard, severity, type)"
 	                   "VALUES (@VF, @VU, @MIN, @MAX, @DIR, @SPD, @HAZ, @SEV, @TYP)";
 
 	sqlite3_prepare_v2(db, sqlInsert0, -1, &insert0Stmt, NULL);
@@ -84,9 +84,9 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 	sqlite3_bind_double(insert0Stmt, 4, airSigmet.maxAltKM);
 	sqlite3_bind_int(insert0Stmt, 5, airSigmet.dirDeg);
 	sqlite3_bind_int(insert0Stmt, 6, airSigmet.speedKT);
-	sqlite3_bind_int(insert0Stmt, 7, airSigmet.hazard);
-	sqlite3_bind_int(insert0Stmt, 8, airSigmet.severity);
-	sqlite3_bind_int(insert0Stmt, 9, airSigmet.type);
+	sqlite3_bind_int(insert0Stmt, 7, (int)airSigmet.hazard);
+	sqlite3_bind_int(insert0Stmt, 8, (int)airSigmet.severity);
+	sqlite3_bind_int(insert0Stmt, 9, (int)airSigmet.type);
 	sqlite3_step(insert0Stmt);
 	sqlite3_finalize(insert0Stmt);
 
@@ -191,25 +191,63 @@ void SdogDB::insertCell(const std::string& code) {
 	sqlite3_finalize(stmt);
 }
 
+#include <iostream>
+void SdogDB::getAirSigmetCells(std::vector<AirSigmetCells>& out) {
 
-void SdogDB::getAirSigmetCells(std::vector<std::string>& interior, std::vector<std::string>& boundary) {
+	sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, NULL);
+	char* sqlAirSigs = "SELECT airSigmetID, validFrom, validUntil, minAltKM, maxAltKM, dirDeg, speedKT, hazard, severity, type FROM airSigmets";
+	sqlite3_stmt* airSigsStmt;
+	sqlite3_prepare_v2(db, sqlAirSigs, -1, &airSigsStmt, NULL);
 
-	char* sql = "SELECT c.code, r.boundary FROM cells AS c, cellHasAirSigmet AS r WHERE r.cellID = c.cellID";
-	sqlite3_stmt* stmt;
-	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+	while (sqlite3_step(airSigsStmt) != SQLITE_DONE) {
+		AirSigmetCells a;
 
-	while (sqlite3_step(stmt) != SQLITE_DONE) {
+		int airSigID = sqlite3_column_int(airSigsStmt, 0);
+		a.airSigmet.validFrom = std::string(reinterpret_cast<const char*>(sqlite3_column_text(airSigsStmt, 1)));
+		a.airSigmet.validUntil = std::string(reinterpret_cast<const char*>(sqlite3_column_text(airSigsStmt, 2)));
+		a.airSigmet.minAltKM = sqlite3_column_double(airSigsStmt, 3);
+		a.airSigmet.maxAltKM = sqlite3_column_double(airSigsStmt, 4);
+		a.airSigmet.dirDeg = sqlite3_column_int(airSigsStmt, 5);
+		a.airSigmet.speedKT = sqlite3_column_int(airSigsStmt, 6);
+		a.airSigmet.hazard = (HazardType)sqlite3_column_int(airSigsStmt, 7);
+		a.airSigmet.severity = (Severity)sqlite3_column_int(airSigsStmt, 8);
+		a.airSigmet.type = (AirSigmetType)sqlite3_column_int(airSigsStmt, 9);
 
-		std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-		
-		if (sqlite3_column_int(stmt, 1)) {
-			boundary.push_back(code);
+		char* sqlBounds = "SELECT b.latRad, b.longRad FROM airSigmets as a, airSigmetBounds as b WHERE b.airSigmetID = @ID";
+		sqlite3_stmt* boundsStmt;
+		sqlite3_prepare_v2(db, sqlBounds, -1, &boundsStmt, NULL);
+		sqlite3_bind_int(boundsStmt, 1, airSigID);
+
+		while (sqlite3_step(boundsStmt) != SQLITE_DONE) {
+
+			SphCoord c(sqlite3_column_double(boundsStmt, 0), sqlite3_column_double(boundsStmt, 1));
+			a.airSigmet.polygon.push_back(c);
 		}
-		else {
-			interior.push_back(code);
+
+		char* sqlCells = "SELECT c.code, r.boundary FROM cells as c, cellHasAirSigmet as r WHERE r.cellID = c.cellID AND r.airSigmetID = @ID";
+		sqlite3_stmt* cellsStmt;
+		sqlite3_prepare_v2(db, sqlCells, -1, &cellsStmt, NULL);
+		sqlite3_bind_int(cellsStmt, 1, airSigID);
+
+		while (sqlite3_step(cellsStmt) != SQLITE_DONE) {
+
+			std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(cellsStmt, 0)));
+			bool boundary = sqlite3_column_int(cellsStmt, 1);
+
+			if (boundary) {
+				a.boundary.push_back(code);
+			}
+			else {
+				a.interior.push_back(code);
+			}
 		}
+		out.push_back(a);
+
+		sqlite3_finalize(boundsStmt);
+		sqlite3_finalize(cellsStmt);
 	}
-	sqlite3_finalize(stmt);
+	sqlite3_finalize(airSigsStmt);
+	sqlite3_exec(db, "END TRANSACTION", NULL, NULL, NULL);
 }
 
 

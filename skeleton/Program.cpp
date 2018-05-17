@@ -31,6 +31,7 @@ Program::Program() {
 	width = height = 800;
 }
 
+#include "Geometry.h"
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
 
@@ -48,7 +49,11 @@ void Program::start() {
 
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
+	RenderEngine::assignBuffers(polys, false);
+	RenderEngine::assignBuffers(bound, false);
 	cells.fade = true;
+	polys.fade = true;
+	bound.fade = true;
 
 	// Set starting radius
 	scale = 1.f;
@@ -72,36 +77,67 @@ void Program::start() {
 	std::vector<AirSigmet> airSigmets;
 	AirSigmet::readFromJson(sig, airSigmets);
 
-	for (const AirSigmet& a : airSigmets) {
-		std::vector<std::string> interior, boundary;
-		a.gridInsertion(radius, 10, interior, boundary);
-		dataBase->insertAirSigmet(interior, boundary, a);
-	}
+	//int c = 0;
+	//for (const AirSigmet& a : airSigmets) {
+	//	std::cout << c << std::endl;
+	//	std::vector<std::string> interior, boundary;
+	//	a.gridInsertion(radius, 10, interior, boundary);
+	//	dataBase->insertAirSigmet(interior, boundary, a);
+	//	c++;
+	//}
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
 	objects.push_back(&cells);
+	objects.push_back(&polys);
+	objects.push_back(&bound);
 
 	// Draw stuff
-	std::vector<std::string> interior, boundary;
-	dataBase->getAirSigmetCells(interior, boundary);
+	std::vector<AirSigmetCells> data;
+	dataBase->getAirSigmetCells(data);
 
 	cells.lineColour = glm::vec3(0.8, 0.6f, 0.f);
 	cells.drawMode = GL_TRIANGLES;
 
-	int i = 0;
-	for (std::string code : boundary) {
-	
-		if (code.length() < 11) continue;
 
-		double ratio = (double)i / (double)boundary.size();
+	bound.lineColour = glm::vec3(0.8, 0.6f, 0.f);
+	bound.drawMode = GL_TRIANGLES;
 
-		SdogCell cell(code, radius);
-		cell.addToRenderable(cells, glm::vec3(ratio, ratio, 0.5f));
-
+	int i = -1;
+	for (const AirSigmetCells& datum : data) {
 		i++;
+		if (i != 10) continue;
+
+
+		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
+		polys.drawMode = GL_LINES;
+		for (int i = 0; i < datum.airSigmet.polygon.size(); i++) {
+			glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			Geometry::createArcR(v1, v2, glm::vec3(), polys);
+		}
+		RenderEngine::setBufferData(polys, false);
+
+
+		for (const std::string& code : datum.interior) {
+			
+			if (code.length() < 11) continue;
+
+			SdogCell cell(code, radius);
+			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
+		}
+
+		for (const std::string& code : datum.boundary) {
+
+			if (code.length() < 11) continue;
+
+			SdogCell cell(code, radius);
+			cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f));
+		}
+
 	}
 	RenderEngine::setBufferData(cells, false);
+	RenderEngine::setBufferData(bound, false);
 
 	//updateGrid();
 	mainLoop();

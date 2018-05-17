@@ -16,7 +16,7 @@ public:
 	virtual ~SdogDB();
 
 	void insertAirSigmet(const std::vector<std::string>& interior, const std::vector<std::string>& boundary, const AirSigmet& airSigmet);
-	void getAirSigmetCells(std::vector<std::string>& interior, std::vector<std::string>& boundary);
+	void getAirSigmetCells(std::vector<AirSigmetCells>& out);
 
 private:
 	sqlite3* db;

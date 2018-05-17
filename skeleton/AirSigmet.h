@@ -8,12 +8,14 @@
 #include "SphCoord.h"
 
 enum class AirSigmetType {
+	NONE,
 	OUTLOOK,
 	AIRMET,
 	SIGMET
 };
 
 enum class HazardType {
+	NONE,
 	MTN,
 	OBSCN,
 	IFR,
@@ -41,11 +43,21 @@ struct AirSigmet {
 	std::string validUntil;
 	int dirDeg;
 	int speedKT;
-	int hazard;
-	int severity;
-	int type;
+	HazardType hazard;
+	Severity severity;
+	AirSigmetType type;
 
 	void gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) const;
+
 	static void readFromJson(const rapidjson::Document& d, std::vector<AirSigmet>& out);
+	static AirSigmetType stringToAirSigmetType(const std::string& s);
+	static HazardType stringToHazardType(const std::string& s);
+	static Severity stringToSeverity(const std::string& s);
 };
 
+struct AirSigmetCells {
+
+	AirSigmet airSigmet;
+	std::vector<std::string> interior;
+	std::vector<std::string> boundary;
+};

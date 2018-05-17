@@ -3,7 +3,7 @@
 #include "SdogCell.h"
 #include "Constants.h"
 
-#include <iostream>
+
 void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) const {
 
 	enum {
@@ -132,7 +132,7 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 
 void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet>& out) {
 
-	const rapidjson::Value& airSigArray = d["data"]["AIRSIGMET"];
+	const rapidjson::Value& airSigArray = d["response"]["data"]["AIRSIGMET"];
 
 	for (rapidjson::SizeType i = 0; i < airSigArray.Size(); i++) {
 
@@ -141,14 +141,24 @@ void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet
 
 		next.validFrom = entry["valid_time_from"].GetString();
 		next.validUntil = entry["valid_time_to"].GetString();
+		next.type = stringToAirSigmetType(entry["airsigmet_type"].GetString());
 
 		next.dirDeg = (entry.HasMember("movement_dir_degrees")) ? std::stoi(entry["movement_dir_degrees"].GetString()) : 0;
 		next.speedKT = (entry.HasMember("movement_speed_kt")) ? std::stoi(entry["movement_speed_kt"].GetString()) : 0;
 
+		if (entry.HasMember("hazard")) {
+
+			std::string type = (entry["hazard"].HasMember("_type")) ? entry["hazard"]["_type"].GetString() : "";
+			std::string sev = (entry["hazard"].HasMember("_severity")) ? entry["hazard"]["_severity"].GetString() : "";
+
+			next.hazard = stringToHazardType(type);
+			next.severity = stringToSeverity(sev);
+		}
+
 		if (entry.HasMember("altitude")) {
 
-			int minFT = (entry["altitude"].HasMember("min_ft_msl")) ? std::stoi(entry["altitude"]["min_ft_msl"].GetString()) : 0;
-			int maxFT = (entry["altitude"].HasMember("max_ft_msl")) ? std::stoi(entry["altitude"]["max_ft_msl"].GetString()) : 0;
+			int minFT = (entry["altitude"].HasMember("_min_ft_msl")) ? std::stoi(entry["altitude"]["_min_ft_msl"].GetString()) : 0;
+			int maxFT = (entry["altitude"].HasMember("_max_ft_msl")) ? std::stoi(entry["altitude"]["_max_ft_msl"].GetString()) : 0;
 
 			next.minAltKM = minFT * (0.3048 / 1000.0);
 			next.maxAltKM = (maxFT > 0) ? maxFT * (0.3048 / 1000.0) : 30.0;
@@ -161,5 +171,68 @@ void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet
 		}
 
 		out.push_back(next);
+	}
+}
+
+AirSigmetType AirSigmet::stringToAirSigmetType(const std::string& s) {
+
+	if (s == "OUTLOOK") {
+		return AirSigmetType::OUTLOOK;
+	}
+	else if (s == "AIRMET") {
+		return AirSigmetType::AIRMET;
+	}
+	else if (s == "SIGMET") {
+		return AirSigmetType::SIGMET;
+	}
+	else {
+		return AirSigmetType::NONE;
+	}
+}
+
+HazardType AirSigmet::stringToHazardType(const std::string& s) {
+
+	if (s == "MTN") {
+		return HazardType::MTN;
+	}
+	else if (s == "OBSCN") {
+		return HazardType::OBSCN;
+	}
+	else if (s == "IFR") {
+		return HazardType::IFR;
+	}
+	else if (s == "TURB") {
+		return HazardType::TURB;
+	}
+	else if (s == "ICE") {
+		return HazardType::ICE;
+	}
+	else if (s == "CONVECTIVE") {
+		return HazardType::CONVECTIVE;
+	}
+	else if (s == "ASH") {
+		return HazardType::ASH;
+	}
+	else {
+		return HazardType::NONE;
+	}
+}
+
+Severity AirSigmet::stringToSeverity(const std::string& s) {
+
+	if (s == "LT-MOD") {
+		return Severity::LT_MOD;
+	}
+	else if (s == "MOD") {
+		return Severity::MOD;
+	}
+	else if (s == "MOD-SEV") {
+		return Severity::MOD_SEV;
+	}
+	else if (s == "SEV") {
+		return Severity::SEV;
+	}
+	else {
+		return Severity::NONE;
 	}
 }

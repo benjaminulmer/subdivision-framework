@@ -48,6 +48,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		if (key == SDLK_r) {
 			//program->refreshGrid();
 		}
+		else if (key == SDLK_b) {
+			program->thing();
+		}
 		else if (key == SDLK_1) {
 			//program->createGrid(Scheme::SDOG);
 		}

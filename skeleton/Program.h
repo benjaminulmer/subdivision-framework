@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <SDL2/SDL.h>
 #undef main
 
@@ -31,6 +33,17 @@ public:
 	void setDisplayMode();
 	void updateViewLevel(int inc);
 
+	bool state = true;
+	void thing() {
+		if (state) {
+			objects.pop_back();
+		}
+		else {
+			objects.push_back(&bound);
+		}
+		state = !state;
+	}
+
 private:
 	SDL_Window* window;
 	int width, height;
@@ -40,7 +53,9 @@ private:
 
 	SdogDB* dataBase;
 
+	Renderable polys;
 	Renderable cells;
+	Renderable bound;
 	Renderable coastLines;
 
 	std::vector<const Renderable*> objects;
