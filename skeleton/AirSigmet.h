@@ -33,6 +33,7 @@ enum class Severity {
 	SEV
 };
 
+// Class for storing information about an AirSigmet
 struct AirSigmet {
 
 	double minAltKM;
@@ -55,6 +56,7 @@ struct AirSigmet {
 	static Severity stringToSeverity(const std::string& s);
 };
 
+// Struct for storing an AirSigmet and the cells that are boundary and interior to it
 struct AirSigmetCells {
 
 	AirSigmet airSigmet;

@@ -15,6 +15,7 @@
 #include "AirSigmet.h"
 #include "SdogCell.h"
 #include "SphCoord.h"
+#include "Geometry.h"
 
 Program::Program() {
 
@@ -31,7 +32,7 @@ Program::Program() {
 	width = height = 800;
 }
 
-#include "Geometry.h"
+
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
 
@@ -77,14 +78,14 @@ void Program::start() {
 	std::vector<AirSigmet> airSigmets;
 	AirSigmet::readFromJson(sig, airSigmets);
 
-	//int c = 0;
-	//for (const AirSigmet& a : airSigmets) {
-	//	std::cout << c << std::endl;
-	//	std::vector<std::string> interior, boundary;
-	//	a.gridInsertion(radius, 10, interior, boundary);
-	//	dataBase->insertAirSigmet(interior, boundary, a);
-	//	c++;
-	//}
+	int c = 0;
+	for (const AirSigmet& a : airSigmets) {
+		std::cout << c << std::endl;
+		std::vector<std::string> interior, boundary;
+		a.gridInsertion(radius, 10, interior, boundary);
+		dataBase->insertAirSigmet(interior, boundary, a);
+		c++;
+	}
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
@@ -98,7 +99,6 @@ void Program::start() {
 
 	cells.lineColour = glm::vec3(0.8, 0.6f, 0.f);
 	cells.drawMode = GL_TRIANGLES;
-
 
 	bound.lineColour = glm::vec3(0.8, 0.6f, 0.f);
 	bound.drawMode = GL_TRIANGLES;
