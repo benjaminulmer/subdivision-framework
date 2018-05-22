@@ -1,11 +1,11 @@
 #pragma once
 
+#include "AirSigmet.h"
+
 #include <sqlite\sqlite3.h>
 
 #include <string>
 #include <vector>
-
-#include "AirSigmet.h"
 
 // Class for interfacing with an SQLite3 DB storing information about an SDOG grid
 class SdogDB {

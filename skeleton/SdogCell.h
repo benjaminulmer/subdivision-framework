@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Renderable.h"
+
 #include <glm/glm.hpp>
 
 #include <string>
 #include <vector>
-
-#include "Renderable.h"
 
 // Enum for the three different SDOG cell types plus an invalid cell code flag
 enum class SdogCellType {

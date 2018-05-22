@@ -1,10 +1,9 @@
 #include "AirSigmet.h"
 
-#include <map>
-
-#include "SdogCell.h"
 #include "Constants.h"
+#include "SdogCell.h"
 
+#include <map>
 
 // Finds cells of a grid with given radius, up to the provided depth, that are inside and on the boudnary of the AirSigmet
 //

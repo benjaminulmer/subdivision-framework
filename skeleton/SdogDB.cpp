@@ -1,12 +1,11 @@
 #define _USE_MATH_DEFINES
 #include "SdogDB.h"
 
+#include "SdogCell.h"
+
 #include <algorithm>
 #include <cmath>
 #include <unordered_map>
-
-#include "SdogCell.h"
-
 
 // Creates a connection to the provided database. Does not populate with any data
 //

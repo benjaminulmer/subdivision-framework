@@ -6,7 +6,6 @@
 
 #include <cmath>
 
-
 // Zero all fields
 SphCoord::SphCoord() : latitude(0.0), longitude(0.0) {}
 

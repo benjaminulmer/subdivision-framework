@@ -1,9 +1,8 @@
 #define _USE_MATH_DEFINES
 #include "SdogCell.h"
 
-#include <cmath>
 #include <algorithm>
-
+#include <cmath>
 
 // Constructs the SDOG cell for the given code
 //

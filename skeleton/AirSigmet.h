@@ -1,11 +1,11 @@
 #pragma once
 
+#include "SphCoord.h"
+
 #include <rapidjson/document.h>
 
 #include <string>
 #include <vector>
-
-#include "SphCoord.h"
 
 enum class AirSigmetType {
 	NONE,
