@@ -27,7 +27,7 @@ SdogDB::SdogDB(const std::string& path, double radius) : radius(radius) {
 	char* tab0 = "CREATE TABLE info(lock INTEGER, gridRadius REAL,"
 	             "PRIMARY KEY(Lock), CONSTRAINT info_locked CHECK(lock = 0) )";
 
-	char* tab1 = "CREATE TABLE cells (cellID INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE);";
+	char* tab1 = "CREATE TABLE cells (cellID INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, windU REAL, windV REAL);";
 
 	char* tab2 = "CREATE TABLE airSigmets (airSigmetID INTEGER PRIMARY KEY AUTOINCREMENT, validFrom TEXT, validUntil TEXT,"
 	             "minAltKM REAL, maxAltKM REAL, dirDeg INTEGER, speedKT INTEGER, hazard INTEGER, severity INTEGER, type INTEGER)";

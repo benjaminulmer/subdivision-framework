@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "Constants.h"
+#include "WindGrid.h"
 #include "ContentReadWrite.h"
 #include "InputHandler.h"
 #include "AirSigmet.h"
@@ -73,19 +74,28 @@ void Program::start() {
 	// Create grid database connection
 	dataBase = new SdogDB("test.db", radius);
 
+
+	// Wind data testing
+	rapidjson::Document wind = ContentReadWrite::readJSON("data/wind-25.json");
+	std::vector<WindGrid> grids;
+	WindGrid::readFromJson(wind, grids);
+
+	std::vector<std::pair<std::string, glm::vec2>> codes;
+	WindGrid::gridInsertion(radius, 9, grids, codes);
+
 	// Load and insert sigmet data
 	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
 	std::vector<AirSigmet> airSigmets;
 	AirSigmet::readFromJson(sig, airSigmets);
 
 	int c = 0;
-	for (const AirSigmet& a : airSigmets) {
-		std::cout << c << std::endl;
-		std::vector<std::string> interior, boundary;
-		a.gridInsertion(radius, 10, interior, boundary);
-		dataBase->insertAirSigmet(interior, boundary, a);
-		c++;
-	}
+	//for (const AirSigmet& a : airSigmets) {
+	//	std::cout << c << std::endl;
+	//	std::vector<std::string> interior, boundary;
+	//	a.gridInsertion(radius, 10, interior, boundary);
+	//	dataBase->insertAirSigmet(interior, boundary, a);
+	//	c++;
+	//}
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
@@ -103,39 +113,73 @@ void Program::start() {
 	bound.lineColour = glm::vec3(0.8, 0.6f, 0.f);
 	bound.drawMode = GL_TRIANGLES;
 
-	int i = -1;
-	for (const AirSigmetCells& datum : data) {
-		i++;
-		if (i != 11) continue;
+	float max = -1.f;
+	float min = 9999999.f;
+	double flr = 9999999.f;
 
+	for (const std::pair<std::string, glm::vec2>& p : codes) {
 
-		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
-		polys.drawMode = GL_LINES;
-		for (int i = 0; i < datum.airSigmet.polygon.size(); i++) {
-			glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			Geometry::createArcR(v1, v2, glm::vec3(), polys);
-		}
-		RenderEngine::setBufferData(polys, false);
-
-
-		for (const std::string& code : datum.interior) {
-			
-			if (code.length() < 11) continue;
-
-			SdogCell cell(code, radius);
-			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
-		}
-
-		for (const std::string& code : datum.boundary) {
-
-			if (code.length() < 11) continue;
-
-			SdogCell cell(code, radius);
-			cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f));
-		}
-
+		SdogCell cell(p.first, radius);
+		if (cell.getMinRad() < flr) flr = cell.getMinRad();
 	}
+
+
+	for (const std::pair<std::string, glm::vec2>& p : codes) {
+
+		SdogCell cell(p.first, radius);
+		if (cell.getMinRad() != flr) continue;
+
+		float mag = glm::length(p.second);
+		if (mag > max) max = mag;
+		if (mag < min) min = mag;
+	}
+
+	for (const std::pair<std::string, glm::vec2>& p : codes) {
+
+		SdogCell cell(p.first, radius);
+		if (cell.getMinRad() != flr) continue;
+
+		float mag = glm::length(p.second);
+		float norm = (mag - min) / (max - min);
+
+		if (norm < 0.3f) continue;
+
+		cell.addToRenderable(cells, glm::vec3(norm, 0.f, 0.f));
+	}
+
+	//int i = -1;
+	//for (const AirSigmetCells& datum : data) {
+	//	i++;
+	//	if (i != 11) continue;
+
+
+	//	polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
+	//	polys.drawMode = GL_LINES;
+	//	for (int i = 0; i < datum.airSigmet.polygon.size(); i++) {
+	//		glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+	//		glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+	//		Geometry::createArcR(v1, v2, glm::vec3(), polys);
+	//	}
+	//	RenderEngine::setBufferData(polys, false);
+
+
+	//	for (const std::string& code : datum.interior) {
+	//		
+	//		if (code.length() < 11) continue;
+
+	//		SdogCell cell(code, radius);
+	//		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
+	//	}
+
+	//	for (const std::string& code : datum.boundary) {
+
+	//		if (code.length() < 11) continue;
+
+	//		SdogCell cell(code, radius);
+	//		cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f));
+	//	}
+
+	//}
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(bound, false);
 

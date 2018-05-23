@@ -160,6 +160,7 @@
     <ClInclude Include="Constants.h" />
     <ClInclude Include="ContentReadWrite.h" />
     <ClInclude Include="Geometry.h" />
+    <ClInclude Include="WindGrid.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="Program.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ContentReadWrite.cpp" />
     <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="WindGrid.cpp" />
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />

@@ -193,7 +193,7 @@ void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet
 			int minFT = (entry["altitude"].HasMember("_min_ft_msl")) ? std::stoi(entry["altitude"]["_min_ft_msl"].GetString()) : 0;
 			int maxFT = (entry["altitude"].HasMember("_max_ft_msl")) ? std::stoi(entry["altitude"]["_max_ft_msl"].GetString()) : 0;
 
-			next.minAltKM = minFT * (0.3048 / 1000.0);
+			next.minAltKM = minFT * (0.3048 / 1000.0); // feet to KM
 			next.maxAltKM = (maxFT > 0) ? maxFT * (0.3048 / 1000.0) : 30.0;
 		}
 
