@@ -1,5 +1,6 @@
 # Own stuff here
 
+skeleton/data
 include/
 lib/
 *.db*

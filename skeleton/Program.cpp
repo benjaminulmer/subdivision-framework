@@ -74,21 +74,24 @@ void Program::start() {
 	// Create grid database connection
 	dataBase = new SdogDB("test.db", radius);
 
-
 	// Wind data testing
+	std::cout << "starting wind file read and parse" << std::endl;
 	rapidjson::Document wind = ContentReadWrite::readJSON("data/wind-25.json");
 	std::vector<WindGrid> grids;
 	WindGrid::readFromJson(wind, grids);
 
+	std::cout << "starting wind data grid insertion" << std::endl;
 	std::vector<std::pair<std::string, glm::vec2>> codes;
 	WindGrid::gridInsertion(radius, 9, grids, codes);
 
 	// Load and insert sigmet data
+	std::cout << "starting AirSigmet file read and parse" << std::endl;
 	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
 	std::vector<AirSigmet> airSigmets;
 	AirSigmet::readFromJson(sig, airSigmets);
 
 	int c = 0;
+	std::cout << "skipping AirSigmet grid insertion" << std::endl;
 	//for (const AirSigmet& a : airSigmets) {
 	//	std::cout << c << std::endl;
 	//	std::vector<std::string> interior, boundary;
@@ -117,6 +120,7 @@ void Program::start() {
 	float min = 9999999.f;
 	double flr = 9999999.f;
 
+	std::cout << "starting renderable creation" << std::endl;
 	for (const std::pair<std::string, glm::vec2>& p : codes) {
 
 		SdogCell cell(p.first, radius);
@@ -142,7 +146,7 @@ void Program::start() {
 		float mag = glm::length(p.second);
 		float norm = (mag - min) / (max - min);
 
-		if (norm < 0.3f) continue;
+		//if (norm < 0.3f) continue;
 
 		cell.addToRenderable(cells, glm::vec3(norm, 0.f, 0.f));
 	}

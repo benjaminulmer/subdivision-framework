@@ -7,36 +7,49 @@
 #include <algorithm>
 #include <cmath>
 
-
+// Creates a WindGrid with the provided dimensions, altitude, and delta (1 / step size)
 WindGrid::WindGrid(int numRows, int numCols, double altKM, double delta) : numRows(numRows), numCols(numCols), altKM(altKM), delta(delta) {
 	data = new glm::vec2[numRows * numCols];
 }
 
+
+// Returns a reference to the grid at provided index
+//
+// r - row index
+// c - column index
 glm::vec2& WindGrid::operator()(int r, int c) {
 	return data[r * numCols + c];
 }
 
+
+// Returns a const reference to the grid at provided index
+//
+// r - row index
+// c - column index
 const glm::vec2& WindGrid::operator()(int r, int c) const {
 	return data[r * numCols + c];
 }
+
 
 // Order wind grids by increasing altitude
 bool WindGrid::operator<(const WindGrid & r) const {
 	return altKM < r.altKM;
 }
 
-#include <iostream>
-void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<WindGrid>& grids, std::vector<std::pair<std::string, glm::vec2>>& out) {
+
+// Finds wind information for cells at the provided depth of a grid with provided radius. Uses linear interpolation to find value for each cell
+//
+// gridRadius - radius of the SDOG grid to insert into
+// depth - depth (sudivision level) to insert wind information at
+// grids - list of WindGrids in ascending order with wind information (all grids should have same delta)
+// out - output list of cells and their associated wind information
+void WindGrid::gridInsertion(double gridRadius, int depth, const std::vector<WindGrid>& grids, std::vector<std::pair<std::string, glm::vec2>>& out) {
 
 	double minAltKM = grids[0].altKM;
 	double maxAltKM = grids[grids.size() - 1].altKM;
+	double delta = grids[0].delta; // assume all deltas are the same
 
-	double delta = grids[0].delta;
-
-	for (const WindGrid& w : grids) {
-		std::cout << w.altKM << std::endl;
-	}
-
+	// Create list of cells to process and populate with octants
 	std::vector<SdogCell> toTest;
 	toTest.push_back(SdogCell("0", gridRadius));
 	toTest.push_back(SdogCell("1", gridRadius));
@@ -47,12 +60,14 @@ void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<
 	toTest.push_back(SdogCell("6", gridRadius));
 	toTest.push_back(SdogCell("7", gridRadius));
 
+	// Loop until no more cells to process
 	while (toTest.size() != 0) {
 
 		SdogCell c = toTest[toTest.size() - 1];
 		toTest.pop_back();
 
-		if (c.getCode().length() < maxDepth + 1) {
+		// If cell is not at desired depth subdivide
+		if (c.getCode().length() < depth + 1) {
 
 			std::vector<std::string> children;
 			c.children(children);
@@ -61,6 +76,7 @@ void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<
 
 				SdogCell child(childCode, gridRadius);
 
+				// Only add children to list if they overlap with the range of wind grids
 				if (child.getMaxRad() > altToAbs(minAltKM) && child.getMinRad() < altToAbs(maxAltKM)) {
 					toTest.push_back(child);
 				}
@@ -71,6 +87,7 @@ void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<
 			double midLat = 0.5 * c.getMinLat() + 0.5 * c.getMaxLat();
 			double midLong = 0.5 * c.getMinLong() + 0.5 * c.getMaxLong();
 
+			// If cell is outside range of grid then discard it
 			if (midRad < altToAbs(minAltKM) || midRad > altToAbs(maxAltKM)) {
 				continue;
 			}
@@ -78,12 +95,13 @@ void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<
 			double midLatDeg = midLat * (180.0 / M_PI);
 			double midLongDeg = midLong * (180.0 / M_PI);
 
+			// Get index into grid by multiplying by delta and truncating
 			int midLatTrunc = (int)(midLatDeg * delta);
 			int midLongTrunc = (int)(midLongDeg * delta);
 
+			// Find radial index that is closest to radius of cell without going over
 			int radIndex = 0;
 			for (int i = 1; i < grids.size(); i++) {
-
 				if (midRad > altToAbs(grids[i].altKM)) {
 					radIndex++;
 				}
@@ -92,19 +110,23 @@ void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<
 				}
 			}
 
+			// Find percentage cell is toward the next index in each dimension
 			double latPerc = midLatDeg * delta - midLatTrunc;
 			double longPerc = midLongDeg * delta - midLongTrunc;
 			double radPerc = 1.0 - (midRad - altToAbs(grids[radIndex].altKM)) / (altToAbs(grids[radIndex + 1].altKM) - altToAbs(grids[radIndex].altKM));
 
+			// Acccount for negative cases
 			if (latPerc < 0.0) latPerc = 1.0 + latPerc;
 			if (longPerc < 0.0) longPerc = 1.0 + longPerc;
 
+			// Convert lat-long index into true 2D grid index
 			int latIndex = -1 * midLatTrunc + 90 * delta;
 			int longIndex = midLongTrunc;
 			if (longIndex < 0) {
 				longIndex += 360 * delta;
 			}
 
+			// Find eight points used for tri-linear interpolation
 			glm::vec2 _100 = grids[radIndex](latIndex, longIndex);
 			glm::vec2 _110 = grids[radIndex](latIndex, (longIndex + 1) % (int)(360 * delta));
 			glm::vec2 _000 = grids[radIndex](latIndex + 1, longIndex);
@@ -114,6 +136,7 @@ void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<
 			glm::vec2 _001 = grids[radIndex + 1](latIndex + 1, longIndex);
 			glm::vec2 _011 = grids[radIndex + 1](latIndex + 1, (longIndex + 1) % (int)(360 * delta));
 
+			// Multiply each point by its total contribution
 			_000 *= (1.0 - latPerc) * (1.0 - longPerc) * (1.0 - radPerc);
 			_001 *= (1.0 - latPerc) * (1.0 - longPerc) * radPerc;
 			_010 *= (1.0 - latPerc) * longPerc * (1.0 - radPerc);
@@ -123,6 +146,7 @@ void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<
 			_110 *= latPerc * longPerc * (1.0 - radPerc);
 			_111 *= latPerc * longPerc * radPerc;
 
+			// Sum contributions and add to list
 			glm::vec2 _da = _000 + _001 + _010 + _011 + _100 + _101 + _110 + _111;
 			out.push_back(std::pair<std::string, glm::vec2>(c.getCode(), _da));
 		}
@@ -130,6 +154,10 @@ void WindGrid::gridInsertion(double gridRadius, int maxDepth, const std::vector<
 }
 
 
+// Creates a list of WindGrids as specified in the provided JSON file, ordered by increasing altitude
+//
+// d - rapidjson document containing the wind information
+// out - output list of WindGrid(s) stored in d- treats as empty
 void WindGrid::readFromJson(const rapidjson::Document& d, std::vector<WindGrid>& out) {
 
 	for (rapidjson::SizeType i = 0; i < d.Size(); i += 2) {
@@ -146,6 +174,7 @@ void WindGrid::readFromJson(const rapidjson::Document& d, std::vector<WindGrid>&
 
 		double delta = 1.0 / header["dx"].GetDouble();
 
+		// Determine number of rows and columns based on step size
 		int numRows = 180 * delta + 1;
 		int numCols = 360 * delta;
 
