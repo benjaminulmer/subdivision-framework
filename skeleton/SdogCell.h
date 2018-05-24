@@ -21,15 +21,15 @@ class SdogCell {
 public:
 	SdogCell(const std::string& code, double gridRadius);
 
-	std::string getCode() { return code; }
-	double getMinLat() { return minLat; }
-	double getMaxLat() { return maxLat; }
-	double getMinLong() { return minLong; }
-	double getMaxLong() { return maxLong; }
-	double getMinRad() { return minRad; }
-	double getMaxRad() { return maxRad; }
-	double getGridRad() { return gridRadius; }
-	SdogCellType getType() { return type; }
+	std::string getCode() const { return code; }
+	double getMinLat() const { return minLat; }
+	double getMaxLat() const { return maxLat; }
+	double getMinLong() const { return minLong; }
+	double getMaxLong() const { return maxLong; }
+	double getMinRad() const { return minRad; }
+	double getMaxRad() const { return maxRad; }
+	double getGridRad() const { return gridRadius; }
+	SdogCellType getType() const { return type; }
 
 	bool contains(double latRad, double longRad, double radius);
 

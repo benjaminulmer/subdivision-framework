@@ -5,6 +5,7 @@
 #include <glm/gtx/intersect.hpp>
 #include <SDL2/SDL_opengl.h>
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <iostream>
@@ -107,6 +108,7 @@ void Program::start() {
 	objects.push_back(&bound);
 
 	// Draw stuff
+	std::cout << "starting renderable creation" << std::endl;
 	std::vector<AirSigmetCells> data;
 	dataBase->getAirSigmetCells(data);
 
@@ -118,20 +120,14 @@ void Program::start() {
 
 	float max = -1.f;
 	float min = 9999999.f;
-	double flr = 9999999.f;
 
-	std::cout << "starting renderable creation" << std::endl;
-	for (const std::pair<std::string, glm::vec2>& p : codes) {
-
-		SdogCell cell(p.first, radius);
-		if (cell.getMinRad() < flr) flr = cell.getMinRad();
-	}
-
+	double minRad = altToAbs(0.0);
+	double maxRad = altToAbs(10.0);
 
 	for (const std::pair<std::string, glm::vec2>& p : codes) {
 
 		SdogCell cell(p.first, radius);
-		if (cell.getMinRad() != flr) continue;
+		if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
 
 		float mag = glm::length(p.second);
 		if (mag > max) max = mag;
@@ -141,14 +137,15 @@ void Program::start() {
 	for (const std::pair<std::string, glm::vec2>& p : codes) {
 
 		SdogCell cell(p.first, radius);
-		if (cell.getMinRad() != flr) continue;
+		if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
 
 		float mag = glm::length(p.second);
 		float norm = (mag - min) / (max - min);
 
-		//if (norm < 0.3f) continue;
+		if (norm < 0.3f) continue;
 
-		cell.addToRenderable(cells, glm::vec3(norm, 0.f, 0.f));
+		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
+		cell.addToRenderable(cells, glm::vec3(norm, col, col));
 	}
 
 	//int i = -1;
