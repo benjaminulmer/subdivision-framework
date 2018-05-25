@@ -176,19 +176,47 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 	sqlite3_exec(db, "END TRANSACTION", NULL, NULL, NULL);
 }
 
-
-// Inserts the given code into the DB
+// Inserts wind information for the provided cells into the DB
 //
-// code - code of the cell to insert
-void SdogDB::insertCell(const std::string& code) {
+// list - list of cells and their associated wind data
+void SdogDB::insertWindData(const std::vector<std::pair<std::string, glm::vec2>>& list) {
 
-	char* sql = "INSERT OR IGNORE INTO cells(code) VALUES (@CO)";
-	sqlite3_stmt* stmt;
-	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+	sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, NULL);
+	sqlite3_stmt *insertStmt, *updateStmt;
 
-	sqlite3_bind_text(stmt, 1, code.c_str(), -1, SQLITE_STATIC);
-	sqlite3_step(stmt);
-	sqlite3_finalize(stmt);
+	char* sqlInsert = "INSERT INTO cells(code, windU, windV) VALUES (@CO, @WU, @WV)";
+	char* sqlUpdate = "UPDATE cells SET windU = @WU, windV = @WV WHERE code = @CO";
+
+	sqlite3_prepare_v2(db, sqlInsert, -1, &insertStmt, NULL);
+	sqlite3_prepare_v2(db, sqlUpdate, -1, &updateStmt, NULL);
+
+	for (const std::pair<std::string, glm::vec2>& p : list) {
+
+		// Try to update wind data for cell
+		sqlite3_bind_double(updateStmt, 1, p.second.x);
+		sqlite3_bind_double(updateStmt, 2, p.second.y);
+		sqlite3_bind_text(updateStmt, 3, p.first.c_str(), -1, SQLITE_STATIC);
+		sqlite3_step(updateStmt);
+
+		// If no rows update then cell not in DB, insert instead
+		int rows = sqlite3_changes(db);
+		if (rows == 0) {
+			sqlite3_bind_text(insertStmt, 1, p.first.c_str(), -1, SQLITE_STATIC);
+			sqlite3_bind_double(insertStmt, 2, p.second.x);
+			sqlite3_bind_double(insertStmt, 3, p.second.y);
+			sqlite3_step(insertStmt);
+		}
+
+		// Clear bindings and reset SQL statements
+		sqlite3_clear_bindings(insertStmt);
+		sqlite3_clear_bindings(updateStmt);
+		sqlite3_reset(insertStmt);
+		sqlite3_reset(updateStmt);
+	}
+
+	sqlite3_finalize(insertStmt);
+	sqlite3_finalize(updateStmt);
+	sqlite3_exec(db, "END TRANSACTION", NULL, NULL, NULL);
 }
 
 
@@ -268,6 +296,43 @@ void SdogDB::getAirSigmetCells(std::vector<AirSigmetCells>& out) {
 	for (const std::pair<int, AirSigmetCells>& pair : airSigs) {
 		out.push_back(pair.second);
 	}
+}
+
+
+// Gets all cells with wind information from the DB
+//
+// out - output list of cells and their associated wind data - treats as empty
+void SdogDB::getWindCells(std::vector<std::pair<std::string, glm::vec2>>& out) {
+
+	char* sql = "SELECT code, windU, windV FROM cells WHERE windU IS NOT NULL";
+	sqlite3_stmt* stmt;
+	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+
+		std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		glm::vec3 vec;
+		vec.x = sqlite3_column_double(stmt, 1);
+		vec.y = sqlite3_column_double(stmt, 2);
+
+		out.push_back(std::pair<std::string, glm::vec2>(code, vec));
+	}
+	sqlite3_finalize(stmt);
+}
+
+
+// Inserts the given code into the DB
+//
+// code - code of the cell to insert
+void SdogDB::insertCell(const std::string& code) {
+
+	char* sql = "INSERT OR IGNORE INTO cells(code) VALUES (@CO)";
+	sqlite3_stmt* stmt;
+	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+	sqlite3_bind_text(stmt, 1, code.c_str(), -1, SQLITE_STATIC);
+	sqlite3_step(stmt);
+	sqlite3_finalize(stmt);
 }
 
 

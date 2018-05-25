@@ -77,13 +77,16 @@ void Program::start() {
 
 	// Wind data testing
 	std::cout << "starting wind file read and parse" << std::endl;
-	rapidjson::Document wind = ContentReadWrite::readJSON("data/wind-25.json");
+	//rapidjson::Document wind = ContentReadWrite::readJSON("data/wind-25.json");
 	std::vector<WindGrid> grids;
-	WindGrid::readFromJson(wind, grids);
+	//WindGrid::readFromJson(wind, grids);
 
 	std::cout << "starting wind data grid insertion" << std::endl;
 	std::vector<std::pair<std::string, glm::vec2>> codes;
-	WindGrid::gridInsertion(radius, 9, grids, codes);
+	//WindGrid::gridInsertion(radius, 9, grids, codes);
+	//std::cout << "starting wind data db insertion" << std::endl;
+	//dataBase->insertWindData(codes);
+	dataBase->getWindCells(codes);
 
 	// Load and insert sigmet data
 	std::cout << "starting AirSigmet file read and parse" << std::endl;
@@ -91,8 +94,8 @@ void Program::start() {
 	std::vector<AirSigmet> airSigmets;
 	AirSigmet::readFromJson(sig, airSigmets);
 
-	int c = 0;
-	std::cout << "skipping AirSigmet grid insertion" << std::endl;
+	//int c = 0;
+	//std::cout << "skipping AirSigmet grid insertion" << std::endl;
 	//for (const AirSigmet& a : airSigmets) {
 	//	std::cout << c << std::endl;
 	//	std::vector<std::string> interior, boundary;
@@ -142,7 +145,7 @@ void Program::start() {
 		float mag = glm::length(p.second);
 		float norm = (mag - min) / (max - min);
 
-		if (norm < 0.3f) continue;
+		if (norm < 0.4f) continue;
 
 		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
 		cell.addToRenderable(cells, glm::vec3(norm, col, col));
@@ -166,7 +169,7 @@ void Program::start() {
 
 	//	for (const std::string& code : datum.interior) {
 	//		
-	//		if (code.length() < 11) continue;
+	//		//if (code.length() < 11) continue;
 
 	//		SdogCell cell(code, radius);
 	//		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
