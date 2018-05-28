@@ -26,14 +26,14 @@ Program::Program() {
 	camera = nullptr;
 	dataBase = nullptr;
 
-	maxTreeDepth = 0;
-	viewLevel = 7;
 	longRot = 0;
 	latRot = 0;
 
 	width = height = 800;
 }
 
+#define AirSigmetInsert false
+#define WindInsert false
 
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
@@ -54,140 +54,51 @@ void Program::start() {
 	RenderEngine::assignBuffers(cells, false);
 	RenderEngine::assignBuffers(polys, false);
 	RenderEngine::assignBuffers(bound, false);
-	cells.fade = true;
-	polys.fade = true;
-	bound.fade = true;
+	RenderEngine::assignBuffers(wind, false);
 
 	// Set starting radius
 	scale = 1.f;
 	radius = RADIUS_EARTH_KM * 4.f / 3.f;
 
-	// Load coatline data set
+	// Load coastline vector data
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
 	RenderEngine::assignBuffers(coastLines, false);
-	coastLines.fade = true;
-	RenderEngine::setBufferData(coastLines, false);
-
 	float s = 1.f + std::numeric_limits<float>::epsilon();
 	coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
-	// Create grid database connection
+	// Create grid database connection and load data sets
 	dataBase = new SdogDB("test.db", radius);
 
-	// Wind data testing
-	std::cout << "starting wind file read and parse" << std::endl;
-	//rapidjson::Document wind = ContentReadWrite::readJSON("data/wind-25.json");
-	std::vector<WindGrid> grids;
-	//WindGrid::readFromJson(wind, grids);
-
-	std::cout << "starting wind data grid insertion" << std::endl;
-	std::vector<std::pair<std::string, glm::vec2>> codes;
-	//WindGrid::gridInsertion(radius, 9, grids, codes);
-	//std::cout << "starting wind data db insertion" << std::endl;
-	//dataBase->insertWindData(codes);
-	dataBase->getWindCells(codes);
-
-	// Load and insert sigmet data
-	std::cout << "starting AirSigmet file read and parse" << std::endl;
-	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
-	std::vector<AirSigmet> airSigmets;
-	AirSigmet::readFromJson(sig, airSigmets);
-
-	//int c = 0;
-	//std::cout << "skipping AirSigmet grid insertion" << std::endl;
-	//for (const AirSigmet& a : airSigmets) {
-	//	std::cout << c << std::endl;
-	//	std::vector<std::string> interior, boundary;
-	//	a.gridInsertion(radius, 10, interior, boundary);
-	//	dataBase->insertAirSigmet(interior, boundary, a);
-	//	c++;
-	//}
+	if (AirSigmetInsert) {
+		insertAirSigmets();
+	}
+	if (WindInsert) {
+		insertWind();
+	}
 
 	// Objects to draw initially
 	objects.push_back(&coastLines);
 	objects.push_back(&cells);
 	objects.push_back(&polys);
 	objects.push_back(&bound);
+	objects.push_back(&wind);
 
 	// Draw stuff
-	std::cout << "starting renderable creation" << std::endl;
-	std::vector<AirSigmetCells> data;
-	dataBase->getAirSigmetCells(data);
-
-	cells.lineColour = glm::vec3(0.8, 0.6f, 0.f);
 	cells.drawMode = GL_TRIANGLES;
-
-	bound.lineColour = glm::vec3(0.8, 0.6f, 0.f);
 	bound.drawMode = GL_TRIANGLES;
+	wind.drawMode = GL_TRIANGLES;
+	polys.drawMode = GL_LINES;
 
-	float max = -1.f;
-	float min = 9999999.f;
+	//airSigRender1();
+	windRender1();
 
-	double minRad = altToAbs(0.0);
-	double maxRad = altToAbs(10.0);
-
-	for (const std::pair<std::string, glm::vec2>& p : codes) {
-
-		SdogCell cell(p.first, radius);
-		if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
-
-		float mag = glm::length(p.second);
-		if (mag > max) max = mag;
-		if (mag < min) min = mag;
-	}
-
-	for (const std::pair<std::string, glm::vec2>& p : codes) {
-
-		SdogCell cell(p.first, radius);
-		if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
-
-		float mag = glm::length(p.second);
-		float norm = (mag - min) / (max - min);
-
-		if (norm < 0.4f) continue;
-
-		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
-		cell.addToRenderable(cells, glm::vec3(norm, col, col));
-	}
-
-	//int i = -1;
-	//for (const AirSigmetCells& datum : data) {
-	//	i++;
-	//	if (i != 11) continue;
-
-
-	//	polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
-	//	polys.drawMode = GL_LINES;
-	//	for (int i = 0; i < datum.airSigmet.polygon.size(); i++) {
-	//		glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-	//		glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-	//		Geometry::createArcR(v1, v2, glm::vec3(), polys);
-	//	}
-	//	RenderEngine::setBufferData(polys, false);
-
-
-	//	for (const std::string& code : datum.interior) {
-	//		
-	//		//if (code.length() < 11) continue;
-
-	//		SdogCell cell(code, radius);
-	//		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
-	//	}
-
-	//	for (const std::string& code : datum.boundary) {
-
-	//		if (code.length() < 11) continue;
-
-	//		SdogCell cell(code, radius);
-	//		cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f));
-	//	}
-
-	//}
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(bound, false);
+	RenderEngine::setBufferData(polys, false);
+	RenderEngine::setBufferData(wind, false);
+	RenderEngine::setBufferData(coastLines, false);
 
-	//updateGrid();
 	mainLoop();
 }
 
@@ -210,7 +121,7 @@ void Program::setupWindow() {
 	window = SDL_CreateWindow("sudivision framework", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (window == nullptr) {
 		//TODO: cleanup methods upon exit
-		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+		std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
 		exit(EXIT_FAILURE);
 	}
@@ -220,6 +131,107 @@ void Program::setupWindow() {
 		std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
 	}
 	SDL_GL_SetSwapInterval(1); // Vsync on
+}
+
+// Reads AirSigmets from file, inserts into grid, and then inserts into DB
+void Program::insertAirSigmets() {
+
+	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
+	std::vector<AirSigmet> airSigmets;
+	AirSigmet::readFromJson(sig, airSigmets);
+
+	int c = 0;
+	for (const AirSigmet& a : airSigmets) {
+		std::cout << "AirSigmet " << c << " of " << airSigmets.size() << std::endl;
+		std::vector<std::string> interior, boundary;
+		a.gridInsertion(radius, 10, interior, boundary);
+		dataBase->insertAirSigmet(interior, boundary, a);
+		c++;
+	}
+}
+
+// Reads wind data from file, inserts into grid, and then inserts into DB
+void Program::insertWind() {
+
+	rapidjson::Document wind = ContentReadWrite::readJSON("data/wind-25.json");
+	std::vector<WindGrid> grids;
+	WindGrid::readFromJson(wind, grids);
+
+	std::vector<std::pair<std::string, glm::vec2>> codes;
+	WindGrid::gridInsertion(radius, 9, grids, codes);
+	dataBase->insertWindData(codes);
+}
+
+void Program::airSigRender1() {
+
+	std::vector<AirSigmetCells> data;
+	dataBase->getAirSigmetCells(data);
+
+	int i = -1;
+	for (const AirSigmetCells& datum : data) {
+		i++;
+		if (i != 11) continue;
+
+		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
+		polys.drawMode = GL_LINES;
+		for (int i = 0; i < datum.airSigmet.polygon.size(); i++) {
+			glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			Geometry::createArcR(v1, v2, glm::vec3(), polys);
+		}
+		RenderEngine::setBufferData(polys, false);
+
+
+		for (const std::string& code : datum.interior) {
+
+			SdogCell cell(code, radius);
+			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
+		}
+
+		for (const std::string& code : datum.boundary) {
+
+			if (code.length() < 11) continue;
+
+			SdogCell cell(code, radius);
+			cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f));
+		}
+	}
+}
+
+void Program::windRender1() {
+
+	std::vector<std::pair<std::string, glm::vec2>> codes;
+	dataBase->getWindCells(codes);
+
+	float max = -1.f;
+	float min = 9999999.f;
+
+	double minRad = altToAbs(0.0);
+	double maxRad = altToAbs(10.0);
+
+	for (const std::pair<std::string, glm::vec2>& p : codes) {
+
+	SdogCell cell(p.first, radius);
+	if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
+
+	float mag = glm::length(p.second);
+	if (mag > max) max = mag;
+	if (mag < min) min = mag;
+	}
+
+	for (const std::pair<std::string, glm::vec2>& p : codes) {
+
+	SdogCell cell(p.first, radius);
+	if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
+
+	float mag = glm::length(p.second);
+	float norm = (mag - min) / (max - min);
+
+	if (norm < 0.4f) continue;
+
+	float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
+	cell.addToRenderable(cells, glm::vec3(norm, col, col));
+	}
 }
 
 // Main loop
@@ -252,27 +264,6 @@ void Program::mainLoop() {
 	}
 
 	delete dataBase;
-}
-
-// Sets the scheme that will be used for subdivision
-void Program::createGrid() {
-
-	delete dataBase;
-	
-	updateGrid();
-}
-
-// Updates the level of subdivision being shown
-void Program::updateGrid() {
-
-	cells.verts.clear();
-	cells.colours.clear();
-
-	cells.lineColour = glm::vec3(0.9, 0.f, 0.f);
-
-	//root->createRenderable(cells, viewLevel);
-	//SdogDB::createRenderable(cells, interior, radius, 13);
-	RenderEngine::setBufferData(cells, false);
 }
 
 // Updates camera rotation
@@ -342,32 +333,4 @@ void Program::updateScale(int inc) {
 		scale *= 1.4f;
 	}
 	camera->setScale(scale);
-}
-
-// Toggles location of surface between 0.5 and 0.75
-void Program::toggleSurfaceLocation() {
-
-	if (radius == RADIUS_EARTH_VIEW * 2.f) {
-		radius = RADIUS_EARTH_VIEW * 4.f / 3.f;
-	}
-	else {
-		radius = RADIUS_EARTH_VIEW * 2.f;
-	}
-	createGrid();
-}
-
-// Sets display mode for rendering
-void Program::setDisplayMode() {
-	//dispMode = mode;
-	//updateGrid();
-}
-
-// Update subdivision level of rendering
-void Program::updateViewLevel(int inc) {
-	viewLevel += inc;
-	if (viewLevel < 0) viewLevel = 0;
-	if (viewLevel > maxTreeDepth) viewLevel = maxTreeDepth;
-
-	std::cout << "Current subdivision level for view: " << viewLevel << std::endl;
-	updateGrid();
 }

@@ -45,35 +45,8 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	auto key = e.keysym.sym;
 
 	if (e.state == SDL_PRESSED) {
-		if (key == SDLK_r) {
-			//program->refreshGrid();
-		}
-		else if (key == SDLK_b) {
-			program->thing();
-		}
-		else if (key == SDLK_1) {
-			//program->createGrid(Scheme::SDOG);
-		}
-		else if (key == SDLK_2) {
-			//program->createGrid(Scheme::OPT_SDOG);
-		}
-		else if (key == SDLK_8) {
-			//program->setDisplayMode(DisplayMode::LINES);
-		}
-		else if (key == SDLK_9) {
-			//program->setDisplayMode(DisplayMode::DATA);
-		}
-		else if (key == SDLK_f) {
+		if (key == SDLK_f) {
 			renderEngine->toggleFade();
-		}
-		else if (key == SDLK_s) {
-			//program->toggleSurfaceLocation();
-		}
-		else if (key == SDLK_UP) {
-			program->updateViewLevel(1);
-		}
-		else if (key == SDLK_DOWN) {
-			program->updateViewLevel(-1);
 		}
 		else if (key == SDLK_ESCAPE) {
 			SDL_Quit();

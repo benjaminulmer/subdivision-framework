@@ -23,26 +23,8 @@ public:
 
 	void start();
 
-	void createGrid();
-	void updateGrid();
-
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
 	void updateScale(int inc);
-	void toggleSurfaceLocation();
-
-	void setDisplayMode();
-	void updateViewLevel(int inc);
-
-	bool state = true;
-	void thing() {
-		if (state) {
-			objects.pop_back();
-		}
-		else {
-			objects.push_back(&bound);
-		}
-		state = !state;
-	}
 
 private:
 	SDL_Window* window;
@@ -56,12 +38,10 @@ private:
 	Renderable polys;
 	Renderable cells;
 	Renderable bound;
+	Renderable wind;
 	Renderable coastLines;
 
 	std::vector<const Renderable*> objects;
-
-	int maxTreeDepth;
-	int viewLevel;
 
 	float radius;
 
@@ -70,5 +50,11 @@ private:
 	float longRot;
 
 	void setupWindow();
+	void insertAirSigmets();
+	void insertWind();
+
+	void airSigRender1();
+	void windRender1();
+
 	void mainLoop();
 };

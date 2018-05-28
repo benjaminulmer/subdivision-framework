@@ -138,6 +138,6 @@ GLuint RenderEngine::loadTexture(const std::string& filename) {
 void RenderEngine::setWindowSize(int newWidth, int newHeight) {
 	width = newWidth;
 	height = newHeight;
-	projection = glm::perspective(45.0f, (float)width/height, 0.01f, 100.0f);
+	projection = glm::perspective(fovYRad, (float)width / height, near, far);
 	glViewport(0, 0, width, height);
 }
