@@ -211,26 +211,26 @@ void Program::windRender1() {
 
 	for (const std::pair<std::string, glm::vec2>& p : codes) {
 
-	SdogCell cell(p.first, radius);
-	if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
+		SdogCell cell(p.first, radius);
+		if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
 
-	float mag = glm::length(p.second);
-	if (mag > max) max = mag;
-	if (mag < min) min = mag;
+		float mag = glm::length(p.second);
+		if (mag > max) max = mag;
+		if (mag < min) min = mag;
 	}
 
 	for (const std::pair<std::string, glm::vec2>& p : codes) {
 
-	SdogCell cell(p.first, radius);
-	if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
+		SdogCell cell(p.first, radius);
+		if (cell.getMinRad() < minRad || cell.getMinRad() > maxRad) continue;
 
-	float mag = glm::length(p.second);
-	float norm = (mag - min) / (max - min);
+		float mag = glm::length(p.second);
+		float norm = (mag - min) / (max - min);
 
-	if (norm < 0.4f) continue;
+		if (norm < 0.4f) continue;
 
-	float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
-	cell.addToRenderable(cells, glm::vec3(norm, col, col));
+		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
+		cell.addToRenderable(cells, glm::vec3(norm, col, col));
 	}
 }
 
