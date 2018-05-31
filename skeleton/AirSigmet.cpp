@@ -11,6 +11,7 @@
 // maxDepth - maximum depth (subdivision level) to find cells for
 // interior - output list of all interior cells - treats as empty
 // boundary - output list of all boundary cells - treats as empty
+#include <iostream>
 void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) const {
 
 	// Enum for identifying boundary, interior, and exterior cases
@@ -49,6 +50,11 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 
 		SdogCell c = toTest[toTest.size() - 1];
 		toTest.pop_back();
+
+		if (c.getCode()[0] == '5') {
+			std::cout << std::endl;
+		}
+
 
 		int horizontal = NONE;
 		int vertical = NONE;
@@ -99,28 +105,28 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 					SphCoord point1(c.getMinLat(), c.getMinLong());
 					SphCoord point2(c.getMaxLat(), c.getMaxLong());
 
-					float ang1 = acos(glm::dot(point1.toCartesian(1.0), polygon[0].toCartesian(1.0)));
-					float ang2 = acos(glm::dot(point2.toCartesian(1.0), polygon[0].toCartesian(1.0)));
+					double ang1 = acos(glm::dot(point1.toCartesian(1.0), polygon[0].toCartesian(1.0)));
+					double ang2 = acos(glm::dot(point2.toCartesian(1.0), polygon[0].toCartesian(1.0)));
 
-					glm::vec3 testNorm = (ang1 < ang2) ? point1.toCartesian(1.0) : point2.toCartesian(1.0);
+					glm::dvec3 testNorm = (ang1 < ang2) ? point1.toCartesian(1.0) : point2.toCartesian(1.0);
 
 					// Calculate winding number of a point in the cell with respect to the polygon
-					float sum = 0.f;
+					double sum = 0.0;
 					for (int i = 0; i < polygon.size(); i++) {
 
-						glm::vec3 plane1 = glm::normalize(glm::cross(testNorm, polygon[i].toCartesian(1.0)));
-						glm::vec3 plane2 = glm::normalize(glm::cross(testNorm, polygon[(i + 1) % polygon.size()].toCartesian(1.0)));
+						glm::dvec3 plane1 = glm::normalize(glm::cross(testNorm, polygon[i].toCartesian(1.0)));
+						glm::dvec3 plane2 = glm::normalize(glm::cross(testNorm, polygon[(i + 1) % polygon.size()].toCartesian(1.0)));
 
-						glm::vec3 cross = glm::cross(plane1, plane2);
-						float dot = glm::dot(plane1, plane2);
+						glm::dvec3 cross = glm::cross(plane1, plane2);
+						double dot = glm::dot(plane1, plane2);
 
-						if (dot > 1.f) dot = 1.f;
-						if (dot < -1.f) dot = -1.f;
+						if (dot > 1.0) dot = 1.0;
+						if (dot < -1.0) dot = -1.0;
 
-						float angle = (glm::dot(cross, testNorm) < 0) ? -acos(dot) : acos(dot);
+						double angle = (glm::dot(cross, testNorm) < 0.0) ? -acos(dot) : acos(dot);
 						sum += angle;
 					}
-					horizontal = (abs(sum) < 1.f) ? EXTER : INTER;
+					horizontal = (abs(sum) < 1.0) ? EXTER : INTER;
 				}
 			}
 			// Cache results

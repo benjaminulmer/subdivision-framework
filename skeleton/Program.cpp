@@ -90,8 +90,8 @@ void Program::start() {
 	wind.drawMode = GL_TRIANGLES;
 	polys.drawMode = GL_LINES;
 
-	//airSigRender1();
-	windRender1();
+	airSigRender1();
+	//windRender1();
 
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(bound, false);
@@ -185,7 +185,7 @@ void Program::airSigRender1() {
 		for (const std::string& code : datum.interior) {
 
 			SdogCell cell(code, radius);
-			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
+			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), true);
 		}
 
 		for (const std::string& code : datum.boundary) {
@@ -193,7 +193,7 @@ void Program::airSigRender1() {
 			if (code.length() < 11) continue;
 
 			SdogCell cell(code, radius);
-			cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f));
+			cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f), true);
 		}
 	}
 }
@@ -230,7 +230,7 @@ void Program::windRender1() {
 		if (norm < 0.4f) continue;
 
 		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
-		cell.addToRenderable(cells, glm::vec3(norm, col, col));
+		cell.addToRenderable(cells, glm::vec3(norm, col, col), true);
 	}
 }
 

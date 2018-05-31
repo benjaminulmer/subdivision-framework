@@ -36,7 +36,7 @@ public:
 	void children(std::vector<std::string>& out);
 	void neighbours(std::vector<std::string>& out);
 
-	void addToRenderable(Renderable& r, const glm::vec3& colour);
+	void addToRenderable(Renderable& r, const glm::vec3& colour, bool face);
 
 	static std::string codeForPos(double latRad, double longRad, double radius, double gridRadius, unsigned int level);
 	static bool codeIsValid(std::string code);

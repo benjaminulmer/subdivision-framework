@@ -7,10 +7,10 @@ class SphCoord {
 public:
 	SphCoord();
 	SphCoord(double latitude, double longitude, bool radians = true);
-	SphCoord(const glm::vec3& point);
+	SphCoord(const glm::dvec3& point);
 
 	double arcLength(const SphCoord& other) const;
-	glm::vec3 toCartesian(double radius) const;
+	glm::dvec3 toCartesian(double radius) const;
 	double latitudeDeg() const;
 	double longitudeDeg() const;
 
