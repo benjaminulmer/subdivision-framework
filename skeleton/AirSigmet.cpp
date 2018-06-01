@@ -51,11 +51,6 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 		SdogCell c = toTest[toTest.size() - 1];
 		toTest.pop_back();
 
-		if (c.getCode()[0] == '5') {
-			std::cout << std::endl;
-		}
-
-
 		int horizontal = NONE;
 		int vertical = NONE;
 

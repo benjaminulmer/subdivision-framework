@@ -32,7 +32,7 @@ Program::Program() {
 	width = height = 800;
 }
 
-#define AirSigmetInsert false
+#define AirSigmetInsert true
 #define WindInsert false
 
 // Called to start the program. Conducts set up then enters the main loop
@@ -85,12 +85,12 @@ void Program::start() {
 	objects.push_back(&wind);
 
 	// Draw stuff
-	cells.drawMode = GL_TRIANGLES;
-	bound.drawMode = GL_TRIANGLES;
-	wind.drawMode = GL_TRIANGLES;
+	cells.drawMode = GL_LINES;
+	bound.drawMode = GL_LINES;
+	wind.drawMode = GL_POINTS;
 	polys.drawMode = GL_LINES;
 
-	airSigRender1();
+	//airSigRender1();
 	//windRender1();
 
 	RenderEngine::setBufferData(cells, false);
@@ -136,17 +136,92 @@ void Program::setupWindow() {
 // Reads AirSigmets from file, inserts into grid, and then inserts into DB
 void Program::insertAirSigmets() {
 
-	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
-	std::vector<AirSigmet> airSigmets;
-	AirSigmet::readFromJson(sig, airSigmets);
+	//rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
+	//std::vector<AirSigmet> airSigmets;
+	//AirSigmet::readFromJson(sig, airSigmets);
 
-	int c = 0;
-	for (const AirSigmet& a : airSigmets) {
-		std::cout << "AirSigmet " << c << " of " << airSigmets.size() << std::endl;
-		std::vector<std::string> interior, boundary;
-		a.gridInsertion(radius, 10, interior, boundary);
-		dataBase->insertAirSigmet(interior, boundary, a);
-		c++;
+	//int c = 0;
+	//for (const AirSigmet& a : airSigmets) {
+	//	std::cout << "AirSigmet " << c << " of " << airSigmets.size() << std::endl;
+	//	std::vector<std::string> interior, boundary;
+	//	a.gridInsertion(radius, 10, interior, boundary);
+	//	dataBase->insertAirSigmet(interior, boundary, a);
+	//	c++;
+	//}
+
+	SphCoord wayPoint(51.08, -114.1292294, false);
+	wind.verts.push_back(wayPoint.toCartesian(RADIUS_EARTH_KM));
+	wind.colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+
+	std::vector<std::string> interior, boundary;
+	AirSigmet a;
+	a.polygon.push_back(SphCoord(51.0798777, -114.1292294, false));
+	a.polygon.push_back(SphCoord(51.0798757, -114.1289109, false));
+	a.polygon.push_back(SphCoord(51.0798094, -114.1289093, false));
+	a.polygon.push_back(SphCoord(51.0797771, -114.1288856, false));
+	a.polygon.push_back(SphCoord(51.0796888, -114.1288963, false));
+	a.polygon.push_back(SphCoord(51.0796550, -114.1288985, false));
+	a.polygon.push_back(SphCoord(51.0795592, -114.1288985, false));
+	a.polygon.push_back(SphCoord(51.0794433, -114.1288941, false));
+	a.polygon.push_back(SphCoord(51.0793132, -114.1288856, false));
+	a.polygon.push_back(SphCoord(51.0791902, -114.1287488, false));
+	a.polygon.push_back(SphCoord(51.0791544, -114.1288303, false));
+	a.polygon.push_back(SphCoord(51.0791790, -114.1290326, false));
+	a.polygon.push_back(SphCoord(51.0792537, -114.1290988, false));
+	a.polygon.push_back(SphCoord(51.0792437, -114.1293121, false));
+	a.polygon.push_back(SphCoord(51.0791826, -114.1292773, false));
+	a.polygon.push_back(SphCoord(51.0791322, -114.1295018, false));
+	a.polygon.push_back(SphCoord(51.0791941, -114.1295727, false));
+	a.polygon.push_back(SphCoord(51.0790480, -114.1296606, false));
+	a.polygon.push_back(SphCoord(51.0790886, -114.1300041, false));
+	a.polygon.push_back(SphCoord(51.0792530, -114.1300216, false));
+	a.polygon.push_back(SphCoord(51.0793164, -114.1300339, false));
+	a.polygon.push_back(SphCoord(51.0793268, -114.1299840, false));
+	a.polygon.push_back(SphCoord(51.0793504, -114.1299812, false));
+	a.polygon.push_back(SphCoord(51.0793944, -114.1299808, false));
+	a.polygon.push_back(SphCoord(51.0795293, -114.1299796, false));
+	a.polygon.push_back(SphCoord(51.0795291, -114.1299226, false));
+	a.polygon.push_back(SphCoord(51.0795725, -114.1299245, false));
+	a.polygon.push_back(SphCoord(51.0795734, -114.1292100, false));
+	a.polygon.push_back(SphCoord(51.0796241, -114.1292161, false));
+	a.polygon.push_back(SphCoord(51.0796218, -114.1293551, false));
+	a.polygon.push_back(SphCoord(51.0796469, -114.1293566, false));
+	a.polygon.push_back(SphCoord(51.0796486, -114.1293960, false));
+	a.polygon.push_back(SphCoord(51.0797354, -114.1293984, false));
+	a.polygon.push_back(SphCoord(51.0797348, -114.1293601, false));
+	a.polygon.push_back(SphCoord(51.0797601, -114.1293612, false));
+	a.polygon.push_back(SphCoord(51.0797595, -114.1292704, false));
+	a.polygon.push_back(SphCoord(51.0797814, -114.1292706, false));
+	a.polygon.push_back(SphCoord(51.0798077, -114.1292708, false));
+	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
+	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
+	a.minAltKM = 0.0; a.maxAltKM = 0.02;
+
+	int depth = 23;
+	a.gridInsertion(radius, depth, interior, boundary);
+	std::cout << boundary.size() << " : " << interior.size() << std::endl;
+
+	polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
+	polys.drawMode = GL_LINES;
+	for (int i = 0; i < a.polygon.size(); i++) {
+		glm::vec3 v1 = a.polygon[i].toCartesian(RADIUS_EARTH_KM);
+		glm::vec3 v2 = a.polygon[(i + 1) % a.polygon.size()].toCartesian(RADIUS_EARTH_KM);
+		Geometry::createArcR(v1, v2, glm::vec3(), polys);
+	}
+
+	for (const std::string& code : interior) {
+
+		SdogCell cell(code, radius);
+		if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301) continue;
+		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), false);
+	}
+	for (const std::string& code : boundary) {
+
+		if (code.length() < depth + 1) continue;
+
+		SdogCell cell(code, radius);
+		if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301 || cell.getMinRad() < RADIUS_EARTH_KM + 0.0001) continue;
+		cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f), false);
 	}
 }
 

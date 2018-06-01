@@ -23,7 +23,11 @@ void Geometry::createArcR(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 	}
 
 	// Compute angle between vectors
-	float theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
+	double dot = glm::dot(glm::normalize(v1), glm::normalize(v2));
+	if (dot > 1.0) dot = 1.0;
+	if (dot < -1.0) dot = -1.0;
+
+	float theta = acos(dot);
 	int angleDeg = (int) (theta * 180.f / M_PI);
 
 	// Points are very close on arc, just draw line between them
@@ -32,6 +36,7 @@ void Geometry::createArcR(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 		r.verts.push_back(p2);
 		r.colours.push_back(r.lineColour);
 		r.colours.push_back(r.lineColour);
+		return;
 	}
 
 	// #num line segments ~= angle of arc in degrees / 6
