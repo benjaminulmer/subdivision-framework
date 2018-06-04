@@ -18,19 +18,17 @@ in vec2 UV;
 void main(void) {    	
 	float alpha;
 
-	/*
+	
 	if (translucent) {
-		//alpha = 0.5;
+		alpha = 0.5;
 		//colour = vec4(C, 0.5);
-		colour = vec4(1.0, 0.0, 0.0, 1.0);
+		//colour = vec4(1.0, 0.0, 0.0, 1.0);
 	}
 	else {
-		//alpha = 1.0;
+		alpha = 1.0;
 		//colour = vec4(C, 1.0);
-		colour = vec4(0.0, 1.0, 0.0, 1.0);
+		//colour = vec4(0.0, 1.0, 0.0, 1.0);
 	}
-
-	*/
 
 	if (hasTexture) {
 		colour = texture(imTexture, UV);

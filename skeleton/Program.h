@@ -37,10 +37,10 @@ private:
 
 	Renderable polys;
 	Renderable cells;
-	std::vector<Renderable> bounds;
 	//Renderable bound;
 	Renderable wind;
 	Renderable coastLines;
+	std::vector<Renderable*> bounds;
 
 	std::vector<const Renderable*> objects;
 

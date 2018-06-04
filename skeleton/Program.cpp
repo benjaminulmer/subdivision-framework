@@ -53,7 +53,6 @@ void Program::start() {
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
 	RenderEngine::assignBuffers(polys, false);
-	//RenderEngine::assignBuffers(bound, false);
 	RenderEngine::assignBuffers(wind, false);
 
 	// Set starting radius
@@ -70,6 +69,9 @@ void Program::start() {
 	// Create grid database connection and load data sets
 	dataBase = new SdogDB("test.db", radius);
 
+	std::vector<AirSigmetCells> data;
+	dataBase->getAirSigmetCells(data);
+
 	if (AirSigmetInsert) {
 		insertAirSigmets();
 	}
@@ -81,27 +83,24 @@ void Program::start() {
 	objects.push_back(&coastLines);
 	objects.push_back(&cells);
 	objects.push_back(&polys);
-	//objects.push_back(&bound);
 	objects.push_back(&wind);
 
 	// Draw stuff
 	cells.drawMode = GL_TRIANGLES;
-	//bound.drawMode = GL_TRIANGLES;
 	wind.drawMode = GL_TRIANGLES;
 	polys.drawMode = GL_LINES;
 
-	//airSigRender1();
+	airSigRender1();
 	//windRender1();
 
+	for (Renderable* r : bounds) {
+		objects.push_back(r);
+	}
+
 	RenderEngine::setBufferData(cells, false);
-	//RenderEngine::setBufferData(bound, false);
 	RenderEngine::setBufferData(polys, false);
 	RenderEngine::setBufferData(wind, false);
 	RenderEngine::setBufferData(coastLines, false);
-
-	for (Renderable b : bounds) {
-		objects.push_back(&b);
-	}
 
 	mainLoop();
 }
@@ -174,29 +173,35 @@ void Program::airSigRender1() {
 	std::vector<AirSigmetCells> data;
 	dataBase->getAirSigmetCells(data);
 
-	int i = -1;
 	for (const AirSigmetCells& datum : data) {
-		Renderable b;
-		RenderEngine::assignBuffers(b, false);
-		b.drawMode = GL_TRIANGLES;
 
-		i++;
-		//if (i != 11) continue;
+		bool translucent;
+		glm::vec3 colour;
+
+		// set sigmet type
+		if (datum.airSigmet.hazard == HazardType::CONVECTIVE) {
+			translucent = true;
+			colour = glm::vec3(0.5f, 0.2f, 0.2f);
+		}
+		else {
+			translucent = false;
+			colour = glm::vec3(0.2f, 0.2f, 0.5f);
+		}
+
+		Renderable* r = new Renderable();
+		bounds.push_back(r);
+
+		RenderEngine::assignBuffers(*r, false);
 
 		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
 		polys.drawMode = GL_LINES;
-		for (int i = 0; i < datum.airSigmet.polygon.size(); i++) {
-			glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
+			glm::vec3 v1 = datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			glm::vec3 v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
 			Geometry::createArcR(v1, v2, glm::vec3(), polys);
 		}
-		RenderEngine::setBufferData(polys, false);
-
-		bool translucent;
 
 		for (const std::string& code : datum.interior) {
-			//datum.airSigmet.hazard == HazardType::CONVECTIVE ? translucent = true : translucent = false;
-
 			SdogCell cell(code, radius);
 			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
 		}
@@ -205,14 +210,13 @@ void Program::airSigRender1() {
 			if (code.length() < 11) continue;
 
 			SdogCell cell(code, radius);
-			cell.addToRenderable(b, glm::vec3(0.2f, 0.2f, 0.5f));
+			cell.addToRenderable(*r, colour);
 		}
-		datum.airSigmet.hazard == HazardType::CONVECTIVE ? translucent = true : translucent = false;
-		b.translucent = translucent;
-		RenderEngine::setBufferData(b, false);
-		bounds.push_back(b);
 
-		std::cout << "Pushed back new renderable b " << translucent << std::endl;
+		r->translucent = translucent;
+		r->drawMode = GL_TRIANGLES;
+
+		RenderEngine::setBufferData(*r, false);
 	}
 }
 
