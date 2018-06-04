@@ -51,6 +51,10 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 		SdogCell c = toTest[toTest.size() - 1];
 		toTest.pop_back();
 
+		if (c.getCode() == "32056445647456465646660") {
+			std::cout << std::endl;
+		}
+
 		int horizontal = NONE;
 		int vertical = NONE;
 
@@ -129,10 +133,10 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 		}
 
 		// Veritcal test
-		if (c.getMinRad() > altToAbs(minAltKM) && c.getMaxRad() < altToAbs(maxAltKM)) {
+		if (c.getMinRad() > altToAbs(minAltKM) - 0.00001 && c.getMaxRad() < altToAbs(maxAltKM) + 0.00001) {
 			vertical = INTER;
 		}
-		else if (c.getMaxRad() < altToAbs(minAltKM) || c.getMinRad() > altToAbs(maxAltKM)) {
+		else if (c.getMaxRad() < altToAbs(minAltKM) + 0.00001 || c.getMinRad() > altToAbs(maxAltKM) - 0.00001) {
 			vertical = EXTER;
 		}
 		else {
@@ -141,6 +145,12 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 
 		// If cell is interior or boundary act accordingly - do nothing with exterior cells
 		if (horizontal == INTER && vertical == INTER) {
+
+			//if (c.getCode().length() == 23 && c.getMinLong() > -1.99192244) {
+			//	std::cout << std::endl;
+			//}
+
+
 			interior.push_back(c.getCode()); // update state in DB
 		}
 		else if (horizontal != EXTER && vertical != EXTER) {

@@ -92,7 +92,7 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 
 		double arcA = a0.arcLength(a1);
 		double arcB = b0.arcLength(b1);
-		double eps = std::min(arcA, arcB) * 0.001;
+		double eps = std::min(arcA, arcB) * 0.01;
 
 		// Test if point 1 is on both arcs
 		double distA0 = a0.arcLength(SphCoord(inter1));
@@ -134,7 +134,7 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1, double latRad, double minLongRad, double maxLongRad, SphCoord& intersection) {
 
 	glm::dvec3 planeA = glm::normalize(glm::cross(a0.toCartesian(1.0), a1.toCartesian(1.0)));
-	glm::dvec3 planeLat = glm::vec3(0.f, 1.f, 0.f);
+	glm::dvec3 planeLat = glm::dvec3(0.0, 1.0, 0.0);
 
 	// If planes are parallel, treat as no intersection
 	glm::bvec3 equal = glm::epsilonEqual(planeA, planeLat, 0.000001);
@@ -145,14 +145,14 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 	// Planes are not the same, get the line of intersection between them
 	glm::dvec3 lineDir = glm::cross(planeA, planeLat);
 	glm::dvec3 linePoint;
-	float y = (float) sin(latRad);
+	double y = sin(latRad);
 
 	if (abs(planeA.x) > 0.0001) {
-		float x = -(planeA.y / planeA.x) * y;
+		double x = -(planeA.y / planeA.x) * y;
 		linePoint = glm::dvec3(x, y, 0.0);
 	}
 	else {
-		float z = -(planeA.y / planeA.z) * y;
+		double z = -(planeA.y / planeA.z) * y;
 		linePoint = glm::dvec3(0.0, y, z);
 	}
 
@@ -161,7 +161,7 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 	if (glm::intersectLineSphere(linePoint, linePoint + lineDir, glm::dvec3(), 1.0, inter1, norm1, inter2, norm2)) {
 
 		double arcA = a0.arcLength(a1);
-		double eps = std::min(arcA, abs(maxLongRad - minLongRad)) * 0.001;
+		double eps = std::min(arcA, abs(maxLongRad - minLongRad)) * 0.01;
 
 		// Test if point 1 is on both arcs
 		double distA0 = a0.arcLength(SphCoord(inter1));

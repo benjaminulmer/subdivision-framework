@@ -63,9 +63,10 @@ void Program::start() {
 	// Load coastline vector data
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
+	coastLines.vertsToRenderVerts();
 	RenderEngine::assignBuffers(coastLines, false);
-	float s = 1.f + std::numeric_limits<float>::epsilon();
-	coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
+	//float s = 1.f + std::numeric_limits<float>::epsilon();
+	//coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
 	// Create grid database connection and load data sets
 	dataBase = new SdogDB("test.db", radius);
@@ -195,9 +196,9 @@ void Program::insertAirSigmets() {
 	a.polygon.push_back(SphCoord(51.0798077, -114.1292708, false));
 	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
 	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
-	a.minAltKM = 0.0; a.maxAltKM = 0.02;
+	a.minAltKM = 0.0; a.maxAltKM = 0.020;
 
-	int depth = 23;
+	int depth = 25;
 	a.gridInsertion(radius, depth, interior, boundary);
 	std::cout << boundary.size() << " : " << interior.size() << std::endl;
 
@@ -212,7 +213,8 @@ void Program::insertAirSigmets() {
 	for (const std::string& code : interior) {
 
 		SdogCell cell(code, radius);
-		if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301) continue;
+		if (abs(cell.getMinRad() - RADIUS_EARTH_KM) > 0.0001) continue;
+
 		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), false);
 	}
 	for (const std::string& code : boundary) {
@@ -220,9 +222,13 @@ void Program::insertAirSigmets() {
 		if (code.length() < depth + 1) continue;
 
 		SdogCell cell(code, radius);
-		if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301 || cell.getMinRad() < RADIUS_EARTH_KM + 0.0001) continue;
+		if (abs(cell.getMinRad() - RADIUS_EARTH_KM) > 0.0001) continue;
 		cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f), false);
 	}
+	cells.vertsToRenderVerts();
+	polys.vertsToRenderVerts();
+	bound.vertsToRenderVerts();
+	wind.vertsToRenderVerts();
 }
 
 // Reads wind data from file, inserts into grid, and then inserts into DB
@@ -343,6 +349,7 @@ void Program::mainLoop() {
 
 // Updates camera rotation
 // Locations are in pixel coordinates
+#include <iomanip>
 void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) {
 
 	glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();
@@ -394,6 +401,8 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 		else {
 			latRot += latNew - latOld;
 			longRot += longNew - longOld;
+
+			std::cout << std::setprecision(10) << latRot << " : " << longRot << std::endl;
 		}
 	}
 }

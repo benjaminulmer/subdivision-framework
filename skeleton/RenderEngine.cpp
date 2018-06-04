@@ -33,7 +33,7 @@ RenderEngine::RenderEngine(SDL_Window* window) : window(window), fade(true) {
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const std::vector<const Renderable*>& objects, const glm::mat4& view, float max, float min) {
+void RenderEngine::render(const std::vector<const Renderable*>& objects, const glm::dmat4& view, float max, float min) {
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glUseProgram(mainProgram);
@@ -41,7 +41,11 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 	for (const Renderable* r : objects) {	
 		glBindVertexArray(r->vao);
 
-		glm::mat4 modelView = view * r->model;
+		glm::dmat4 dModelView = view;// *r->model;
+		glm::dvec4 centreEye = dModelView * glm::dvec4(r->centre, 1.0);
+		dModelView[3] = centreEye;
+		glm::mat4 modelView = dModelView;
+
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -57,7 +61,7 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), false);
 		}
 
-		glDrawArrays(r->drawMode, 0, (GLsizei)r->verts.size());
+		glDrawArrays(r->drawMode, 0, (GLsizei)r->renderVerts.size());
 		glBindVertexArray(0);
 	}
 }
@@ -94,7 +98,7 @@ void RenderEngine::setBufferData(Renderable& renderable, bool texture) {
 
 	// Vertex buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.verts.size(), renderable.verts.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.renderVerts.size(), renderable.renderVerts.data(), GL_STATIC_DRAW);
 
 	// Colour buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.colourBuffer);

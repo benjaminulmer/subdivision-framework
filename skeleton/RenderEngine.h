@@ -14,7 +14,7 @@ class RenderEngine {
 public:
 	RenderEngine(SDL_Window* window);
 
-	void render(const std::vector<const Renderable*>& objects, const glm::mat4& view, float max, float min);
+	void render(const std::vector<const Renderable*>& objects, const glm::dmat4& view, float max, float min);
 
 	static void assignBuffers(Renderable& renderable, bool texture);
 	static void setBufferData(Renderable& renderable, bool texture);

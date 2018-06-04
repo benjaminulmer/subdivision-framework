@@ -43,7 +43,7 @@ private:
 
 	std::vector<const Renderable*> objects;
 
-	float radius;
+	double radius;
 
 	float scale;
 	float latRot;
