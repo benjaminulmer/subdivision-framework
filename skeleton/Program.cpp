@@ -53,7 +53,7 @@ void Program::start() {
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
 	RenderEngine::assignBuffers(polys, false);
-	RenderEngine::assignBuffers(bound, false);
+	//RenderEngine::assignBuffers(bound, false);
 	RenderEngine::assignBuffers(wind, false);
 
 	// Set starting radius
@@ -81,23 +81,27 @@ void Program::start() {
 	objects.push_back(&coastLines);
 	objects.push_back(&cells);
 	objects.push_back(&polys);
-	objects.push_back(&bound);
+	//objects.push_back(&bound);
 	objects.push_back(&wind);
 
 	// Draw stuff
 	cells.drawMode = GL_TRIANGLES;
-	bound.drawMode = GL_TRIANGLES;
+	//bound.drawMode = GL_TRIANGLES;
 	wind.drawMode = GL_TRIANGLES;
 	polys.drawMode = GL_LINES;
 
 	//airSigRender1();
-	windRender1();
+	//windRender1();
 
 	RenderEngine::setBufferData(cells, false);
-	RenderEngine::setBufferData(bound, false);
+	//RenderEngine::setBufferData(bound, false);
 	RenderEngine::setBufferData(polys, false);
 	RenderEngine::setBufferData(wind, false);
 	RenderEngine::setBufferData(coastLines, false);
+
+	for (Renderable b : bounds) {
+		objects.push_back(&b);
+	}
 
 	mainLoop();
 }
@@ -136,7 +140,7 @@ void Program::setupWindow() {
 // Reads AirSigmets from file, inserts into grid, and then inserts into DB
 void Program::insertAirSigmets() {
 
-	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
+	rapidjson::Document sig = ContentReadWrite::readJSON("data/testSigmet.json");
 	std::vector<AirSigmet> airSigmets;
 	AirSigmet::readFromJson(sig, airSigmets);
 
@@ -159,6 +163,9 @@ void Program::insertWind() {
 
 	std::vector<std::pair<std::string, glm::vec2>> codes;
 	WindGrid::gridInsertion(radius, 9, grids, codes);
+
+	// codes
+
 	dataBase->insertWindData(codes);
 }
 
@@ -169,8 +176,12 @@ void Program::airSigRender1() {
 
 	int i = -1;
 	for (const AirSigmetCells& datum : data) {
+		Renderable b;
+		RenderEngine::assignBuffers(b, false);
+		b.drawMode = GL_TRIANGLES;
+
 		i++;
-		if (i != 11) continue;
+		//if (i != 11) continue;
 
 		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
 		polys.drawMode = GL_LINES;
@@ -181,20 +192,27 @@ void Program::airSigRender1() {
 		}
 		RenderEngine::setBufferData(polys, false);
 
+		bool translucent;
 
 		for (const std::string& code : datum.interior) {
+			//datum.airSigmet.hazard == HazardType::CONVECTIVE ? translucent = true : translucent = false;
 
 			SdogCell cell(code, radius);
 			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
 		}
 
 		for (const std::string& code : datum.boundary) {
-
 			if (code.length() < 11) continue;
 
 			SdogCell cell(code, radius);
-			cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f));
+			cell.addToRenderable(b, glm::vec3(0.2f, 0.2f, 0.5f));
 		}
+		datum.airSigmet.hazard == HazardType::CONVECTIVE ? translucent = true : translucent = false;
+		b.translucent = translucent;
+		RenderEngine::setBufferData(b, false);
+		bounds.push_back(b);
+
+		std::cout << "Pushed back new renderable b " << translucent << std::endl;
 	}
 }
 
@@ -232,6 +250,7 @@ void Program::windRender1() {
 		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
 		cell.addToRenderable(cells, glm::vec3(norm, col, col));
 	}
+	std::cout << "done" << std::endl;
 }
 
 // Main loop

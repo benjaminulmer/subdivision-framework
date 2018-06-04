@@ -37,7 +37,8 @@ private:
 
 	Renderable polys;
 	Renderable cells;
-	Renderable bound;
+	std::vector<Renderable> bounds;
+	//Renderable bound;
 	Renderable wind;
 	Renderable coastLines;
 

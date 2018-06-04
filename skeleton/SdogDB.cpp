@@ -7,6 +7,8 @@
 #include <cmath>
 #include <unordered_map>
 
+#include <iostream>
+
 // Creates a connection to the provided database. Does not populate with any data
 //
 // path - path to SQLite3 DB file
@@ -116,32 +118,33 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 	sqlite3_prepare_v2(db, sqlSelect, -1, &selectStmt, NULL);
 
 	// Insert interior cells into DB
-	for (const std::string& code : interior) {
 
-		// Insert cell into DB if not already exists and get its ID
-		int cellID;
-		sqlite3_bind_text(selectStmt, 1, code.c_str(), -1, SQLITE_STATIC);
+	//for (const std::string& code : interior) {
 
-		if (sqlite3_step(selectStmt) == SQLITE_DONE) {
-			insertCell(code);
-			cellID = sqlite3_last_insert_rowid(db);
-		}
-		else {
-			cellID = sqlite3_column_int(selectStmt, 0);
-		}
+	//	// Insert cell into DB if not already exists and get its ID
+	//	int cellID;
+	//	sqlite3_bind_text(selectStmt, 1, code.c_str(), -1, SQLITE_STATIC);
 
-		// Insert cell-data relation into DB
-		sqlite3_bind_int(insert2Stmt, 1, cellID);
-		sqlite3_bind_int(insert2Stmt, 2, airSigmetID);
-		sqlite3_bind_int(insert2Stmt, 3, false);
-		sqlite3_step(insert2Stmt);
+	//	if (sqlite3_step(selectStmt) == SQLITE_DONE) {
+	//		insertCell(code);
+	//		cellID = sqlite3_last_insert_rowid(db);
+	//	}
+	//	else {
+	//		cellID = sqlite3_column_int(selectStmt, 0);
+	//	}
 
-		// Clear bindings and reset SQL statements
-		sqlite3_clear_bindings(selectStmt);
-		sqlite3_clear_bindings(insert2Stmt);
-		sqlite3_reset(selectStmt);
-		sqlite3_reset(insert2Stmt);
-	}
+	//	// Insert cell-data relation into DB
+	//	sqlite3_bind_int(insert2Stmt, 1, cellID);
+	//	sqlite3_bind_int(insert2Stmt, 2, airSigmetID);
+	//	sqlite3_bind_int(insert2Stmt, 3, false);
+	//	sqlite3_step(insert2Stmt);
+
+	//	// Clear bindings and reset SQL statements
+	//	sqlite3_clear_bindings(selectStmt);
+	//	sqlite3_clear_bindings(insert2Stmt);
+	//	sqlite3_reset(selectStmt);
+	//	sqlite3_reset(insert2Stmt);
+	//}
 
 	// Insert boundary cells into DB
 	for (const std::string& code : boundary) {
@@ -308,6 +311,9 @@ void SdogDB::getWindCells(std::vector<std::pair<std::string, glm::vec2>>& out) {
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
+
+	int count = 0;
+
 	while (sqlite3_step(stmt) != SQLITE_DONE) {
 
 		std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
@@ -316,6 +322,10 @@ void SdogDB::getWindCells(std::vector<std::pair<std::string, glm::vec2>>& out) {
 		vec.y = sqlite3_column_double(stmt, 2);
 
 		out.push_back(std::pair<std::string, glm::vec2>(code, vec));
+
+		count++;
+		if (count % 1000000 == 0) 
+			std::cout << "in getWindCells: " << count << std::endl;
 	}
 	sqlite3_finalize(stmt);
 }

@@ -34,6 +34,11 @@ RenderEngine::RenderEngine(SDL_Window* window) : window(window), fade(true) {
 
 // Called to render the active object. RenderEngine stores all information about how to render
 void RenderEngine::render(const std::vector<const Renderable*>& objects, const glm::mat4& view, float max, float min) {
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR) {
+		std::cout << "Has error" << std::endl;
+		std::cout << error << std::endl;
+	}
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glUseProgram(mainProgram);
@@ -46,6 +51,7 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		glUniform1i(glGetUniformLocation(mainProgram, "fade"), fade && r->fade);
+		glUniform1i(glGetUniformLocation(mainProgram, "translucent"), r->translucent);
 		glUniform1f(glGetUniformLocation(mainProgram, "maxDist"), max);
 		glUniform1f(glGetUniformLocation(mainProgram, "minDist"), min);
 
