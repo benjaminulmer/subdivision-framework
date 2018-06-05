@@ -21,7 +21,7 @@ struct IndexedLists {
 class Renderable {
 
 public:
-	Renderable() : lineColour(glm::vec3(1.f, 1.f, 1.f)), vao(0), vertexBuffer(0), colourBuffer(0), uvBuffer(0), textureID(0), fade(true), translucent(false), drawMode(0) {}
+	Renderable() : lineColour(glm::vec3(1.f, 1.f, 1.f)), vao(0), vertexBuffer(0), colourBuffer(0), uvBuffer(0), textureID(0), fade(true), alpha(1.f), drawMode(0) {}
 	Renderable(const rapidjson::Document& d);
 
 	std::vector<glm::vec3> verts;
@@ -42,6 +42,6 @@ public:
 
 	GLuint drawMode;
 
-	bool translucent;
+	float alpha;
 };
 

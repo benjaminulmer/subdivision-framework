@@ -51,7 +51,7 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		glUniform1i(glGetUniformLocation(mainProgram, "fade"), fade && r->fade);
-		glUniform1i(glGetUniformLocation(mainProgram, "translucent"), r->translucent);
+		glUniform1f(glGetUniformLocation(mainProgram, "alpha"), r->alpha);
 		glUniform1f(glGetUniformLocation(mainProgram, "maxDist"), max);
 		glUniform1f(glGetUniformLocation(mainProgram, "minDist"), min);
 

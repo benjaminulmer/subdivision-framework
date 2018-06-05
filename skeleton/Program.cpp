@@ -178,16 +178,22 @@ void Program::airSigRender1() {
 
 	for (const AirSigmetCells& datum : data) {
 
-		bool translucent;
+		float alpha;
 		glm::vec3 colour;
 
 		// set sigmet type
 		if (datum.airSigmet.hazard == HazardType::CONVECTIVE) {
-			translucent = true;
-			colour = glm::vec3(0.5f, 0.2f, 0.2f);
+			alpha = (float)datum.airSigmet.severity / 4.f / 2.f;
+			if (alpha == 0.f) alpha = 0.1f;
+
+			float red = ((float)datum.airSigmet.severity / 4.f / 2.f) + 0.5f;
+			colour = glm::vec3(red, 0.2f, 0.2f);
+			//colour = glm::vec3(1.f, 0.4f, 0.4f);
+
+			std::cout << "Red:  " << red << std::endl;
 		}
 		else {
-			translucent = false;
+			alpha = 1.f;
 			colour = glm::vec3(0.2f, 0.2f, 0.5f);
 		}
 
@@ -206,7 +212,11 @@ void Program::airSigRender1() {
 		stormPolys.lineColour = glm::vec3(1.f, 0.f, 0.f);
 		stormPolys.drawMode = GL_LINES;
 
+		glm::vec3 center(0.f, 0.f, 0.f);
+
 		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
+
+			center += datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.minAltKM);
 
 			glm::vec3 v1, v2;
 
@@ -237,19 +247,26 @@ void Program::airSigRender1() {
 			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
 		}
 
+		center = center / (float)datum.airSigmet.polygon.size();
+
+		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
+
+		}
+
+		/*
 		for (const std::string& code : datum.interior) {
 			SdogCell cell(code, radius);
 			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
 		}
-
+		*/
 		for (const std::string& code : datum.boundary) {
 			if (code.length() < 11) continue;
 
 			SdogCell cell(code, radius);
 			cell.addToRenderable(*r, colour);
 		}
-
-		r->translucent = translucent;
+		
+		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
 
 		RenderEngine::setBufferData(*r, false);

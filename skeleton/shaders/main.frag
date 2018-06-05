@@ -3,7 +3,7 @@
 out vec4 colour;
 
 uniform bool fade;
-uniform bool translucent;
+uniform float alpha;
 uniform float maxDist;
 uniform float minDist;
 
@@ -15,20 +15,7 @@ in vec3 L;
 in vec3 V;
 in vec2 UV;
 
-void main(void) {    	
-	float alpha;
-
-	
-	if (translucent) {
-		alpha = 0.5;
-		//colour = vec4(C, 0.5);
-		//colour = vec4(1.0, 0.0, 0.0, 1.0);
-	}
-	else {
-		alpha = 1.0;
-		//colour = vec4(C, 1.0);
-		//colour = vec4(0.0, 1.0, 0.0, 1.0);
-	}
+void main(void) {   
 
 	if (hasTexture) {
 		colour = texture(imTexture, UV);
@@ -45,7 +32,6 @@ void main(void) {
 		if (norm > 1.f) norm = 1.f;
 
 		colour = vec4(C, norm * alpha);
-		//colour = vec4(C, alpha);
 	}
 	else {
 		colour = vec4(C, alpha);
