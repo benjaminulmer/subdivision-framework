@@ -36,6 +36,7 @@ private:
 	SdogDB* dataBase;
 
 	Renderable polys;
+	Renderable stormPolys;
 	Renderable cells;
 	//Renderable bound;
 	Renderable wind;

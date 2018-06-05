@@ -53,6 +53,7 @@ void Program::start() {
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
 	RenderEngine::assignBuffers(polys, false);
+	RenderEngine::assignBuffers(stormPolys, false);
 	RenderEngine::assignBuffers(wind, false);
 
 	// Set starting radius
@@ -83,6 +84,7 @@ void Program::start() {
 	objects.push_back(&coastLines);
 	objects.push_back(&cells);
 	objects.push_back(&polys);
+	objects.push_back(&stormPolys);
 	objects.push_back(&wind);
 
 	// Draw stuff
@@ -99,6 +101,7 @@ void Program::start() {
 
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(polys, false);
+	RenderEngine::setBufferData(stormPolys, false);
 	RenderEngine::setBufferData(wind, false);
 	RenderEngine::setBufferData(coastLines, false);
 
@@ -193,12 +196,45 @@ void Program::airSigRender1() {
 
 		RenderEngine::assignBuffers(*r, false);
 
+		Renderable* drawPolys;
+		if (datum.airSigmet.hazard == HazardType::CONVECTIVE) drawPolys = &stormPolys;
+		else drawPolys = &polys;
+
 		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
 		polys.drawMode = GL_LINES;
+
+		stormPolys.lineColour = glm::vec3(1.f, 0.f, 0.f);
+		stormPolys.drawMode = GL_LINES;
+
 		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
-			glm::vec3 v1 = datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			glm::vec3 v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			Geometry::createArcR(v1, v2, glm::vec3(), polys);
+
+			glm::vec3 v1, v2;
+
+			if (datum.airSigmet.hazard == HazardType::CONVECTIVE) {
+				glm::vec3 maxV1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
+				glm::vec3 maxV2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
+
+				Geometry::createArcR(maxV1, maxV2, glm::vec3(), *drawPolys);
+
+				v1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+				v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+
+				drawPolys->verts.push_back(v1);
+				drawPolys->verts.push_back(maxV1);
+				
+				drawPolys->verts.push_back(v2);
+				drawPolys->verts.push_back(maxV2);
+
+				drawPolys->colours.push_back(drawPolys->lineColour);
+				drawPolys->colours.push_back(drawPolys->lineColour);
+				drawPolys->colours.push_back(drawPolys->lineColour);
+				drawPolys->colours.push_back(drawPolys->lineColour);
+			}
+			else {
+				v1 = datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+				v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			}
+			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
 		}
 
 		for (const std::string& code : datum.interior) {
