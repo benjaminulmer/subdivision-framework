@@ -5,6 +5,7 @@
 
 // Geometric slerp between two vectors
 glm::dvec3 Geometry::geomSlerp(const glm::dvec3& v1, const glm::dvec3& v2, double t) {
+
 	double theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
 
 	glm::dvec3 term1 = (sin((1.f - t) * theta) / sin(theta)) * v1;

@@ -112,11 +112,11 @@ void RenderEngine::assignBuffers(Renderable& renderable, bool texture) {
 // Sets buffer data for a renderable
 void RenderEngine::setBufferData(Renderable& renderable, bool texture) {
 
-	// Vertex buffer
+	// Vertex high buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexHighBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.vertsHigh.size(), renderable.vertsHigh.data(), GL_STATIC_DRAW);
 
-	// Vertex buffer
+	// Vertex low buffer
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexLowBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.vertsLow.size(), renderable.vertsLow.data(), GL_STATIC_DRAW);
 

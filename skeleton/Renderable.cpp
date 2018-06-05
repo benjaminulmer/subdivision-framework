@@ -4,7 +4,9 @@
 #include "Constants.h"
 #include "Geometry.h"
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 
 // Creates a renderable of the geometry specified in json document
 Renderable::Renderable(const rapidjson::Document& d) : Renderable() {
@@ -21,11 +23,11 @@ Renderable::Renderable(const rapidjson::Document& d) : Renderable() {
 			double lat = coordArray[j][1].GetDouble() * M_PI / 180.0;
 
 			verts.push_back(glm::dvec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * RADIUS_EARTH_KM);
-			colours.push_back(glm::dvec3(0.f, 0.f, 0.f));
+			colours.push_back(glm::vec3(0.f));
 
 			if (j != 0 && j != coordArray.Size() - 1) {
 				verts.push_back(glm::dvec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * RADIUS_EARTH_KM);
-				colours.push_back(glm::dvec3(0.f, 0.f, 0.f));
+				colours.push_back(glm::vec3(0.f));
 			}
 		}
 	}

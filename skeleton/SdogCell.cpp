@@ -341,7 +341,7 @@ void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, bool face
 		}
 	}
 	else {
-		glm::vec3 origin(0.f, 0.f, 0.f);
+		glm::dvec3 origin(0.0);
 		r.lineColour = colour;
 
 		// Straight lines connect each inner point to coresponding outer point

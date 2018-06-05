@@ -210,7 +210,8 @@ void Program::insertAirSigmets() {
 	a.polygon.push_back(SphCoord(51.0798077, -114.1292708, false));
 	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
 	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
-	a.minAltKM = 0.0; a.maxAltKM = 0.02;
+	a.minAltKM = 0.0; a.maxAltKM = 0.020;
+
 
 	int depth = 25;
 	a.gridInsertion(radius, depth, interior, boundary);
@@ -227,15 +228,17 @@ void Program::insertAirSigmets() {
 	for (const std::string& code : interior) {
 
 		SdogCell cell(code, radius);
-		if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301) continue;
-		//cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), false);
+		if (abs(cell.getMinRad() - RADIUS_EARTH_KM) > 0.0001) continue;
+
+		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), false);
 	}
 	for (const std::string& code : boundary) {
 
 		if (code.length() < depth + 1) continue;
 
 		SdogCell cell(code, radius);
-		//if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301 || cell.getMinRad() < RADIUS_EARTH_KM + 0.0001) continue;
+		if (abs(cell.getMinRad() - RADIUS_EARTH_KM) > 0.0001) continue;
+
 		cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f), false);
 	}
 }
@@ -358,6 +361,7 @@ void Program::mainLoop() {
 
 // Updates camera rotation
 // Locations are in pixel coordinates
+#include <iomanip>
 void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) {
 
 	glm::dmat4 projView = renderEngine->getProjection() * camera->getLookAt();
@@ -407,6 +411,8 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 		else {
 			latRot += latNew - latOld;
 			longRot += longNew - longOld;
+
+			std::cout << std::setprecision(10) << latRot << " : " << longRot << std::endl;
 		}
 	}
 	else {
