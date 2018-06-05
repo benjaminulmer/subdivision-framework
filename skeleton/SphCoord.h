@@ -10,6 +10,7 @@ public:
 	SphCoord(const glm::dvec3& point);
 
 	double arcLength(const SphCoord& other) const;
+	double arcLength(const glm::dvec3& other) const;
 	glm::dvec3 toCartesian(double radius) const;
 	double latitudeDeg() const;
 	double longitudeDeg() const;

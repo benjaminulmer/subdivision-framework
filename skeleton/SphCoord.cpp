@@ -40,7 +40,20 @@ double SphCoord::arcLength(const SphCoord& other) const {
 
 	glm::dvec3 cart1 = this->toCartesian(1.0);
 	glm::dvec3 cart2 = other.toCartesian(1.0);
-	return acos(glm::dot(cart1, cart2));
+
+	return asin(glm::length(glm::cross(cart1, cart2)));
+}
+
+
+// Returns the arc length between this and a vector representing a spherical point
+//
+// other - other spherical point to calculate arc length between
+double SphCoord::arcLength(const glm::dvec3& other) const {
+
+	glm::dvec3 cart1 = this->toCartesian(1.0);
+	glm::dvec3 cart2 = glm::normalize(other);
+
+	return asin(glm::length(glm::cross(cart1, cart2)));
 }
 
 
@@ -95,10 +108,10 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 		double eps = std::min(arcA, arcB) * 0.01;
 
 		// Test if point 1 is on both arcs
-		double distA0 = a0.arcLength(SphCoord(inter1));
-		double distA1 = a1.arcLength(SphCoord(inter1));
-		double distB0 = b0.arcLength(SphCoord(inter1));
-		double distB1 = b1.arcLength(SphCoord(inter1));
+		double distA0 = a0.arcLength(inter1);
+		double distA1 = a1.arcLength(inter1);
+		double distB0 = b0.arcLength(inter1);
+		double distB1 = b1.arcLength(inter1);
 
 		if (abs(arcA - distA0 - distA1) < eps && abs(arcB - distB0 - distB1) < eps) {
 			intersection = SphCoord(inter1);
@@ -106,10 +119,10 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 		}
 
 		// Test if point 2 is on both arcs
-		distA0 = a0.arcLength(SphCoord(inter2));
-		distA1 = a1.arcLength(SphCoord(inter2));
-		distB0 = b0.arcLength(SphCoord(inter2));
-		distB1 = b1.arcLength(SphCoord(inter2));
+		distA0 = a0.arcLength(inter2);
+		distA1 = a1.arcLength(inter2);
+		distB0 = b0.arcLength(inter2);
+		distB1 = b1.arcLength(inter2);
 
 		if (abs(arcA - distA0 - distA1) < eps && abs(arcB - distB0 - distB1) < eps) {
 			intersection = SphCoord(inter2);
@@ -122,6 +135,7 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 		return false;
 	}
 }
+
 
 // Returns if a great circle arc and line of latitude intersect. If they do, the result is stored in intersection
 // 
@@ -164,8 +178,8 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 		double eps = std::min(arcA, abs(maxLongRad - minLongRad)) * 0.01;
 
 		// Test if point 1 is on both arcs
-		double distA0 = a0.arcLength(SphCoord(inter1));
-		double distA1 = a1.arcLength(SphCoord(inter1));
+		double distA0 = a0.arcLength(inter1);
+		double distA1 = a1.arcLength(inter1);
 		SphCoord sph1(inter1);
 
 		if (abs(arcA - distA0 - distA1) < eps &&
@@ -177,8 +191,8 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 		}
 
 		// Test if point 2 is on both arcs
-		distA0 = a0.arcLength(SphCoord(inter2));
-		distA1 = a1.arcLength(SphCoord(inter2));
+		distA0 = a0.arcLength(inter2);
+		distA1 = a1.arcLength(inter2);
 		SphCoord sph2(inter2);
 
 		if (abs(arcA - distA0 - distA1) < eps &&

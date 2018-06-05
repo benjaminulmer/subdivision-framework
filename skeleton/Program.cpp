@@ -198,7 +198,7 @@ void Program::insertAirSigmets() {
 	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
 	a.minAltKM = 0.0; a.maxAltKM = 0.020;
 
-	int depth = 25;
+	int depth = 26;
 	a.gridInsertion(radius, depth, interior, boundary);
 	std::cout << boundary.size() << " : " << interior.size() << std::endl;
 
