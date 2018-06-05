@@ -7,32 +7,32 @@ class Camera {
 public:
 	Camera();
 
-	glm::mat4 getLookAt() const;
-	glm::vec3 getPosition() const;
-	glm::vec3 getUp() const;
-	glm::vec3 getLookDir() const;
+	glm::dmat4 getLookAt() const;
+	glm::dvec3 getPosition() const;
+	glm::dvec3 getUp() const;
+	glm::dvec3 getLookDir() const;
 
-	void setScale(float scale);
+	void setScale(double scale);
 
-	void updateLongitudeRotation(float rad);
-	void updateLatitudeRotation(float rad);
+	void updateLongitudeRotation(double rad);
+	void updateLatitudeRotation(double rad);
 	void updateZoom(int value);
-	void translate(const glm::vec3& planeTranslation);
+	void translate(const glm::dvec3& planeTranslation);
 
 	void reset();
 
 private:
-	const float zoomScale;
-	const float rotScale;
+	const double zoomScale;
+	const double rotScale;
 
-	float curScale;
+	double curScale;
 
-	glm::vec3 eye;
-	glm::vec3 up;
-	glm::vec3 centre;
+	glm::dvec3 eye;
+	glm::dvec3 up;
+	glm::dvec3 centre;
 
-	float longitudeRotRad;
-	float latitudeRotRad;
+	double longitudeRotRad;
+	double latitudeRotRad;
 
-	glm::vec3 translation;
+	glm::dvec3 translation;
 };

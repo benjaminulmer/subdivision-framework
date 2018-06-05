@@ -7,9 +7,9 @@
 class Geometry {
 
 public:
-	static glm::vec3 geomSlerp(const glm::vec3& v1, const glm::vec3& v2, float t);
+	static glm::dvec3 geomSlerp(const glm::dvec3& v1, const glm::dvec3& v2, double t);
 	
-	static void createArcR(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& centre, Renderable& r);
-	static void createLineR(const glm::vec3& p1, const glm::vec3& p2, Renderable& r);
+	static void createArcR(const glm::dvec3& p1, const glm::dvec3& p2, const glm::dvec3& centre, Renderable& r);
+	static void createLineR(const glm::dvec3& p1, const glm::dvec3& p2, Renderable& r);
 };
 

@@ -38,6 +38,8 @@ Program::Program() {
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
 
+
+
 	setupWindow();
 	GLenum err = glewInit();
 	if (glewInit() != GLEW_OK) {
@@ -49,6 +51,13 @@ void Program::start() {
 	camera = new Camera();
 	renderEngine = new RenderEngine(window);
 	InputHandler::setUp(camera, renderEngine, this);
+
+
+
+	//scale = 7379336.7465132149;
+	//camera->setScale(scale);
+	//updateRotation(365, 369, 363, 365, false);
+
 
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
@@ -64,8 +73,8 @@ void Program::start() {
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
 	RenderEngine::assignBuffers(coastLines, false);
-	float s = 1.f + std::numeric_limits<float>::epsilon();
-	coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
+	//float s = 1.f + std::numeric_limits<float>::epsilon();
+	//coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
 	// Create grid database connection and load data sets
 	dataBase = new SdogDB("test.db", radius);
@@ -92,6 +101,12 @@ void Program::start() {
 
 	//airSigRender1();
 	//windRender1();
+
+	cells.doubleToFloats();
+	bound.doubleToFloats();
+	polys.doubleToFloats();
+	wind.doubleToFloats();
+	coastLines.doubleToFloats();
 
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(bound, false);
@@ -197,7 +212,7 @@ void Program::insertAirSigmets() {
 	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
 	a.minAltKM = 0.0; a.maxAltKM = 0.02;
 
-	int depth = 23;
+	int depth = 25;
 	a.gridInsertion(radius, depth, interior, boundary);
 	std::cout << boundary.size() << " : " << interior.size() << std::endl;
 
@@ -206,21 +221,21 @@ void Program::insertAirSigmets() {
 	for (int i = 0; i < a.polygon.size(); i++) {
 		glm::vec3 v1 = a.polygon[i].toCartesian(RADIUS_EARTH_KM);
 		glm::vec3 v2 = a.polygon[(i + 1) % a.polygon.size()].toCartesian(RADIUS_EARTH_KM);
-		Geometry::createArcR(v1, v2, glm::vec3(), polys);
+		Geometry::createArcR(v1, v2, glm::dvec3(0.0), polys);
 	}
 
 	for (const std::string& code : interior) {
 
 		SdogCell cell(code, radius);
 		if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301) continue;
-		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), false);
+		//cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), false);
 	}
 	for (const std::string& code : boundary) {
 
 		if (code.length() < depth + 1) continue;
 
 		SdogCell cell(code, radius);
-		if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301 || cell.getMinRad() < RADIUS_EARTH_KM + 0.0001) continue;
+		//if (cell.getMinRad() > RADIUS_EARTH_KM + 0.00301 || cell.getMinRad() < RADIUS_EARTH_KM + 0.0001) continue;
 		cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f), false);
 	}
 }
@@ -320,7 +335,7 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		float far = glm::length(camera->getPosition() - glm::vec3(0.f, 0.f, 0.f));
+		float far = glm::length(camera->getPosition() - glm::dvec3(0.0));
 		//info.frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), far);
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
@@ -328,13 +343,13 @@ void Program::mainLoop() {
 		float max = glm::length(cameraPos) + RADIUS_EARTH_VIEW;
 		float min = glm::length(cameraPos) - RADIUS_EARTH_VIEW;
 
-		glm::mat4 worldModel(1.f);
-		float s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
-		worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
-		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
-		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
+		glm::dmat4 worldModel(1.f);
+		double s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
+		worldModel = glm::scale(worldModel, glm::dvec3(s, s, s));
+		worldModel = glm::rotate(worldModel, latRot, glm::dvec3(-1.f, 0.f, 0.f));
+		worldModel = glm::rotate(worldModel, longRot, glm::dvec3(0.f, 1.f, 0.f));
 
-		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
+		renderEngine->render(objects, (glm::dmat4)camera->getLookAt() * worldModel, max, min);
 		SDL_GL_SwapWindow(window);
 	}
 
@@ -345,48 +360,46 @@ void Program::mainLoop() {
 // Locations are in pixel coordinates
 void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) {
 
-	glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();
-	glm::mat4 invProjView = glm::inverse(projView);
+	glm::dmat4 projView = renderEngine->getProjection() * camera->getLookAt();
+	glm::dmat4 invProjView = glm::inverse(projView);
 
-	float oldXN = (2.f * oldX) / (width) - 1.f; 
-	float oldYN = (2.f * oldY) / (height) - 1.f;
+	double oldXN = (2.0 * oldX) / (width) - 1.0; 
+	double oldYN = (2.0 * oldY) / (height) - 1.0;
 	oldYN *= -1.0;
 
-	float newXN = (2.f * newX) / (width) - 1.f; 
-	float newYN = (2.f * newY) / (height) - 1.f;
-	newYN *= -1.f;
+	double newXN = (2.0 * newX) / (width) - 1.0;
+	double newYN = (2.0 * newY) / (height) - 1.0;
+	newYN *= -1.0;
 
-	glm::vec4 worldOld(oldXN, oldYN, -1.f, 1.f);
-	glm::vec4 worldNew(newXN, newYN, -1.f, 1.f);
+	glm::dvec4 worldOld(oldXN, oldYN, -1.0, 1.0);
+	glm::dvec4 worldNew(newXN, newYN, -1.0, 1.0);
 
 	worldOld = invProjView * worldOld; 
-
-	worldOld.x /= worldOld.w;
-	worldOld.y /= worldOld.w;
-	worldOld.z /= worldOld.w;
+	worldOld /= worldOld.w;
 
 	worldNew = invProjView * worldNew;
+	worldNew /= worldNew.w;
 
-	worldNew.x /= worldNew.w;
-	worldNew.y /= worldNew.w;
-	worldNew.z /= worldNew.w;
+	glm::dvec3 rayO = camera->getPosition();
+	glm::dvec3 rayDOld = glm::normalize(glm::dvec3(worldOld) - rayO);
+	glm::dvec3 rayDNew = glm::normalize(glm::dvec3(worldNew) - rayO);
+	double sphereRad = RADIUS_EARTH_VIEW * scale;
+	glm::dvec3 sphereO = glm::dvec3(0.0);
 
-	glm::vec3 rayO = camera->getPosition();
-	glm::vec3 rayDOld = glm::normalize(glm::vec3(worldOld) - rayO);
-	glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
-	float sphereRad = RADIUS_EARTH_VIEW * scale;
-	glm::vec3 sphereO = glm::vec3(0.f, 0.f, 0.f);
-
-	glm::vec3 iPosOld, iPosNew, iNorm;
+	glm::dvec3 iPosOld, iPosNew, iNorm;
 
 	if (glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm) && 
 			glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
 
-		float longOld = atan(iPosOld.x / iPosOld.z);
-		float latOld = (float)( M_PI / 2.f - acos(iPosOld.y / sphereRad) );
+		double longOld = atan2(iPosOld.x, iPosOld.z);
+		double latOld = M_PI_2 - acos(iPosOld.y / sphereRad);
 
-		float longNew = atan(iPosNew.x / iPosNew.z);
-		float latNew = (float)( M_PI / 2.f - acos(iPosNew.y / sphereRad) );
+		double longNew = atan2(iPosNew.x, iPosNew.z);
+		double latNew = M_PI_2 - acos(iPosNew.y / sphereRad);
+
+
+		std::cout << "pixel old: (" << oldXN << ", " << oldYN << ")\t" << "pixel new: (" << newXN << ", " << newYN << ")" << std::endl;
+		
 
 		if (skew) {
 			camera->updateLatitudeRotation(latNew - latOld);
@@ -395,6 +408,10 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 			latRot += latNew - latOld;
 			longRot += longNew - longOld;
 		}
+	}
+	else {
+		std::cout << "no ray intersect" << std::endl;
+		glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm);
 	}
 }
 

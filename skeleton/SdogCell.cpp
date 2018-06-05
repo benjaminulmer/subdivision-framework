@@ -303,16 +303,16 @@ void SdogCell::neighbours(std::vector<std::string>& out) {
 void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, bool face) {
 
 	// Outer points
-	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRad;
-	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRad;
-	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRad;
-	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRad;
+	glm::dvec3 o1 = glm::dvec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * maxRad;
+	glm::dvec3 o2 = glm::dvec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * maxRad;
+	glm::dvec3 o3 = glm::dvec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * maxRad;
+	glm::dvec3 o4 = glm::dvec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * maxRad;
 
 	// Inner points
-	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRad;
-	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRad;
-	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRad;
-	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRad;
+	glm::dvec3 i1 = glm::dvec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * minRad;
+	glm::dvec3 i2 = glm::dvec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * minRad;
+	glm::dvec3 i3 = glm::dvec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * minRad;
+	glm::dvec3 i4 = glm::dvec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * minRad;
 
 	if (face) {
 		// Outside and inside

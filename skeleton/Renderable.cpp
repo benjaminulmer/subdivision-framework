@@ -17,16 +17,27 @@ Renderable::Renderable(const rapidjson::Document& d) : Renderable() {
 		const rapidjson::Value& coordArray = featuresArray[i]["geometry"]["coordinates"];
 
 		for (rapidjson::SizeType j = 0; j < coordArray.Size(); j++) {
-			float lng = (float)( coordArray[j][0].GetDouble() * M_PI / 180.f );
-			float lat = (float)( coordArray[j][1].GetDouble() * M_PI / 180.f );
+			double lng = coordArray[j][0].GetDouble() * M_PI / 180.0;
+			double lat = coordArray[j][1].GetDouble() * M_PI / 180.0;
 
-			verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * RADIUS_EARTH_KM);
-			colours.push_back(glm::vec3(0.f, 0.f, 0.f));
+			verts.push_back(glm::dvec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * RADIUS_EARTH_KM);
+			colours.push_back(glm::dvec3(0.f, 0.f, 0.f));
 
 			if (j != 0 && j != coordArray.Size() - 1) {
-				verts.push_back(glm::vec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * RADIUS_EARTH_KM);
-				colours.push_back(glm::vec3(0.f, 0.f, 0.f));
+				verts.push_back(glm::dvec3(sin(lng)*cos(lat), sin(lat), cos(lng)*cos(lat)) * RADIUS_EARTH_KM);
+				colours.push_back(glm::dvec3(0.f, 0.f, 0.f));
 			}
 		}
+	}
+}
+
+void Renderable::doubleToFloats() {
+
+	for (const glm::dvec3& v : verts) {
+
+		glm::vec3 high = v;
+
+		vertsHigh.push_back(high);
+		vertsLow.push_back(v - (glm::dvec3)high);
 	}
 }
