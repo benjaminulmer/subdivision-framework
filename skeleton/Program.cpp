@@ -179,40 +179,38 @@ void Program::airSigRender1() {
 	for (const AirSigmetCells& datum : data) {
 
 		float alpha;
-		glm::vec3 colour;
-
-		// set sigmet type
-		if (datum.airSigmet.hazard == HazardType::CONVECTIVE) {
-			alpha = (float)datum.airSigmet.severity / 4.f / 2.f;
-			if (alpha == 0.f) alpha = 0.1f;
-
-			float red = ((float)datum.airSigmet.severity / 4.f / 2.f) + 0.5f;
-			colour = glm::vec3(red, 0.2f, 0.2f);
-			//colour = glm::vec3(1.f, 0.4f, 0.4f);
-
-			std::cout << "Red:  " << red << std::endl;
-		}
-		else {
-			alpha = 1.f;
-			colour = glm::vec3(0.2f, 0.2f, 0.5f);
-		}
 
 		Renderable* r = new Renderable();
 		bounds.push_back(r);
-
 		RenderEngine::assignBuffers(*r, false);
+
+		// set sigmet type
+		if (datum.airSigmet.hazard == HazardType::CONVECTIVE) {
+			//alpha = (float)datum.airSigmet.severity / 4.f / 2.f;
+			//if (alpha == 0.f) alpha = 0.1f;
+			alpha = 0.8f;
+
+			float red = ((float)datum.airSigmet.severity / 4.f / 2.f) + 0.5f;
+			r->renderColour = glm::vec3(red, 0.2f, 0.2f);
+		}
+		else {
+			alpha = 1.f;
+			r->renderColour = glm::vec3(0.2f, 0.2f, 0.5f);
+		}
 
 		Renderable* drawPolys;
 		if (datum.airSigmet.hazard == HazardType::CONVECTIVE) drawPolys = &stormPolys;
 		else drawPolys = &polys;
 
-		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
+		polys.renderColour = glm::vec3(0.f, 1.f, 0.f);
 		polys.drawMode = GL_LINES;
 
-		stormPolys.lineColour = glm::vec3(1.f, 0.f, 0.f);
+		stormPolys.renderColour = glm::vec3(1.f, 0.f, 0.f);
 		stormPolys.drawMode = GL_LINES;
 
 		glm::vec3 center(0.f, 0.f, 0.f);
+
+		std::vector<glm::vec2> polyCoords;
 
 		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
 
@@ -220,51 +218,98 @@ void Program::airSigRender1() {
 
 			glm::vec3 v1, v2;
 
-			if (datum.airSigmet.hazard == HazardType::CONVECTIVE) {
-				glm::vec3 maxV1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
-				glm::vec3 maxV2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
+			//if (datum.airSigmet.hazard == HazardType::CONVECTIVE) {
 
-				Geometry::createArcR(maxV1, maxV2, glm::vec3(), *drawPolys);
+			glm::vec3 maxV1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
+			glm::vec3 maxV2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
 
-				v1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
-				v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+			//Geometry::createArcR(maxV1, maxV2, glm::vec3(), *drawPolys);
 
-				drawPolys->verts.push_back(v1);
-				drawPolys->verts.push_back(maxV1);
-				
-				drawPolys->verts.push_back(v2);
-				drawPolys->verts.push_back(maxV2);
+			v1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+			v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.minAltKM));
 
-				drawPolys->colours.push_back(drawPolys->lineColour);
-				drawPolys->colours.push_back(drawPolys->lineColour);
-				drawPolys->colours.push_back(drawPolys->lineColour);
-				drawPolys->colours.push_back(drawPolys->lineColour);
-			}
+			/*
+			Geometry::createWallR(v1, v2, maxV1, maxV2, glm::vec3(), *r);
+
+			drawPolys->verts.push_back(v1);
+			drawPolys->verts.push_back(maxV1);
+
+			drawPolys->verts.push_back(v2);
+			drawPolys->verts.push_back(maxV2);
+
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			/*}
 			else {
 				v1 = datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
 				v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			}
+			}*/
 			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
+
+			// Add polygon points to vector to prepare for polygon triangulation
+			polyCoords.push_back(glm::vec2(datum.airSigmet.polygon[j].latitude, datum.airSigmet.polygon[j].longitude));
+
+		}
+		
+		// Triangulate the polygon
+		std::vector<glm::vec3> newSphereCoords = Geometry::triangulatePolygon(drawPolys);
+		std::vector<SphCoord> newCoords;
+		for (glm::vec2 coord : newSphereCoords) {
+
+			newCoords.push_back(SphCoord(coord.x, coord.y));
+		}
+
+		for (int j = 0; j < newCoords.size() - 1; j = j + 3) {
+			glm::vec3 v1 = newCoords[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+			glm::vec3 v2 = newCoords[j + 1].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+			glm::vec3 v3 = newCoords[j + 2].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+
+			r->verts.push_back(v1);
+			r->verts.push_back(v2);
+			r->verts.push_back(v3);
+
+			r->colours.push_back(r->renderColour);
+			r->colours.push_back(r->renderColour);
+			r->colours.push_back(r->renderColour);
+
+			/*drawPolys->verts.push_back(v1);
+			drawPolys->verts.push_back(v2);
+
+			drawPolys->verts.push_back(v2);
+			drawPolys->verts.push_back(v3);
+
+			drawPolys->verts.push_back(v1);
+			drawPolys->verts.push_back(v3);
+
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			drawPolys->colours.push_back(drawPolys->renderColour);
+			drawPolys->colours.push_back(drawPolys->renderColour);
+*/
 		}
 
 		center = center / (float)datum.airSigmet.polygon.size();
-
-		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
-
-		}
 
 		/*
 		for (const std::string& code : datum.interior) {
 			SdogCell cell(code, radius);
 			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
 		}
-		*/
-		for (const std::string& code : datum.boundary) {
-			if (code.length() < 11) continue;
+		
 
-			SdogCell cell(code, radius);
-			cell.addToRenderable(*r, colour);
+		if (datum.airSigmet.hazard != HazardType::CONVECTIVE) {
+			for (const std::string& code : datum.boundary) {
+				if (code.length() < 11) continue;
+
+				SdogCell cell(code, radius);
+				cell.addToRenderable(*r, r->renderColour);
+			}
 		}
+		*/
 		
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
