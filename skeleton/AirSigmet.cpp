@@ -133,10 +133,10 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 		}
 
 		// Veritcal test
-		if (c.getMinRad() > altToAbs(minAltKM) - 0.00001 && c.getMaxRad() < altToAbs(maxAltKM) + 0.00001) {
+		if (c.getMinRad() > altToAbs(minAltM) - 0.001 && c.getMaxRad() < altToAbs(maxAltM) + 0.001) {
 			vertical = INTER;
 		}
-		else if (c.getMaxRad() < altToAbs(minAltKM) + 0.00001 || c.getMinRad() > altToAbs(maxAltKM) - 0.00001) {
+		else if (c.getMaxRad() < altToAbs(minAltM) + 0.001 || c.getMinRad() > altToAbs(maxAltM) - 0.001) {
 			vertical = EXTER;
 		}
 		else {
@@ -204,8 +204,8 @@ void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet
 			int minFT = (entry["altitude"].HasMember("_min_ft_msl")) ? std::stoi(entry["altitude"]["_min_ft_msl"].GetString()) : 0;
 			int maxFT = (entry["altitude"].HasMember("_max_ft_msl")) ? std::stoi(entry["altitude"]["_max_ft_msl"].GetString()) : 0;
 
-			next.minAltKM = minFT * (0.3048 / 1000.0); // feet to KM
-			next.maxAltKM = (maxFT > 0) ? maxFT * (0.3048 / 1000.0) : 30.0;
+			next.minAltM = minFT * 0.3048; // feet to M
+			next.maxAltM = (maxFT > 0) ? maxFT * 0.3048 : 30000.0;
 		}
 
 		const rapidjson::Value& pointArray = entry["area"]["point"];

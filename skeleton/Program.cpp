@@ -66,8 +66,8 @@ void Program::start() {
 	RenderEngine::assignBuffers(wind, false);
 
 	// Set starting radius
-	scale = 1.f;
-	radius = RADIUS_EARTH_KM * 4.f / 3.f;
+	scale = 1.0;
+	radius = RADIUS_EARTH_M * 4.0 / 3.0;
 
 	// Load coastline vector data
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
@@ -165,7 +165,7 @@ void Program::insertAirSigmets() {
 	//}
 
 	SphCoord wayPoint(51.08, -114.1292294, false);
-	wind.verts.push_back(wayPoint.toCartesian(RADIUS_EARTH_KM));
+	wind.verts.push_back(wayPoint.toCartesian(RADIUS_EARTH_M));
 	wind.colours.push_back(glm::vec3(1.f, 0.f, 0.f));
 
 	std::vector<std::string> interior, boundary;
@@ -210,25 +210,23 @@ void Program::insertAirSigmets() {
 	a.polygon.push_back(SphCoord(51.0798077, -114.1292708, false));
 	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
 	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
-	a.minAltKM = 0.0; a.maxAltKM = 0.020;
-
+	a.minAltM = 0.0; a.maxAltM = 21.0234;
 
 	int depth = 25;
 	a.gridInsertion(radius, depth, interior, boundary);
-	std::cout << boundary.size() << " : " << interior.size() << std::endl;
 
 	polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
 	polys.drawMode = GL_LINES;
 	for (int i = 0; i < a.polygon.size(); i++) {
-		glm::vec3 v1 = a.polygon[i].toCartesian(RADIUS_EARTH_KM);
-		glm::vec3 v2 = a.polygon[(i + 1) % a.polygon.size()].toCartesian(RADIUS_EARTH_KM);
+		glm::vec3 v1 = a.polygon[i].toCartesian(RADIUS_EARTH_M);
+		glm::vec3 v2 = a.polygon[(i + 1) % a.polygon.size()].toCartesian(RADIUS_EARTH_M);
 		Geometry::createArcR(v1, v2, glm::dvec3(0.0), polys);
 	}
 
 	for (const std::string& code : interior) {
 
 		SdogCell cell(code, radius);
-		if (abs(cell.getMinRad() - RADIUS_EARTH_KM) > 0.0001) continue;
+		if (abs(cell.getMinRad() - RADIUS_EARTH_M) > 0.0001) continue;
 
 		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), false);
 	}
@@ -237,7 +235,7 @@ void Program::insertAirSigmets() {
 		if (code.length() < depth + 1) continue;
 
 		SdogCell cell(code, radius);
-		if (abs(cell.getMinRad() - RADIUS_EARTH_KM) > 0.0001) continue;
+		if (abs(cell.getMinRad() - RADIUS_EARTH_M) > 0.0001) continue;
 
 		cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f), false);
 	}
@@ -268,8 +266,8 @@ void Program::airSigRender1() {
 		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
 		polys.drawMode = GL_LINES;
 		for (int i = 0; i < datum.airSigmet.polygon.size(); i++) {
-			glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltM * 2.2 + RADIUS_EARTH_M);
+			glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltM * 2.2 + RADIUS_EARTH_M);
 			Geometry::createArcR(v1, v2, glm::vec3(), polys);
 		}
 		RenderEngine::setBufferData(polys, false);
@@ -322,7 +320,7 @@ void Program::windRender1() {
 
 		if (norm < 0.4f) continue;
 
-		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
+		float col = (cell.getMinRad() - RADIUS_EARTH_M) / 120.f;
 		cell.addToRenderable(cells, glm::vec3(norm, col, col), true);
 	}
 }
@@ -347,10 +345,10 @@ void Program::mainLoop() {
 		float min = glm::length(cameraPos) - RADIUS_EARTH_VIEW;
 
 		glm::dmat4 worldModel(1.f);
-		double s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
+		double s = scale * (1.0 / RADIUS_EARTH_M) * RADIUS_EARTH_VIEW;
 		worldModel = glm::scale(worldModel, glm::dvec3(s, s, s));
-		worldModel = glm::rotate(worldModel, latRot, glm::dvec3(-1.f, 0.f, 0.f));
-		worldModel = glm::rotate(worldModel, longRot, glm::dvec3(0.f, 1.f, 0.f));
+		worldModel = glm::rotate(worldModel, latRot, glm::dvec3(-1.0, 0.0, 0.0));
+		worldModel = glm::rotate(worldModel, longRot, glm::dvec3(0.0, 1.0, 0.0));
 
 		renderEngine->render(objects, (glm::dmat4)camera->getLookAt() * worldModel, max, min);
 		SDL_GL_SwapWindow(window);

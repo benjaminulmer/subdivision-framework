@@ -10,7 +10,7 @@
 class WindGrid {
 
 public:
-	WindGrid(int numRows, int numCols, double altKM, double delta);
+	WindGrid(int numRows, int numCols, double altM, double delta);
 
 	glm::vec2& operator()(int r, int c);
 	const glm::vec2& operator()(int r, int c) const;
@@ -23,7 +23,7 @@ private:
 	int numRows;
 	int numCols;
 	double delta;
-	double altKM;
+	double altM;
 
 	glm::vec2* data;
 };
