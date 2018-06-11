@@ -2,6 +2,10 @@
 #include "Geometry.h"
 
 #include <cmath>
+#include <list>
+
+#include <cstdlib>
+#include <iostream>
 
 // Geometric slerp between two vectors
 glm::vec3 Geometry::geomSlerp(const glm::vec3& v1, const glm::vec3& v2, float t) {
@@ -152,23 +156,49 @@ void Geometry::createLineR(const glm::vec3& p1, const glm::vec3& p2, Renderable 
 }
 
 std::vector<glm::vec2> Geometry::triangulatePolygon(const std::vector<glm::vec2> coords) {
-	std::vector<Vector2<float>> poly;
+
+	std::vector<p2t::Triangle*> triangles;
+	std::list<p2t::Triangle*> map;
+
+	std::vector<std::vector<p2t::Point*>> polylines;
+	std::vector<p2t::Point*> polyline;
+
+	double prevX = -999999.0;
+	double prevY = -999999.0;
 
 	for (glm::vec2 p : coords) {
-		poly.push_back(Vector2<float>(p.x, p.y));
+		if ((p.x != prevX) || (p.y != prevY)) {
+			polyline.push_back(new p2t::Point(p.x, p.y));
+			//std::cout << p.x << "  " << p.y << std::endl;
+
+			prevX = p.x;
+			prevY = p.y;
+		}
 	}
 
-	std::vector<Triangle<float>> tris;
+	//std::cout << "DONE CREATING POLYLINE" << std::endl;
 
-	Delaunay<float> triangulator;
-	tris = triangulator.triangulate(poly);
+	polylines.push_back(polyline);
+
+	p2t::CDT* cdt = new p2t::CDT(polyline);
+	cdt->Triangulate();
+	triangles = cdt->GetTriangles();
+	map = cdt->GetMap();
 
 	std::vector<glm::vec2> newCoords;
 
-	for (Triangle<float> tri : tris) {
-		newCoords.push_back(glm::vec2(tri.p1.x, tri.p1.y));
-		newCoords.push_back(glm::vec2(tri.p2.x, tri.p2.y));
-		newCoords.push_back(glm::vec2(tri.p3.x, tri.p3.y));
+	//std::cout << "Created " << triangles.size() << " triangles" << std::endl;
+
+	for (p2t::Triangle* tri : triangles) {
+		glm::vec2 p;
+		for (int i = 0; i < 3; i++) {
+			p.x = tri->GetPoint(i)->x;
+			p.y = tri->GetPoint(i)->y;
+			newCoords.push_back(p);
+		}
 	}
+/*
+	std::cout << "Number of triangles = " << triangles.size() << std::endl;*/
+
 	return newCoords;
 }

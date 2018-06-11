@@ -1,6 +1,6 @@
 #pragma once
 
-#include <delaunay-triangulation\delaunay.h>
+#include <poly2tri/poly2tri.h>
 #include <glm/glm.hpp>
 
 #include "Renderable.h"

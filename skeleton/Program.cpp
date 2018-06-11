@@ -176,6 +176,10 @@ void Program::airSigRender1() {
 	std::vector<AirSigmetCells> data;
 	dataBase->getAirSigmetCells(data);
 
+	//std::cout << "Num. of sigmets: " << data.size() << std::endl;
+
+	int count = 0;
+
 	for (const AirSigmetCells& datum : data) {
 
 		float alpha;
@@ -211,6 +215,8 @@ void Program::airSigRender1() {
 		glm::vec3 center(0.f, 0.f, 0.f);
 
 		std::vector<glm::vec2> polyCoords;
+		
+		//std::cout << "polygon size: " << datum.airSigmet.polygon.size() << std::endl;
 
 		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
 
@@ -223,12 +229,11 @@ void Program::airSigRender1() {
 			glm::vec3 maxV1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
 			glm::vec3 maxV2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
 
-			//Geometry::createArcR(maxV1, maxV2, glm::vec3(), *drawPolys);
+			Geometry::createArcR(maxV1, maxV2, glm::vec3(), *drawPolys);
 
 			v1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
 			v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.minAltKM));
 
-			/*
 			Geometry::createWallR(v1, v2, maxV1, maxV2, glm::vec3(), *r);
 
 			drawPolys->verts.push_back(v1);
@@ -253,8 +258,11 @@ void Program::airSigRender1() {
 
 		}
 		
+		//std::cout << "Polycoords size in " << count << ": " << polyCoords.size() << std::endl;
+
+
 		// Triangulate the polygon
-		std::vector<glm::vec3> newSphereCoords = Geometry::triangulatePolygon(drawPolys);
+		std::vector<glm::vec2> newSphereCoords = Geometry::triangulatePolygon(polyCoords);
 		std::vector<SphCoord> newCoords;
 		for (glm::vec2 coord : newSphereCoords) {
 
@@ -274,7 +282,8 @@ void Program::airSigRender1() {
 			r->colours.push_back(r->renderColour);
 			r->colours.push_back(r->renderColour);
 
-			/*drawPolys->verts.push_back(v1);
+			/*
+			drawPolys->verts.push_back(v1);
 			drawPolys->verts.push_back(v2);
 
 			drawPolys->verts.push_back(v2);
@@ -289,7 +298,7 @@ void Program::airSigRender1() {
 			drawPolys->colours.push_back(drawPolys->renderColour);
 			drawPolys->colours.push_back(drawPolys->renderColour);
 			drawPolys->colours.push_back(drawPolys->renderColour);
-*/
+			*/
 		}
 
 		center = center / (float)datum.airSigmet.polygon.size();
@@ -315,6 +324,8 @@ void Program::airSigRender1() {
 		r->drawMode = GL_TRIANGLES;
 
 		RenderEngine::setBufferData(*r, false);
+
+		count++;
 	}
 }
 
