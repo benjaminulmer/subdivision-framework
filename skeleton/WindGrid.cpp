@@ -185,8 +185,8 @@ void WindGrid::readFromJson(const rapidjson::Document& d, std::vector<WindGrid>&
 			for (int c = 0; c < numCols; c++) {
 
 				int index = r * numCols + c;
-				layer(r, c).x = dataU[index].GetDouble();
-				layer(r, c).y = dataV[index].GetDouble();
+				layer(r, c).x = (float)dataU[index].GetDouble();
+				layer(r, c).y = (float)dataV[index].GetDouble();
 			}
 		}	
 

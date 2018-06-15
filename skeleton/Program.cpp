@@ -320,7 +320,7 @@ void Program::windRender1() {
 
 		if (norm < 0.4f) continue;
 
-		float col = (cell.getMinRad() - RADIUS_EARTH_M) / 120.f;
+		float col = (float)(cell.getMinRad() - RADIUS_EARTH_M) / 120.f;
 		cell.addToRenderable(cells, glm::vec3(norm, col, col), true);
 	}
 }

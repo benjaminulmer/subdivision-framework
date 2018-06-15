@@ -24,10 +24,10 @@ public:
 	void setWindowSize(int newWidth, int newHeight);
 	void toggleFade() { fade = !fade; }
 
-	float getFovY() { return fovYRad; }
-	float getAspectRatio() { return (float)width/height; }
-	float getNear() { return near; }
-	float getFar() { return far; }
+	double getFovY() { return fovYRad; }
+	double getAspectRatio() { return (float)width/height; }
+	double getNear() { return near; }
+	double getFar() { return far; }
 	glm::dmat4 getProjection() { return projection; }
 
 private:
