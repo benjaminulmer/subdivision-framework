@@ -302,6 +302,50 @@ void SdogDB::getAirSigmetCells(std::vector<AirSigmetCells>& out) {
 }
 
 
+void SdogDB::getAirSigmetForCell(const std::string & code, std::vector<AirSigmet>& out) {
+
+	sqlite3_stmt* airSigsStmt, *boundsStmt;
+	char* sqlAirSigs = "SELECT a.airSigmetID, a.validFrom, a.validUntil, a.minAltKM, a.maxAltKM, a.dirDeg, a.speedKT, a.hazard, a.severity, a.type "
+		"FROM cells as c, airSigmets as a, cellHasAirSigmet as r "
+		"WHERE c.cellID = r.cellID AND a.airSigmetID = r.airSigmetID AND c.code = @CO";
+
+	char* sqlBounds = "SELECT latRad, longRad FROM airSigmetBounds WHERE airSigmetID = @ID";
+
+	sqlite3_prepare_v2(db, sqlAirSigs, -1, &airSigsStmt, NULL);
+	sqlite3_prepare_v2(db, sqlBounds, -1, &boundsStmt, NULL);
+
+	sqlite3_bind_text(airSigsStmt, 1, code.c_str(), -1, SQLITE_STATIC);
+
+	while (sqlite3_step(airSigsStmt) != SQLITE_DONE) {
+		std::cout << "airsig" << std::endl;
+		AirSigmet a;
+		int airSigID = sqlite3_column_int(airSigsStmt, 0);
+
+		a.validFrom = std::string(reinterpret_cast<const char*>(sqlite3_column_text(airSigsStmt, 1)));
+		a.validUntil = std::string(reinterpret_cast<const char*>(sqlite3_column_text(airSigsStmt, 2)));
+		a.minAltKM = sqlite3_column_double(airSigsStmt, 3);
+		a.maxAltKM = sqlite3_column_double(airSigsStmt, 4);
+		a.dirDeg = sqlite3_column_int(airSigsStmt, 5);
+		a.speedKT = sqlite3_column_int(airSigsStmt, 6);
+		a.hazard = (HazardType)sqlite3_column_int(airSigsStmt, 7);
+		a.severity = (Severity)sqlite3_column_int(airSigsStmt, 8);
+		a.type = (AirSigmetType)sqlite3_column_int(airSigsStmt, 9);
+
+		sqlite3_bind_int(boundsStmt, 1, airSigID);
+
+		while (sqlite3_step(boundsStmt) != SQLITE_DONE) {
+			a.polygon.push_back(SphCoord(sqlite3_column_double(boundsStmt, 0), sqlite3_column_double(boundsStmt, 1)));
+		}
+		out.push_back(a);
+
+		sqlite3_clear_bindings(boundsStmt);
+		sqlite3_reset(boundsStmt);
+	}
+	sqlite3_finalize(airSigsStmt);
+	sqlite3_finalize(boundsStmt);
+}
+
+
 // Gets all cells with wind information from the DB
 //
 // out - output list of cells and their associated wind data - treats as empty

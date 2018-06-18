@@ -20,6 +20,8 @@ public:
 	void getAirSigmetCells(std::vector<AirSigmetCells>& out);
 	void getWindCells(std::vector<std::pair<std::string, glm::vec2>>& out);
 
+	void getAirSigmetForCell(const std::string & code, std::vector<AirSigmet>& out);
+
 private:
 	sqlite3* db;
 
