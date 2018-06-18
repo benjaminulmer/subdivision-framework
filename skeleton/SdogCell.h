@@ -45,6 +45,14 @@ public:
 
 	void children(std::vector<std::string>& out);
 	void neighbours(std::vector<std::string>& out);
+
+	void getUpNeighbours(std::vector<std::string>& out);
+	void getDownNeighbours(std::vector<std::string>& out);
+	void getInNeighbours(std::vector<std::string>& out);
+	void getOutNeighbours(std::vector<std::string>& out);
+	void getLeftNeighbours(std::vector<std::string>& out);
+	void getRightNeighbours(std::vector<std::string>& out);
+
 	void checkNeighbors();
 
 	void addToRenderable(Renderable& r, const glm::vec3& colour, Renderable& p);

@@ -302,8 +302,227 @@ void SdogCell::neighbours(std::vector<std::string>& out) {
 	//std::cout << out.size() << std::endl;
 }
 
-void SdogCell::checkNeighbors() {
+void SdogCell::getUpNeighbours(std::vector<std::string>& out) {
 
+	if (type == SdogCellType::INVALID) return;
+
+	unsigned int level = (unsigned int)code.length() - 1;
+
+	double midLat = 0.5 * minLat + 0.5 * maxLat;
+	double midLong = 0.5 * minLong + 0.5 * maxLong;
+	double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+	double latDist = maxLat - minLat;
+	double longDist = maxLong - minLong;
+	double radDist = maxRad - minRad;
+
+	// Get codes for location of all posible neighbours
+	out.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level));
+
+}
+
+void SdogCell::getDownNeighbours(std::vector<std::string>& out) {
+
+	if (type == SdogCellType::INVALID) return;
+
+	unsigned int level = (unsigned int)code.length() - 1;
+
+	double midLat = 0.5 * minLat + 0.5 * maxLat;
+	double midLong = 0.5 * minLong + 0.5 * maxLong;
+	double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+	double latDist = maxLat - minLat;
+	double longDist = maxLong - minLong;
+	double radDist = maxRad - minRad;
+
+	// Get codes for location of all posible neighbours
+	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level));
+
+	// Remove duplicates and self
+	std::sort(out.begin(), out.end());
+	out.erase(std::unique(out.begin(), out.end()), out.end());
+	out.erase(std::remove(out.begin(), out.end(), code), out.end());
+
+	//std::cout << out.size() << std::endl;
+}
+
+void SdogCell::getInNeighbours(std::vector<std::string>& out) {
+
+	if (type == SdogCellType::INVALID) return;
+
+	unsigned int level = (unsigned int)code.length() - 1;
+
+	double midLat = 0.5 * minLat + 0.5 * maxLat;
+	double midLong = 0.5 * minLong + 0.5 * maxLong;
+	double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+	double latDist = maxLat - minLat;
+	double longDist = maxLong - minLong;
+	double radDist = maxRad - minRad;
+
+	// Get codes for location of all posible neighbours
+	out.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong - longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
+
+	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level));
+
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+
+	// Remove duplicates and self
+	std::sort(out.begin(), out.end());
+	out.erase(std::unique(out.begin(), out.end()), out.end());
+	out.erase(std::remove(out.begin(), out.end(), code), out.end());
+
+	//std::cout << out.size() << std::endl;
+}
+
+void SdogCell::getOutNeighbours(std::vector<std::string>& out) {
+
+	if (type == SdogCellType::INVALID) return;
+
+	unsigned int level = (unsigned int)code.length() - 1;
+
+	double midLat = 0.5 * minLat + 0.5 * maxLat;
+	double midLong = 0.5 * minLong + 0.5 * maxLong;
+	double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+	double latDist = maxLat - minLat;
+	double longDist = maxLong - minLong;
+	double radDist = maxRad - minRad;
+
+	// Get codes for location of all posible neighbours
+	out.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong - longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
+
+	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level));
+
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+
+	// Remove duplicates and self
+	std::sort(out.begin(), out.end());
+	out.erase(std::unique(out.begin(), out.end()), out.end());
+	out.erase(std::remove(out.begin(), out.end(), code), out.end());
+
+	//std::cout << out.size() << std::endl;
+}
+
+void SdogCell::getLeftNeighbours(std::vector<std::string>& out) {
+
+	if (type == SdogCellType::INVALID) return;
+
+	unsigned int level = (unsigned int)code.length() - 1;
+
+	double midLat = 0.5 * minLat + 0.5 * maxLat;
+	double midLong = 0.5 * minLong + 0.5 * maxLong;
+	double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+	double latDist = maxLat - minLat;
+	double longDist = maxLong - minLong;
+	double radDist = maxRad - minRad;
+
+	// Get codes for location of all posible neighbours
+	out.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong - longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
+
+	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level));
+
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+
+	// Remove duplicates and self
+	std::sort(out.begin(), out.end());
+	out.erase(std::unique(out.begin(), out.end()), out.end());
+	out.erase(std::remove(out.begin(), out.end(), code), out.end());
+
+	//std::cout << out.size() << std::endl;
+}
+
+void SdogCell::getRightNeighbours(std::vector<std::string>& out) {
+
+	if (type == SdogCellType::INVALID) return;
+
+	unsigned int level = (unsigned int)code.length() - 1;
+
+	double midLat = 0.5 * minLat + 0.5 * maxLat;
+	double midLong = 0.5 * minLong + 0.5 * maxLong;
+	double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+	double latDist = maxLat - minLat;
+	double longDist = maxLong - minLong;
+	double radDist = maxRad - minRad;
+
+	// Get codes for location of all posible neighbours
+	out.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong - longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
+
+	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level));
+
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+
+	// Remove duplicates and self
+	std::sort(out.begin(), out.end());
+	out.erase(std::unique(out.begin(), out.end()), out.end());
+	out.erase(std::remove(out.begin(), out.end(), code), out.end());
+
+	//std::cout << out.size() << std::endl;
+}
+
+
+void SdogCell::checkNeighbors() {
+	if (type == SdogCellType::INVALID) return;
+
+	unsigned int level = (unsigned int)code.length() - 1;
+
+	double midLat = 0.5 * minLat + 0.5 * maxLat;
+	double midLong = 0.5 * minLong + 0.5 * maxLong;
+	double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+	double latDist = maxLat - minLat;
+	double longDist = maxLong - minLong;
+	double radDist = maxRad - minRad;
+
+	// Get codes for location of all posible neighbours
+	out.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong - longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
+
+	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level));
+	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level));
+
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
+	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+
+	// Remove duplicates and self
+	std::sort(out.begin(), out.end());
+	out.erase(std::unique(out.begin(), out.end()), out.end());
+	out.erase(std::remove(out.begin(), out.end(), code), out.end());
 }
 
 void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderable& p) {
