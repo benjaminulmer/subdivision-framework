@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include <iostream>
+
 // Constructs the SDOG cell for the given code
 //
 // code - index code of the desired SDOG cell
@@ -296,11 +298,12 @@ void SdogCell::neighbours(std::vector<std::string>& out) {
 	std::sort(out.begin(), out.end());
 	out.erase(std::unique(out.begin(), out.end()), out.end());
 	out.erase(std::remove(out.begin(), out.end(), code), out.end());
+
+	//std::cout << out.size() << std::endl;
 }
 
-
-
-void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour) {
+void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderable& p) {
+	// Anything using 'p' is temporary - used to visualize borders of individual cells
 
 	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRad;
 	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRad;
@@ -314,28 +317,279 @@ void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour) {
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRad;
 
 	// Outside and inside
+	// Outside
 	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
 	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
+	
+	p.verts.push_back(o1); p.verts.push_back(o2); 
+	p.verts.push_back(o2); p.verts.push_back(o4);
+	p.verts.push_back(o4); p.verts.push_back(o1);
 
+	p.verts.push_back(o1); p.verts.push_back(o3); 
+	p.verts.push_back(o3); p.verts.push_back(o4);
+	p.verts.push_back(o4); p.verts.push_back(o1);
+
+	// Inside
 	r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
 	r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
+	
+	p.verts.push_back(i1); p.verts.push_back(i2);
+	p.verts.push_back(i2); p.verts.push_back(i4);
+	p.verts.push_back(i4); p.verts.push_back(i1);
+
+	p.verts.push_back(i1); p.verts.push_back(i3); 
+	p.verts.push_back(i3); p.verts.push_back(i4);
+	p.verts.push_back(i4); p.verts.push_back(i1);
 
 	// Sides
+
+	// Right side
 	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
 	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
 
+	// Left side
 	r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
 	r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
+	
+	p.verts.push_back(o1); p.verts.push_back(i1); 
+	p.verts.push_back(i1); p.verts.push_back(i3);
+	p.verts.push_back(i3); p.verts.push_back(o1);
+
+	p.verts.push_back(o1); p.verts.push_back(o3);
+	p.verts.push_back(o3); p.verts.push_back(i3);
+	p.verts.push_back(i3); p.verts.push_back(o1);
+
+
+	p.verts.push_back(o2); p.verts.push_back(i2); 
+	p.verts.push_back(i2); p.verts.push_back(i4);
+	p.verts.push_back(i4); p.verts.push_back(o2);
+
+	p.verts.push_back(o2); p.verts.push_back(o4); 
+	p.verts.push_back(o4); p.verts.push_back(i4);
+	p.verts.push_back(i4); p.verts.push_back(o2);
 
 	// Top and bottom
+	// Top
 	r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
 	r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
 
+	// Bottom
 	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
 	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
+	
+	p.verts.push_back(o3); p.verts.push_back(i3); 
+	p.verts.push_back(i3); p.verts.push_back(i4);
+	p.verts.push_back(i4); p.verts.push_back(o3);
+
+	p.verts.push_back(o3); p.verts.push_back(o4); 
+	p.verts.push_back(o4); p.verts.push_back(i4);
+	p.verts.push_back(i4); p.verts.push_back(o3);
+
+
+	p.verts.push_back(o1); p.verts.push_back(i1); 
+	p.verts.push_back(i1); p.verts.push_back(i2);
+	p.verts.push_back(i2); p.verts.push_back(o1);
+
+	p.verts.push_back(o1); p.verts.push_back(o2); 
+	p.verts.push_back(o2); p.verts.push_back(i2);
+	p.verts.push_back(i2); p.verts.push_back(o1);
 
 	for (int i = 0; i < 36; i++) {
 		r.colours.push_back(colour);
+	}
+	for (int i = 0; i < 64; i++) {
+		p.colours.push_back(glm::vec3(0.f, 0.f, 0.f));
+	}
+}
+
+void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, const AirSigmetCells* cell, Renderable& p) {
+	bool hasLeft, hasRight, hasIn, hasOut, hasTop, hasBottom;
+
+	// Get one neighboring cell in each direction
+	
+	if (type == SdogCellType::INVALID) return;
+
+	unsigned int level = (unsigned int)code.length() - 1;
+
+	double midLat = 0.5 * minLat + 0.5 * maxLat;
+	double midLong = 0.5 * minLong + 0.5 * maxLong;
+	double midRad = 0.5 * minRad + 0.5 * maxRad;
+
+	double latDist = maxLat - minLat;
+	double longDist = maxLong - minLong;
+	double radDist = maxRad - minRad;
+
+	std::string topCode = codeForPos(midLat + latDist, midLong, midRad, gridRadius, level);
+	std::string bottomCode = codeForPos(midLat - latDist, midLong, midRad, gridRadius, level);
+	std::string leftCode = codeForPos(midLat, midLong + longDist, midRad, gridRadius, level);
+	std::string rightCode = codeForPos(midLat, midLong - longDist, midRad, gridRadius, level);
+	std::string inCode = (codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
+	std::string outCode = (codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
+
+	// Check for sigmet in each neighbor
+
+	// Right neighbor
+	std::string code = rightCode;
+	bool i, b;
+
+	i = (std::find(cell->interior.begin(), cell->interior.end(), code) != cell->interior.end());
+	b = (std::find(cell->boundary.begin(), cell->boundary.end(), code) != cell->boundary.end());
+	hasRight = (i || b);
+
+	// Left neighbor
+	code = leftCode;
+	i = (std::find(cell->interior.begin(), cell->interior.end(), code) != cell->interior.end());
+	b = (std::find(cell->boundary.begin(), cell->boundary.end(), code) != cell->boundary.end());
+	hasLeft = (i || b);
+
+	// Top neighbor
+	code = topCode;
+	i = (std::find(cell->interior.begin(), cell->interior.end(), code) != cell->interior.end());
+	b = (std::find(cell->boundary.begin(), cell->boundary.end(), code) != cell->boundary.end());
+	hasTop = (i || b);
+
+	// Bottom neighbor
+	code = bottomCode;
+	i = (std::find(cell->interior.begin(), cell->interior.end(), code) != cell->interior.end());
+	b = (std::find(cell->boundary.begin(), cell->boundary.end(), code) != cell->boundary.end());
+	hasBottom = (i || b);
+
+	// Inner neighbor
+	code = inCode;
+	i = (std::find(cell->interior.begin(), cell->interior.end(), code) != cell->interior.end());
+	b = (std::find(cell->boundary.begin(), cell->boundary.end(), code) != cell->boundary.end());
+	hasIn = (i || b);
+
+	// Outer neighbor
+	code = outCode;
+	i = (std::find(cell->interior.begin(), cell->interior.end(), code) != cell->interior.end());
+	b = (std::find(cell->boundary.begin(), cell->boundary.end(), code) != cell->boundary.end());
+	hasOut = (i || b);
+
+	// Anything using 'p' is temporary - used to visualize borders of individual cells
+	double rCount = 0;
+	double pCount = 0;
+
+	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRad;
+	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRad;
+	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRad;
+	glm::vec3 o4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)maxRad;
+
+	// Inner points
+	glm::vec3 i1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)minRad;
+	glm::vec3 i2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)minRad;
+	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRad;
+	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRad;
+
+	// Outside and inside
+	// Outside
+	if (!hasOut) {
+		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
+		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
+
+		p.verts.push_back(o1); p.verts.push_back(o2);
+		p.verts.push_back(o2); p.verts.push_back(o4);
+		p.verts.push_back(o4); p.verts.push_back(o1);
+
+		p.verts.push_back(o1); p.verts.push_back(o3);
+		p.verts.push_back(o3); p.verts.push_back(o4);
+		p.verts.push_back(o4); p.verts.push_back(o1);
+
+		rCount += 6;
+		pCount += 12;
+	}
+	// Inside
+	if (!hasIn) {
+		r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
+		r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
+
+		p.verts.push_back(i1); p.verts.push_back(i2);
+		p.verts.push_back(i2); p.verts.push_back(i4);
+		p.verts.push_back(i4); p.verts.push_back(i1);
+
+		p.verts.push_back(i1); p.verts.push_back(i3);
+		p.verts.push_back(i3); p.verts.push_back(i4);
+		p.verts.push_back(i4); p.verts.push_back(i1);
+
+		rCount += 6;
+		pCount += 12;
+	}
+
+	// Sides
+	// Right side
+	if (!hasRight) {
+		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
+		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
+
+		p.verts.push_back(o1); p.verts.push_back(i1);
+		p.verts.push_back(i1); p.verts.push_back(i3);
+		p.verts.push_back(i3); p.verts.push_back(o1);
+
+		p.verts.push_back(o1); p.verts.push_back(o3);
+		p.verts.push_back(o3); p.verts.push_back(i3);
+		p.verts.push_back(i3); p.verts.push_back(o1);
+
+		rCount += 6;
+		pCount += 12;
+	}
+
+	// Left side
+	if (!hasLeft) {
+		r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
+		r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
+
+		p.verts.push_back(o2); p.verts.push_back(i2);
+		p.verts.push_back(i2); p.verts.push_back(i4);
+		p.verts.push_back(i4); p.verts.push_back(o2);
+
+		p.verts.push_back(o2); p.verts.push_back(o4);
+		p.verts.push_back(o4); p.verts.push_back(i4);
+		p.verts.push_back(i4); p.verts.push_back(o2);
+
+		rCount += 6;
+		pCount += 12;
+	}
+
+	// Top and bottom
+	// Top
+	if (!hasTop) {
+		r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
+		r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
+
+		p.verts.push_back(o3); p.verts.push_back(i3);
+		p.verts.push_back(i3); p.verts.push_back(i4);
+		p.verts.push_back(i4); p.verts.push_back(o3);
+
+		p.verts.push_back(o3); p.verts.push_back(o4);
+		p.verts.push_back(o4); p.verts.push_back(i4);
+		p.verts.push_back(i4); p.verts.push_back(o3);
+
+		rCount += 6;
+		pCount += 12;
+	}
+
+	// Bottom
+	if (!hasBottom) {
+		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
+		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
+
+		p.verts.push_back(o1); p.verts.push_back(i1);
+		p.verts.push_back(i1); p.verts.push_back(i2);
+		p.verts.push_back(i2); p.verts.push_back(o1);
+
+		p.verts.push_back(o1); p.verts.push_back(o2);
+		p.verts.push_back(o2); p.verts.push_back(i2);
+		p.verts.push_back(i2); p.verts.push_back(o1);
+
+		rCount += 6;
+		pCount += 12;
+	}
+
+	for (int i = 0; i < rCount; i++) {
+		r.colours.push_back(colour);
+	}
+	for (int i = 0; i < pCount; i++) {
+		p.colours.push_back(glm::vec3(0.f, 0.f, 0.f));
 	}
 }
 

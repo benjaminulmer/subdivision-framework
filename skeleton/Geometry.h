@@ -1,6 +1,7 @@
 #pragma once
 
 #include <poly2tri/poly2tri.h>
+
 #include <glm/glm.hpp>
 
 #include "Renderable.h"
@@ -16,5 +17,7 @@ public:
 	static void createWallR(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& maxp1, const glm::vec3& maxp2, const glm::vec3& centre, Renderable& r);
 
 	static std::vector<glm::vec2> triangulatePolygon(const std::vector<glm::vec2> coords);
+
+	static std::vector<glm::vec2> refinePolygon(std::vector<glm::vec2> in);
 };
 

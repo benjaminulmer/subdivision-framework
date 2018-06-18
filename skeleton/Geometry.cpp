@@ -1,3 +1,6 @@
+
+
+
 #define _USE_MATH_DEFINES
 #include "Geometry.h"
 
@@ -6,6 +9,8 @@
 
 #include <cstdlib>
 #include <iostream>
+
+
 
 // Geometric slerp between two vectors
 glm::vec3 Geometry::geomSlerp(const glm::vec3& v1, const glm::vec3& v2, float t) {
@@ -176,12 +181,15 @@ std::vector<glm::vec2> Geometry::triangulatePolygon(const std::vector<glm::vec2>
 		}
 	}
 
-	//std::cout << "DONE CREATING POLYLINE" << std::endl;
+	std::cout << "DONE CREATING POLYLINE of size " << polyline.size() << std::endl;
 
 	polylines.push_back(polyline);
 
 	p2t::CDT* cdt = new p2t::CDT(polyline);
+	std::cout << "triangulating..." << std::endl;
 	cdt->Triangulate();
+	std::cout << "finished triangulating" << std::endl;
+
 	triangles = cdt->GetTriangles();
 	map = cdt->GetMap();
 
@@ -195,10 +203,111 @@ std::vector<glm::vec2> Geometry::triangulatePolygon(const std::vector<glm::vec2>
 			p.x = tri->GetPoint(i)->x;
 			p.y = tri->GetPoint(i)->y;
 			newCoords.push_back(p);
+
+			std::cout << "point " << p.x << "  " << p.y << std::endl;
+		}
+	}
+	/*
+	// An attempt at refinement
+	polyline.clear();
+
+	prevX = -999999.0;
+	prevY = -999999.0;
+
+	for (glm::vec2 p : newCoords) {
+		if ((p.x != prevX) || (p.y != prevY)) {
+			polyline.push_back(new p2t::Point(p.x, p.y));
+			//std::cout << p.x << "  " << p.y << std::endl;
+
+			prevX = p.x;
+			prevY = p.y;
+		}
+	}
+	cdt = new p2t::CDT(polyline);
+	cdt->Triangulate();
+	triangles = cdt->GetTriangles();
+	map = cdt->GetMap();
+
+	newCoords.clear();
+
+	for (p2t::Triangle* tri : triangles) {
+		glm::vec2 p;
+		for (int i = 0; i < 3; i++) {
+			p.x = tri->GetPoint(i)->x;
+			p.y = tri->GetPoint(i)->y;
+			newCoords.push_back(p);
 		}
 	}
 /*
 	std::cout << "Number of triangles = " << triangles.size() << std::endl;*/
 
 	return newCoords;
+}
+
+std::vector<glm::vec2> Geometry::refinePolygon(std::vector<glm::vec2> in) {
+	std::vector<glm::vec2> temp;
+
+	double prevX = -999999.0;
+	double prevY = -999999.0;
+
+	for (glm::vec2 p : in) {
+		if ((p.x != prevX) || (p.y != prevY)) {
+			temp.push_back(p);
+			std::cout <<"removed" <<std::endl;
+
+			prevX = p.x;
+			prevY = p.y;
+		}
+	}
+	in = temp;
+
+	std::vector<glm::vec2> out;
+
+	for (int i = 0; i < in.size() - 1; i++) {
+		// Compute angle between vectors
+		float length = (in[i] - in[i + 1]).length();
+
+		// Points are very close on arc, just draw line between them
+		if (length <= 1) {
+			out.push_back(in[i]);
+			out.push_back(in[i+1]);
+
+
+			std::cout << "regular: " << std::endl;
+			std::cout << in[i].x << " " << in[i].y << std::endl;
+			std::cout << in[i+1].x << " " << in[i+1].y << std::endl;
+			//r.colours.push_back(r.renderColour);
+		}
+
+		else {
+			// #num line segments ~= angle of arc in degrees / 6
+
+			for (int i = 0; i < 6; i++) {
+				float t = (float)i / 6.f;
+
+				if (t == 0.f)
+					out.push_back(in[i]);
+
+				else {
+					glm::vec2 result = (in[i] * (1.f / t)) + ((t)* in[i + 1]);
+
+					std::cout << "interpolated at " << t << ": " << std::endl;
+					std::cout << result.x << " " << result.y << std::endl;
+
+					out.push_back(result);
+				}
+
+				/*r.colours.push_back(r.renderColour);
+				if (i != 0 && i != angleDeg) {
+					r.verts.push_back(centre + result);
+					r.colours.push_back(r.renderColour);
+				}
+				*/
+			}
+		}
+	}
+	
+	
+
+	return out;
 }

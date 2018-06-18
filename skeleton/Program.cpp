@@ -9,6 +9,7 @@
 #include <cmath>
 #include <limits>
 #include <iostream>
+#include <map>
 
 #include "Constants.h"
 #include "WindGrid.h"
@@ -176,10 +177,6 @@ void Program::airSigRender1() {
 	std::vector<AirSigmetCells> data;
 	dataBase->getAirSigmetCells(data);
 
-	//std::cout << "Num. of sigmets: " << data.size() << std::endl;
-
-	int count = 0;
-
 	for (const AirSigmetCells& datum : data) {
 
 		float alpha;
@@ -214,7 +211,7 @@ void Program::airSigRender1() {
 
 		glm::vec3 center(0.f, 0.f, 0.f);
 
-		std::vector<glm::vec2> polyCoords;
+		//std::vector<glm::vec2> polyCoords;
 		
 		//std::cout << "polygon size: " << datum.airSigmet.polygon.size() << std::endl;
 
@@ -234,7 +231,7 @@ void Program::airSigRender1() {
 			v1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
 			v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.minAltKM));
 
-			Geometry::createWallR(v1, v2, maxV1, maxV2, glm::vec3(), *r);
+			//Geometry::createWallR(v1, v2, maxV1, maxV2, glm::vec3(), *r);
 
 			drawPolys->verts.push_back(v1);
 			drawPolys->verts.push_back(maxV1);
@@ -254,7 +251,7 @@ void Program::airSigRender1() {
 			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
 
 			// Add polygon points to vector to prepare for polygon triangulation
-			polyCoords.push_back(glm::vec2(datum.airSigmet.polygon[j].latitude, datum.airSigmet.polygon[j].longitude));
+			//polyCoords.push_back(glm::vec2(datum.airSigmet.polygon[j].latitude, datum.airSigmet.polygon[j].longitude));
 
 		}
 		
@@ -262,70 +259,123 @@ void Program::airSigRender1() {
 
 
 		// Triangulate the polygon
+		/*std::vector<glm::vec2> refinedPoly = Geometry::refinePolygon(polyCoords);
+		std::cout << "refined poly size: " << refinedPoly.size() << std::endl;
+
 		std::vector<glm::vec2> newSphereCoords = Geometry::triangulatePolygon(polyCoords);
 		std::vector<SphCoord> newCoords;
 		for (glm::vec2 coord : newSphereCoords) {
 
 			newCoords.push_back(SphCoord(coord.x, coord.y));
-		}
+		}*/
 
+		/*double maxVal = 0.0;
+		double minVal = 1000000.0;
+		double area;
+
+		double smallCount;
+		double largeCount;*/
+/*
 		for (int j = 0; j < newCoords.size() - 1; j = j + 3) {
-			glm::vec3 v1 = newCoords[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
-			glm::vec3 v2 = newCoords[j + 1].toCartesian(altToAbs(datum.airSigmet.minAltKM));
-			glm::vec3 v3 = newCoords[j + 2].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+			glm::vec2 p0 = glm::vec2(newCoords[j].latitude, newCoords[j].longitude);
+			glm::vec2 p1 = glm::vec2(newCoords[j+1].latitude, newCoords[j+1].longitude);
+			glm::vec2 p2 = glm::vec2(newCoords[j+2].latitude, newCoords[j+2].longitude);
 
+			glm::vec3 v0 = newCoords[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+			glm::vec3 v1 = newCoords[j + 1].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+			glm::vec3 v2 = newCoords[j + 2].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+
+			r->verts.push_back(v0);
 			r->verts.push_back(v1);
 			r->verts.push_back(v2);
-			r->verts.push_back(v3);
 
 			r->colours.push_back(r->renderColour);
 			r->colours.push_back(r->renderColour);
 			r->colours.push_back(r->renderColour);
+*/
+		//	area = std::abs(p0.x * (p1.y - p2.y) + p1.x * (p2.y - p0.y) + p2.x * (p0.y - p1.y)) / 2.0;
 
-			/*
-			drawPolys->verts.push_back(v1);
-			drawPolys->verts.push_back(v2);
+		//	if (area < minVal) minVal = area;
+		//	if (area > maxVal) maxVal = area;
 
-			drawPolys->verts.push_back(v2);
-			drawPolys->verts.push_back(v3);
+		//	// Compute angle between vectors
+		//	float theta = acos(glm::dot(glm::normalize(v0), glm::normalize(v1)));
+		//	int angleDeg = (int)(theta * 180.f / M_PI);
 
-			drawPolys->verts.push_back(v1);
-			drawPolys->verts.push_back(v3);
+		//	// Points are very close on arc, just draw line between them
+		//	if (angleDeg == 0) {
+		//		smallCount++;
+		//	}
+		//	else largeCount++;
 
-			drawPolys->colours.push_back(drawPolys->renderColour);
-			drawPolys->colours.push_back(drawPolys->renderColour);
-			drawPolys->colours.push_back(drawPolys->renderColour);
-			drawPolys->colours.push_back(drawPolys->renderColour);
-			drawPolys->colours.push_back(drawPolys->renderColour);
-			drawPolys->colours.push_back(drawPolys->renderColour);
-			*/
-		}
+		//	theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
+		//	angleDeg = (int)(theta * 180.f / M_PI);
 
-		center = center / (float)datum.airSigmet.polygon.size();
+		//	// Points are very close on arc, just draw line between them
+		//	if (angleDeg == 0) {
+		//		smallCount++;
+		//	}
+		//	else largeCount++;
 
-		/*
-		for (const std::string& code : datum.interior) {
-			SdogCell cell(code, radius);
-			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
-		}
+		//	theta = acos(glm::dot(glm::normalize(v0), glm::normalize(v2)));
+		//	angleDeg = (int)(theta * 180.f / M_PI);
+
+		//	// Points are very close on arc, just draw line between them
+		//	if (angleDeg == 0) {
+		//		smallCount++;
+		//	}
+		//	else largeCount++;
+		//	
+		//	drawPolys->verts.push_back(v0);
+		//	drawPolys->verts.push_back(v1);
+
+		//	drawPolys->verts.push_back(v1);
+		//	drawPolys->verts.push_back(v2);
+
+		//	drawPolys->verts.push_back(v0);
+		//	drawPolys->verts.push_back(v2);
+
+		//	drawPolys->colours.push_back(drawPolys->renderColour);
+		//	drawPolys->colours.push_back(drawPolys->renderColour);
+		//	drawPolys->colours.push_back(drawPolys->renderColour);
+		//	drawPolys->colours.push_back(drawPolys->renderColour);
+		//	drawPolys->colours.push_back(drawPolys->renderColour);
+		//	drawPolys->colours.push_back(drawPolys->renderColour);
+		//	
+		//}
+		//std::cout << "Small lines: " << smallCount << std::endl;
+		//std::cout << "Large lines: " << largeCount << std::endl << std::endl;
+/*
+		center = center / (float)datum.airSigmet.polygon.size();*/
+
+		//for (const std::string& code : datum.interior) {
+		//	SdogCell cell(code, radius);
+		//	cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), *drawPolys);
+
+		//	//std::cout << "adding interior cell" << std::endl;
+		//}
 		
 
-		if (datum.airSigmet.hazard != HazardType::CONVECTIVE) {
+		//if (datum.airSigmet.hazard != HazardType::CONVECTIVE) {
 			for (const std::string& code : datum.boundary) {
 				if (code.length() < 11) continue;
 
 				SdogCell cell(code, radius);
-				cell.addToRenderable(*r, r->renderColour);
+
+				// Get neighbors, check which ones are part of sigmet
+
+				// add only certain walls to renderable -> pass pointer to airsigmetcell?
+				cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
+				//cell.addToRenderable(*r, r->renderColour, *drawPolys);
 			}
-		}
-		*/
+		//}
 		
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
 
 		RenderEngine::setBufferData(*r, false);
 
-		count++;
+		std::cout << "done sigmet" << std::endl;
 	}
 }
 
@@ -361,7 +411,7 @@ void Program::windRender1() {
 		if (norm < 0.4f) continue;
 
 		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
-		cell.addToRenderable(cells, glm::vec3(norm, col, col));
+		cell.addToRenderable(cells, glm::vec3(norm, col, col), Renderable());
 	}
 	std::cout << "done" << std::endl;
 }

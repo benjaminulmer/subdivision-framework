@@ -119,32 +119,31 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 
 	// Insert interior cells into DB
 
-	//for (const std::string& code : interior) {
+	for (const std::string& code : interior) {
+		// Insert cell into DB if not already exists and get its ID
+		int cellID;
+		sqlite3_bind_text(selectStmt, 1, code.c_str(), -1, SQLITE_STATIC);
 
-	//	// Insert cell into DB if not already exists and get its ID
-	//	int cellID;
-	//	sqlite3_bind_text(selectStmt, 1, code.c_str(), -1, SQLITE_STATIC);
+		if (sqlite3_step(selectStmt) == SQLITE_DONE) {
+			insertCell(code);
+			cellID = sqlite3_last_insert_rowid(db);
+		}
+		else {
+			cellID = sqlite3_column_int(selectStmt, 0);
+		}
 
-	//	if (sqlite3_step(selectStmt) == SQLITE_DONE) {
-	//		insertCell(code);
-	//		cellID = sqlite3_last_insert_rowid(db);
-	//	}
-	//	else {
-	//		cellID = sqlite3_column_int(selectStmt, 0);
-	//	}
+		// Insert cell-data relation into DB
+		sqlite3_bind_int(insert2Stmt, 1, cellID);
+		sqlite3_bind_int(insert2Stmt, 2, airSigmetID);
+		sqlite3_bind_int(insert2Stmt, 3, false);
+		sqlite3_step(insert2Stmt);
 
-	//	// Insert cell-data relation into DB
-	//	sqlite3_bind_int(insert2Stmt, 1, cellID);
-	//	sqlite3_bind_int(insert2Stmt, 2, airSigmetID);
-	//	sqlite3_bind_int(insert2Stmt, 3, false);
-	//	sqlite3_step(insert2Stmt);
-
-	//	// Clear bindings and reset SQL statements
-	//	sqlite3_clear_bindings(selectStmt);
-	//	sqlite3_clear_bindings(insert2Stmt);
-	//	sqlite3_reset(selectStmt);
-	//	sqlite3_reset(insert2Stmt);
-	//}
+		// Clear bindings and reset SQL statements
+		sqlite3_clear_bindings(selectStmt);
+		sqlite3_clear_bindings(insert2Stmt);
+		sqlite3_reset(selectStmt);
+		sqlite3_reset(insert2Stmt);
+	}
 
 	// Insert boundary cells into DB
 	for (const std::string& code : boundary) {
