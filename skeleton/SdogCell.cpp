@@ -302,6 +302,10 @@ void SdogCell::neighbours(std::vector<std::string>& out) {
 	//std::cout << out.size() << std::endl;
 }
 
+void SdogCell::checkNeighbors() {
+
+}
+
 void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderable& p) {
 	// Anything using 'p' is temporary - used to visualize borders of individual cells
 
@@ -432,6 +436,8 @@ void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, con
 	std::string code = rightCode;
 	bool i, b;
 
+	std::vector<AirSigmet> sigs;
+	
 	i = (std::find(cell->interior.begin(), cell->interior.end(), code) != cell->interior.end());
 	b = (std::find(cell->boundary.begin(), cell->boundary.end(), code) != cell->boundary.end());
 	hasRight = (i || b);

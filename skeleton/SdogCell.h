@@ -16,6 +16,15 @@ enum class SdogCellType {
 	INVALID
 };
 
+struct NeighborSigmets {
+	bool top;
+	bool bottom;
+	bool left;
+	bool right;
+	bool inside;
+	bool outside;
+};
+
 // Class for storing information about an SDOG cell and performing queries
 class SdogCell {
 
@@ -36,6 +45,7 @@ public:
 
 	void children(std::vector<std::string>& out);
 	void neighbours(std::vector<std::string>& out);
+	void checkNeighbors();
 
 	void addToRenderable(Renderable& r, const glm::vec3& colour, Renderable& p);
 	void addToSigmetRenderable(Renderable& r, const glm::vec3& colour, const AirSigmetCells* cell, Renderable& p);
@@ -53,4 +63,6 @@ private:
 	double gridRadius;
 
 	SdogCellType type;
+
+	NeighborSigmets renderNeighbors;
 };

@@ -365,6 +365,20 @@ void Program::airSigRender1() {
 				// Get neighbors, check which ones are part of sigmet
 
 				// add only certain walls to renderable -> pass pointer to airsigmetcell?
+				std::vector<std::string> neighbors;
+				cell.neighbours(neighbors);
+
+				bool hasSigmet;
+				cell.checkNeighbors();
+				for (std::string n : neighbors) {
+					std::vector<AirSigmet> sigs;
+					dataBase->getAirSigmetForCell(n, sigs);
+					if (sigs.size() > 0) {
+
+					}
+				}
+				//dataBase->getAirSigmetForCell();
+
 				cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
 				//cell.addToRenderable(*r, r->renderColour, *drawPolys);
 			}
