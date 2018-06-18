@@ -167,8 +167,6 @@ void Program::insertWind() {
 	std::vector<std::pair<std::string, glm::vec2>> codes;
 	WindGrid::gridInsertion(radius, 9, grids, codes);
 
-	// codes
-
 	dataBase->insertWindData(codes);
 }
 
@@ -211,17 +209,11 @@ void Program::airSigRender1() {
 
 		glm::vec3 center(0.f, 0.f, 0.f);
 
-		//std::vector<glm::vec2> polyCoords;
-		
-		//std::cout << "polygon size: " << datum.airSigmet.polygon.size() << std::endl;
-
 		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
 
 			center += datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.minAltKM);
 
 			glm::vec3 v1, v2;
-
-			//if (datum.airSigmet.hazard == HazardType::CONVECTIVE) {
 
 			glm::vec3 maxV1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
 			glm::vec3 maxV2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.maxAltKM));
@@ -230,8 +222,6 @@ void Program::airSigRender1() {
 
 			v1 = datum.airSigmet.polygon[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
 			v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(altToAbs(datum.airSigmet.minAltKM));
-
-			//Geometry::createWallR(v1, v2, maxV1, maxV2, glm::vec3(), *r);
 
 			drawPolys->verts.push_back(v1);
 			drawPolys->verts.push_back(maxV1);
@@ -249,10 +239,6 @@ void Program::airSigRender1() {
 				v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
 			}*/
 			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
-
-			// Add polygon points to vector to prepare for polygon triangulation
-			//polyCoords.push_back(glm::vec2(datum.airSigmet.polygon[j].latitude, datum.airSigmet.polygon[j].longitude));
-
 		}
 		
 		for (const std::string& code : datum.boundary) {
@@ -281,7 +267,6 @@ void Program::airSigRender1() {
 					}
 				}
 				cell.renderNeighbors.top = hasSig;
-				sigs.clear();
 			}
 			neighbour.clear();
 
@@ -300,8 +285,6 @@ void Program::airSigRender1() {
 					}
 				}
 				cell.renderNeighbors.bottom = hasSig;
-
-				sigs.clear();
 			}
 			neighbour.clear();
 
@@ -320,8 +303,6 @@ void Program::airSigRender1() {
 					}
 				}
 				cell.renderNeighbors.left = hasSig;
-
-				sigs.clear();
 			}
 			neighbour.clear();
 
@@ -340,8 +321,6 @@ void Program::airSigRender1() {
 					}
 				}
 				cell.renderNeighbors.right = hasSig;
-
-				sigs.clear();
 			}
 			neighbour.clear();
 
@@ -360,8 +339,6 @@ void Program::airSigRender1() {
 					}
 				}
 				cell.renderNeighbors.inside = hasSig;
-
-				sigs.clear();
 			}
 			neighbour.clear();
 
@@ -380,8 +357,6 @@ void Program::airSigRender1() {
 					}
 				}
 				cell.renderNeighbors.outside = hasSig;
-
-				sigs.clear();
 			}
 
 			cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
