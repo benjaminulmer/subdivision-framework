@@ -81,13 +81,6 @@ void Program::start() {
 		insertWind();
 	}
 
-	// Objects to draw initially
-	objects.push_back(&coastLines);
-	objects.push_back(&cells);
-	objects.push_back(&polys);
-	objects.push_back(&stormPolys);
-	objects.push_back(&wind);
-
 	// Draw stuff
 	cells.drawMode = GL_TRIANGLES;
 	wind.drawMode = GL_TRIANGLES;
