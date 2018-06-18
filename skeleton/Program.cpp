@@ -255,241 +255,138 @@ void Program::airSigRender1() {
 
 		}
 		
-		//std::cout << "Polycoords size in " << count << ": " << polyCoords.size() << std::endl;
+		for (const std::string& code : datum.boundary) {
+			if (code.length() < 11) continue;
 
+			SdogCell cell(code, radius);
 
-		// Triangulate the polygon
-		/*std::vector<glm::vec2> refinedPoly = Geometry::refinePolygon(polyCoords);
-		std::cout << "refined poly size: " << refinedPoly.size() << std::endl;
+			// Get neighbors, check which ones are part of sigmet
 
-		std::vector<glm::vec2> newSphereCoords = Geometry::triangulatePolygon(polyCoords);
-		std::vector<SphCoord> newCoords;
-		for (glm::vec2 coord : newSphereCoords) {
+			// add only certain walls to renderable -> pass pointer to airsigmetcell?
 
-			newCoords.push_back(SphCoord(coord.x, coord.y));
-		}*/
+			std::vector<std::string> neighbour;
 
-		/*double maxVal = 0.0;
-		double minVal = 1000000.0;
-		double area;
+			// up direction
+			cell.getUpNeighbours(neighbour);
 
-		double smallCount;
-		double largeCount;*/
-/*
-		for (int j = 0; j < newCoords.size() - 1; j = j + 3) {
-			glm::vec2 p0 = glm::vec2(newCoords[j].latitude, newCoords[j].longitude);
-			glm::vec2 p1 = glm::vec2(newCoords[j+1].latitude, newCoords[j+1].longitude);
-			glm::vec2 p2 = glm::vec2(newCoords[j+2].latitude, newCoords[j+2].longitude);
-
-			glm::vec3 v0 = newCoords[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
-			glm::vec3 v1 = newCoords[j + 1].toCartesian(altToAbs(datum.airSigmet.minAltKM));
-			glm::vec3 v2 = newCoords[j + 2].toCartesian(altToAbs(datum.airSigmet.minAltKM));
-
-			r->verts.push_back(v0);
-			r->verts.push_back(v1);
-			r->verts.push_back(v2);
-
-			r->colours.push_back(r->renderColour);
-			r->colours.push_back(r->renderColour);
-			r->colours.push_back(r->renderColour);
-*/
-		//	area = std::abs(p0.x * (p1.y - p2.y) + p1.x * (p2.y - p0.y) + p2.x * (p0.y - p1.y)) / 2.0;
-
-		//	if (area < minVal) minVal = area;
-		//	if (area > maxVal) maxVal = area;
-
-		//	// Compute angle between vectors
-		//	float theta = acos(glm::dot(glm::normalize(v0), glm::normalize(v1)));
-		//	int angleDeg = (int)(theta * 180.f / M_PI);
-
-		//	// Points are very close on arc, just draw line between them
-		//	if (angleDeg == 0) {
-		//		smallCount++;
-		//	}
-		//	else largeCount++;
-
-		//	theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
-		//	angleDeg = (int)(theta * 180.f / M_PI);
-
-		//	// Points are very close on arc, just draw line between them
-		//	if (angleDeg == 0) {
-		//		smallCount++;
-		//	}
-		//	else largeCount++;
-
-		//	theta = acos(glm::dot(glm::normalize(v0), glm::normalize(v2)));
-		//	angleDeg = (int)(theta * 180.f / M_PI);
-
-		//	// Points are very close on arc, just draw line between them
-		//	if (angleDeg == 0) {
-		//		smallCount++;
-		//	}
-		//	else largeCount++;
-		//	
-		//	drawPolys->verts.push_back(v0);
-		//	drawPolys->verts.push_back(v1);
-
-		//	drawPolys->verts.push_back(v1);
-		//	drawPolys->verts.push_back(v2);
-
-		//	drawPolys->verts.push_back(v0);
-		//	drawPolys->verts.push_back(v2);
-
-		//	drawPolys->colours.push_back(drawPolys->renderColour);
-		//	drawPolys->colours.push_back(drawPolys->renderColour);
-		//	drawPolys->colours.push_back(drawPolys->renderColour);
-		//	drawPolys->colours.push_back(drawPolys->renderColour);
-		//	drawPolys->colours.push_back(drawPolys->renderColour);
-		//	drawPolys->colours.push_back(drawPolys->renderColour);
-		//	
-		//}
-		//std::cout << "Small lines: " << smallCount << std::endl;
-		//std::cout << "Large lines: " << largeCount << std::endl << std::endl;
-/*
-		center = center / (float)datum.airSigmet.polygon.size();*/
-
-		//for (const std::string& code : datum.interior) {
-		//	SdogCell cell(code, radius);
-		//	cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), *drawPolys);
-
-		//	//std::cout << "adding interior cell" << std::endl;
-		//}
-		
-
-		//if (datum.airSigmet.hazard != HazardType::CONVECTIVE) {
-			for (const std::string& code : datum.boundary) {
-				if (code.length() < 11) continue;
-
-				SdogCell cell(code, radius);
-
-				// Get neighbors, check which ones are part of sigmet
-
-				// add only certain walls to renderable -> pass pointer to airsigmetcell?
-
-				std::vector<std::string> neighbour;
-
-				// up direction
-				cell.getUpNeighbours(neighbour);
-
-				for (std::string n : neighbour) {
-					std::vector<AirSigmet> sigs;
-					dataBase->getAirSigmetForCell(n, sigs);
+			for (std::string n : neighbour) {
+				std::vector<AirSigmet> sigs;
+				dataBase->getAirSigmetForCell(n, sigs);
 					
-					bool hasSig = false;
-					for (AirSigmet a : sigs) {
-						if (a.hazard == datum.airSigmet.hazard) {
-							hasSig = true;
-							break;
-						}
+				bool hasSig = false;
+				for (AirSigmet a : sigs) {
+					if (a.hazard == datum.airSigmet.hazard) {
+						hasSig = true;
+						break;
 					}
-					cell.renderNeighbors.top = hasSig;
-					sigs.clear();
 				}
-				neighbour.clear();
-
-				// down direction
-				cell.getDownNeighbours(neighbour);
-
-				for (std::string n : neighbour) {
-					std::vector<AirSigmet> sigs;
-					dataBase->getAirSigmetForCell(n, sigs);
-					
-					bool hasSig = false;
-					for (AirSigmet a : sigs) {
-						if (a.hazard == datum.airSigmet.hazard) {
-							hasSig = true;
-							break;
-						}
-					}
-					cell.renderNeighbors.bottom = hasSig;
-
-					sigs.clear();
-				}
-				neighbour.clear();
-
-				// left direction
-				cell.getLeftNeighbours(neighbour);
-
-				for (std::string n : neighbour) {
-					std::vector<AirSigmet> sigs;
-					dataBase->getAirSigmetForCell(n, sigs);
-					
-					bool hasSig = false;
-					for (AirSigmet a : sigs) {
-						if (a.hazard == datum.airSigmet.hazard) {
-							hasSig = true;
-							break;
-						}
-					}
-					cell.renderNeighbors.left = hasSig;
-
-					sigs.clear();
-				}
-				neighbour.clear();
-
-				// right direction
-				cell.getRightNeighbours(neighbour);
-
-				for (std::string n : neighbour) {
-					std::vector<AirSigmet> sigs;
-					dataBase->getAirSigmetForCell(n, sigs);
-					
-					bool hasSig = false;
-					for (AirSigmet a : sigs) {
-						if (a.hazard == datum.airSigmet.hazard) {
-							hasSig = true;
-							break;
-						}
-					}
-					cell.renderNeighbors.right = hasSig;
-
-					sigs.clear();
-				}
-				neighbour.clear();
-
-				// inside direction
-				cell.getInNeighbours(neighbour);
-
-				for (std::string n : neighbour) {
-					std::vector<AirSigmet> sigs;
-					dataBase->getAirSigmetForCell(n, sigs);
-					
-					bool hasSig = false;
-					for (AirSigmet a : sigs) {
-						if (a.hazard == datum.airSigmet.hazard) {
-							hasSig = true;
-							break;
-						}
-					}
-					cell.renderNeighbors.inside = hasSig;
-
-					sigs.clear();
-				}
-				neighbour.clear();
-
-				// outside direction
-				cell.getOutNeighbours(neighbour);
-
-				for (std::string n : neighbour) {
-					std::vector<AirSigmet> sigs;
-					dataBase->getAirSigmetForCell(n, sigs);
-					
-					bool hasSig = false;
-					for (AirSigmet a : sigs) {
-						if (a.hazard == datum.airSigmet.hazard) {
-							hasSig = true;
-							break;
-						}
-					}
-					cell.renderNeighbors.outside = hasSig;
-
-					sigs.clear();
-				}
-
-				cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
+				cell.renderNeighbors.top = hasSig;
+				sigs.clear();
 			}
-		//}
-		
+			neighbour.clear();
+
+			// down direction
+			cell.getDownNeighbours(neighbour);
+
+			for (std::string n : neighbour) {
+				std::vector<AirSigmet> sigs;
+				dataBase->getAirSigmetForCell(n, sigs);
+					
+				bool hasSig = false;
+				for (AirSigmet a : sigs) {
+					if (a.hazard == datum.airSigmet.hazard) {
+						hasSig = true;
+						break;
+					}
+				}
+				cell.renderNeighbors.bottom = hasSig;
+
+				sigs.clear();
+			}
+			neighbour.clear();
+
+			// left direction
+			cell.getLeftNeighbours(neighbour);
+
+			for (std::string n : neighbour) {
+				std::vector<AirSigmet> sigs;
+				dataBase->getAirSigmetForCell(n, sigs);
+					
+				bool hasSig = false;
+				for (AirSigmet a : sigs) {
+					if (a.hazard == datum.airSigmet.hazard) {
+						hasSig = true;
+						break;
+					}
+				}
+				cell.renderNeighbors.left = hasSig;
+
+				sigs.clear();
+			}
+			neighbour.clear();
+
+			// right direction
+			cell.getRightNeighbours(neighbour);
+
+			for (std::string n : neighbour) {
+				std::vector<AirSigmet> sigs;
+				dataBase->getAirSigmetForCell(n, sigs);
+					
+				bool hasSig = false;
+				for (AirSigmet a : sigs) {
+					if (a.hazard == datum.airSigmet.hazard) {
+						hasSig = true;
+						break;
+					}
+				}
+				cell.renderNeighbors.right = hasSig;
+
+				sigs.clear();
+			}
+			neighbour.clear();
+
+			// inside direction
+			cell.getInNeighbours(neighbour);
+
+			for (std::string n : neighbour) {
+				std::vector<AirSigmet> sigs;
+				dataBase->getAirSigmetForCell(n, sigs);
+					
+				bool hasSig = false;
+				for (AirSigmet a : sigs) {
+					if (a.hazard == datum.airSigmet.hazard) {
+						hasSig = true;
+						break;
+					}
+				}
+				cell.renderNeighbors.inside = hasSig;
+
+				sigs.clear();
+			}
+			neighbour.clear();
+
+			// outside direction
+			cell.getOutNeighbours(neighbour);
+
+			for (std::string n : neighbour) {
+				std::vector<AirSigmet> sigs;
+				dataBase->getAirSigmetForCell(n, sigs);
+					
+				bool hasSig = false;
+				for (AirSigmet a : sigs) {
+					if (a.hazard == datum.airSigmet.hazard) {
+						hasSig = true;
+						break;
+					}
+				}
+				cell.renderNeighbors.outside = hasSig;
+
+				sigs.clear();
+			}
+
+			cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
+		}
+
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
 

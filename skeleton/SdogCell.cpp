@@ -595,13 +595,13 @@ void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, con
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
 		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
 
-		p.verts.push_back(o1); p.verts.push_back(o2);
+		/*p.verts.push_back(o1); p.verts.push_back(o2);
 		p.verts.push_back(o2); p.verts.push_back(o4);
 		p.verts.push_back(o4); p.verts.push_back(o1);
 
 		p.verts.push_back(o1); p.verts.push_back(o3);
 		p.verts.push_back(o3); p.verts.push_back(o4);
-		p.verts.push_back(o4); p.verts.push_back(o1);
+		p.verts.push_back(o4); p.verts.push_back(o1);*/
 
 		rCount += 6;
 		pCount += 12;
@@ -611,13 +611,13 @@ void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, con
 		r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
 		r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
 
-		p.verts.push_back(i1); p.verts.push_back(i2);
+		/*p.verts.push_back(i1); p.verts.push_back(i2);
 		p.verts.push_back(i2); p.verts.push_back(i4);
 		p.verts.push_back(i4); p.verts.push_back(i1);
 
 		p.verts.push_back(i1); p.verts.push_back(i3);
 		p.verts.push_back(i3); p.verts.push_back(i4);
-		p.verts.push_back(i4); p.verts.push_back(i1);
+		p.verts.push_back(i4); p.verts.push_back(i1);*/
 
 		rCount += 6;
 		pCount += 12;
@@ -629,14 +629,14 @@ void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, con
 		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i3);
 		r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(i3);
 
-		p.verts.push_back(o1); p.verts.push_back(i1);
+		/*p.verts.push_back(o1); p.verts.push_back(i1);
 		p.verts.push_back(i1); p.verts.push_back(i3);
 		p.verts.push_back(i3); p.verts.push_back(o1);
 
 		p.verts.push_back(o1); p.verts.push_back(o3);
 		p.verts.push_back(o3); p.verts.push_back(i3);
 		p.verts.push_back(i3); p.verts.push_back(o1);
-
+*/
 		rCount += 6;
 		pCount += 12;
 	}
@@ -646,13 +646,13 @@ void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, con
 		r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
 		r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
 
-		p.verts.push_back(o2); p.verts.push_back(i2);
+		/*p.verts.push_back(o2); p.verts.push_back(i2);
 		p.verts.push_back(i2); p.verts.push_back(i4);
 		p.verts.push_back(i4); p.verts.push_back(o2);
 
 		p.verts.push_back(o2); p.verts.push_back(o4);
 		p.verts.push_back(o4); p.verts.push_back(i4);
-		p.verts.push_back(i4); p.verts.push_back(o2);
+		p.verts.push_back(i4); p.verts.push_back(o2);*/
 
 		rCount += 6;
 		pCount += 12;
@@ -664,13 +664,13 @@ void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, con
 		r.verts.push_back(o3); r.verts.push_back(i3); r.verts.push_back(i4);
 		r.verts.push_back(o3); r.verts.push_back(o4); r.verts.push_back(i4);
 
-		p.verts.push_back(o3); p.verts.push_back(i3);
+		/*p.verts.push_back(o3); p.verts.push_back(i3);
 		p.verts.push_back(i3); p.verts.push_back(i4);
 		p.verts.push_back(i4); p.verts.push_back(o3);
 
 		p.verts.push_back(o3); p.verts.push_back(o4);
 		p.verts.push_back(o4); p.verts.push_back(i4);
-		p.verts.push_back(i4); p.verts.push_back(o3);
+		p.verts.push_back(i4); p.verts.push_back(o3);*/
 
 		rCount += 6;
 		pCount += 12;
@@ -681,13 +681,13 @@ void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, con
 		r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
 		r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
 
-		p.verts.push_back(o1); p.verts.push_back(i1);
+		/*p.verts.push_back(o1); p.verts.push_back(i1);
 		p.verts.push_back(i1); p.verts.push_back(i2);
 		p.verts.push_back(i2); p.verts.push_back(o1);
 
 		p.verts.push_back(o1); p.verts.push_back(o2);
 		p.verts.push_back(o2); p.verts.push_back(i2);
-		p.verts.push_back(i2); p.verts.push_back(o1);
+		p.verts.push_back(i2); p.verts.push_back(o1);*/
 
 		rCount += 6;
 		pCount += 12;
@@ -696,9 +696,9 @@ void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, con
 	for (int i = 0; i < rCount; i++) {
 		r.colours.push_back(colour);
 	}
-	for (int i = 0; i < pCount; i++) {
+	/*for (int i = 0; i < pCount; i++) {
 		p.colours.push_back(glm::vec3(0.f, 0.f, 0.f));
-	}
+	}*/
 }
 
 
