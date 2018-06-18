@@ -316,7 +316,7 @@ void SdogDB::getAirSigmetForCell(const std::string & code, std::vector<AirSigmet
 	sqlite3_bind_text(airSigsStmt, 1, code.c_str(), -1, SQLITE_STATIC);
 
 	while (sqlite3_step(airSigsStmt) != SQLITE_DONE) {
-		std::cout << "airsig" << std::endl;
+		//std::cout << "airsig" << std::endl;
 		AirSigmet a;
 		int airSigID = sqlite3_column_int(airSigsStmt, 0);
 

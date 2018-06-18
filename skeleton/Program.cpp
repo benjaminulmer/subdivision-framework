@@ -365,22 +365,128 @@ void Program::airSigRender1() {
 				// Get neighbors, check which ones are part of sigmet
 
 				// add only certain walls to renderable -> pass pointer to airsigmetcell?
-				std::vector<std::string> neighbors;
-				cell.neighbours(neighbors);
 
-				bool hasSigmet;
-				cell.checkNeighbors();
-				for (std::string n : neighbors) {
+				std::vector<std::string> neighbour;
+
+				// up direction
+				cell.getUpNeighbours(neighbour);
+
+				for (std::string n : neighbour) {
 					std::vector<AirSigmet> sigs;
 					dataBase->getAirSigmetForCell(n, sigs);
-					if (sigs.size() > 0) {
-
+					
+					bool hasSig = false;
+					for (AirSigmet a : sigs) {
+						if (a.hazard == datum.airSigmet.hazard) {
+							hasSig = true;
+							break;
+						}
 					}
+					cell.renderNeighbors.top = hasSig;
+					sigs.clear();
 				}
-				//dataBase->getAirSigmetForCell();
+				neighbour.clear();
+
+				// down direction
+				cell.getDownNeighbours(neighbour);
+
+				for (std::string n : neighbour) {
+					std::vector<AirSigmet> sigs;
+					dataBase->getAirSigmetForCell(n, sigs);
+					
+					bool hasSig = false;
+					for (AirSigmet a : sigs) {
+						if (a.hazard == datum.airSigmet.hazard) {
+							hasSig = true;
+							break;
+						}
+					}
+					cell.renderNeighbors.bottom = hasSig;
+
+					sigs.clear();
+				}
+				neighbour.clear();
+
+				// left direction
+				cell.getLeftNeighbours(neighbour);
+
+				for (std::string n : neighbour) {
+					std::vector<AirSigmet> sigs;
+					dataBase->getAirSigmetForCell(n, sigs);
+					
+					bool hasSig = false;
+					for (AirSigmet a : sigs) {
+						if (a.hazard == datum.airSigmet.hazard) {
+							hasSig = true;
+							break;
+						}
+					}
+					cell.renderNeighbors.left = hasSig;
+
+					sigs.clear();
+				}
+				neighbour.clear();
+
+				// right direction
+				cell.getRightNeighbours(neighbour);
+
+				for (std::string n : neighbour) {
+					std::vector<AirSigmet> sigs;
+					dataBase->getAirSigmetForCell(n, sigs);
+					
+					bool hasSig = false;
+					for (AirSigmet a : sigs) {
+						if (a.hazard == datum.airSigmet.hazard) {
+							hasSig = true;
+							break;
+						}
+					}
+					cell.renderNeighbors.right = hasSig;
+
+					sigs.clear();
+				}
+				neighbour.clear();
+
+				// inside direction
+				cell.getInNeighbours(neighbour);
+
+				for (std::string n : neighbour) {
+					std::vector<AirSigmet> sigs;
+					dataBase->getAirSigmetForCell(n, sigs);
+					
+					bool hasSig = false;
+					for (AirSigmet a : sigs) {
+						if (a.hazard == datum.airSigmet.hazard) {
+							hasSig = true;
+							break;
+						}
+					}
+					cell.renderNeighbors.inside = hasSig;
+
+					sigs.clear();
+				}
+				neighbour.clear();
+
+				// outside direction
+				cell.getOutNeighbours(neighbour);
+
+				for (std::string n : neighbour) {
+					std::vector<AirSigmet> sigs;
+					dataBase->getAirSigmetForCell(n, sigs);
+					
+					bool hasSig = false;
+					for (AirSigmet a : sigs) {
+						if (a.hazard == datum.airSigmet.hazard) {
+							hasSig = true;
+							break;
+						}
+					}
+					cell.renderNeighbors.outside = hasSig;
+
+					sigs.clear();
+				}
 
 				cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
-				//cell.addToRenderable(*r, r->renderColour, *drawPolys);
 			}
 		//}
 		

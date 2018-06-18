@@ -53,13 +53,15 @@ public:
 	void getLeftNeighbours(std::vector<std::string>& out);
 	void getRightNeighbours(std::vector<std::string>& out);
 
-	void checkNeighbors();
+	//void checkNeighbors();
 
 	void addToRenderable(Renderable& r, const glm::vec3& colour, Renderable& p);
 	void addToSigmetRenderable(Renderable& r, const glm::vec3& colour, const AirSigmetCells* cell, Renderable& p);
 
 	static std::string codeForPos(double latRad, double longRad, double radius, double gridRadius, unsigned int level);
 	static bool codeIsValid(std::string code);
+
+	NeighborSigmets renderNeighbors;
 
 
 private:
@@ -72,5 +74,4 @@ private:
 
 	SdogCellType type;
 
-	NeighborSigmets renderNeighbors;
 };
