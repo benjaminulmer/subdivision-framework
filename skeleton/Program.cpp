@@ -168,8 +168,11 @@ void Program::airSigRender1() {
 	std::vector<AirSigmetCells> data;
 	dataBase->getAirSigmetCells(data);
 
+	int count = 0;
+
 	for (const AirSigmetCells& datum : data) {
 
+		count++;
 		float alpha;
 
 		Renderable* r = new Renderable();
@@ -233,7 +236,6 @@ void Program::airSigRender1() {
 			}*/
 			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
 		}
-		
 		for (const std::string& code : datum.boundary) {
 			if (code.length() < 11) continue;
 
@@ -241,126 +243,140 @@ void Program::airSigRender1() {
 
 			// Get neighbors, check which ones are part of sigmet
 
-			// add only certain walls to renderable -> pass pointer to airsigmetcell?
-
 			std::vector<std::string> neighbour;
 
 			// up direction
 			cell.getUpNeighbours(neighbour);
 
+			bool hasSig = false;
+
 			for (std::string n : neighbour) {
 				std::vector<AirSigmet> sigs;
 				dataBase->getAirSigmetForCell(n, sigs);
 					
-				bool hasSig = false;
 				for (AirSigmet a : sigs) {
 					if (a.hazard == datum.airSigmet.hazard) {
 						hasSig = true;
 						break;
 					}
 				}
-				cell.renderNeighbors.top = hasSig;
 			}
+			cell.renderNeighbors.top = hasSig;
 			neighbour.clear();
 
 			// down direction
 			cell.getDownNeighbours(neighbour);
 
+			hasSig = false;
+
 			for (std::string n : neighbour) {
 				std::vector<AirSigmet> sigs;
 				dataBase->getAirSigmetForCell(n, sigs);
 					
-				bool hasSig = false;
 				for (AirSigmet a : sigs) {
 					if (a.hazard == datum.airSigmet.hazard) {
 						hasSig = true;
 						break;
 					}
 				}
-				cell.renderNeighbors.bottom = hasSig;
 			}
+			cell.renderNeighbors.bottom = hasSig;
 			neighbour.clear();
 
 			// left direction
 			cell.getLeftNeighbours(neighbour);
 
+			hasSig = false;
+
 			for (std::string n : neighbour) {
 				std::vector<AirSigmet> sigs;
 				dataBase->getAirSigmetForCell(n, sigs);
 					
-				bool hasSig = false;
 				for (AirSigmet a : sigs) {
 					if (a.hazard == datum.airSigmet.hazard) {
 						hasSig = true;
 						break;
 					}
 				}
-				cell.renderNeighbors.left = hasSig;
 			}
+			cell.renderNeighbors.left = hasSig;
 			neighbour.clear();
 
 			// right direction
 			cell.getRightNeighbours(neighbour);
 
+			hasSig = false;
+
 			for (std::string n : neighbour) {
 				std::vector<AirSigmet> sigs;
 				dataBase->getAirSigmetForCell(n, sigs);
-					
-				bool hasSig = false;
+
 				for (AirSigmet a : sigs) {
 					if (a.hazard == datum.airSigmet.hazard) {
 						hasSig = true;
 						break;
 					}
 				}
-				cell.renderNeighbors.right = hasSig;
 			}
+			cell.renderNeighbors.right = hasSig;
 			neighbour.clear();
 
 			// inside direction
 			cell.getInNeighbours(neighbour);
 
+			hasSig = false;
+
 			for (std::string n : neighbour) {
 				std::vector<AirSigmet> sigs;
 				dataBase->getAirSigmetForCell(n, sigs);
 					
-				bool hasSig = false;
 				for (AirSigmet a : sigs) {
 					if (a.hazard == datum.airSigmet.hazard) {
 						hasSig = true;
 						break;
 					}
 				}
-				cell.renderNeighbors.inside = hasSig;
 			}
+			cell.renderNeighbors.inside = hasSig;
 			neighbour.clear();
 
 			// outside direction
 			cell.getOutNeighbours(neighbour);
 
+			hasSig = false;
 			for (std::string n : neighbour) {
 				std::vector<AirSigmet> sigs;
 				dataBase->getAirSigmetForCell(n, sigs);
 					
-				bool hasSig = false;
 				for (AirSigmet a : sigs) {
 					if (a.hazard == datum.airSigmet.hazard) {
 						hasSig = true;
 						break;
 					}
 				}
-				cell.renderNeighbors.outside = hasSig;
 			}
+			cell.renderNeighbors.outside = hasSig;
 
 			cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
+			
 		}
+
+		/*
+		for (const std::string& code : datum.interior) {
+			//if (code.length() < 11) continue;
+
+			SdogCell cell(code, radius);
+
+			cell.addToRenderable(*r, r->renderColour, *drawPolys);
+		}
+		*/
 
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
 
 		RenderEngine::setBufferData(*r, false);
 
-		std::cout << "done sigmet" << std::endl;
+		std::cout << "Done sigmet " << count << " of " << data.size() << std::endl;
 	}
 }
 

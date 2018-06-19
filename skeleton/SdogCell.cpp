@@ -375,8 +375,6 @@ void SdogCell::getOutNeighbours(std::vector<std::string>& out) {
 	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
 	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
 	
-	//out.push_back(codeForPos(midLat, midLong, midRad + radDist, gridRadius, level));
-
 	// Remove duplicates and self
 	std::sort(out.begin(), out.end());
 	out.erase(std::unique(out.begin(), out.end()), out.end());
@@ -419,40 +417,6 @@ void SdogCell::getLeftNeighbours(std::vector<std::string>& out) {
 	// Get codes for location of all posible neighbours
 	out.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level));
 }
-//
-//
-//void SdogCell::checkNeighbors() {
-//	if (type == SdogCellType::INVALID) return;
-//
-//	unsigned int level = (unsigned int)code.length() - 1;
-//
-//	double midLat = 0.5 * minLat + 0.5 * maxLat;
-//	double midLong = 0.5 * minLong + 0.5 * maxLong;
-//	double midRad = 0.5 * minRad + 0.5 * maxRad;
-//
-//	double latDist = maxLat - minLat;
-//	double longDist = maxLong - minLong;
-//	double radDist = maxRad - minRad;
-//
-//	// Get codes for location of all posible neighbours
-//	out.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level));
-//	out.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level));
-//	out.push_back(codeForPos(midLat, midLong - longDist, midRad, gridRadius, level));
-//	out.push_back(codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
-//
-//	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level));
-//	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level));
-//
-//	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
-//	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
-//	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
-//	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
-//
-//	// Remove duplicates and self
-//	std::sort(out.begin(), out.end());
-//	out.erase(std::unique(out.begin(), out.end()), out.end());
-//	out.erase(std::remove(out.begin(), out.end(), code), out.end());
-//}
 
 void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderable& p) {
 	// Anything using 'p' is temporary - used to visualize borders of individual cells
@@ -555,6 +519,8 @@ void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderabl
 }
 
 void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, const AirSigmetCells* cell, Renderable& p) {
+
+	//std::cout << "rendering now" << std::endl;
 
 	std::vector<glm::vec3> polyVerts;
 
