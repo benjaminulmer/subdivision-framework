@@ -33,7 +33,7 @@ Program::Program() {
 	width = height = 800;
 }
 
-#define AirSigmetInsert false
+#define AirSigmetInsert true
 #define WindInsert false
 
 // Called to start the program. Conducts set up then enters the main loop
@@ -88,6 +88,13 @@ void Program::start() {
 
 	airSigRender1();
 	//windRender1();
+
+	// Objects to draw initially
+	objects.push_back(&coastLines);
+	objects.push_back(&cells);
+	objects.push_back(&polys);
+	objects.push_back(&stormPolys);
+	objects.push_back(&wind);
 
 	for (Renderable* r : bounds) {
 		objects.push_back(r);
@@ -351,10 +358,12 @@ void Program::airSigRender1() {
 				for (AirSigmet a : sigs) {
 					if (a.hazard == datum.airSigmet.hazard) {
 						hasSig = true;
+						//std::cout << "Has sigmet" << std::endl;
 						break;
 					}
 				}
 			}
+			//if (hasSig) std::cout << "still has sigmet" << std::endl;
 			cell.renderNeighbors.outside = hasSig;
 
 			cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
