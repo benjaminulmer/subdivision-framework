@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "SdogDB.h"
 
 #include "SdogCell.h"
@@ -347,7 +346,7 @@ void SdogDB::insertCells(const std::vector<std::string>& codes) {
 	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
 	for (const std::string& code : codes) {
-		
+
 		sqlite3_bind_text(stmt, 1, code.c_str(), -1, SQLITE_STATIC);
 		sqlite3_step(stmt);
 

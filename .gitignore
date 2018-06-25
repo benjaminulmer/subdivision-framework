@@ -4,6 +4,7 @@ skeleton/data
 include/
 lib/
 *.db*
+build.release
 
 # Created by https://www.gitignore.io/api/visualstudio
 

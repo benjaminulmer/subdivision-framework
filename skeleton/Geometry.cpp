@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "Geometry.h"
 
 #include <cmath>
@@ -7,8 +6,8 @@
 glm::vec3 Geometry::geomSlerp(const glm::vec3& v1, const glm::vec3& v2, float t) {
 	float theta = acos(glm::dot(glm::normalize(v1), glm::normalize(v2)));
 
-	glm::vec3 term1 = (sin((1.f - t) * theta) / sin(theta)) * v1;
-	glm::vec3 term2 = (sin(t * theta) / sin(theta)) * v2;
+	glm::vec3 term1 = static_cast<float>(sin((1.f - t) * theta) / sin(theta)) * v1;
+	glm::vec3 term2 = static_cast<float>(sin(t * theta) / sin(theta)) * v2;
 	return term1 + term2;
 }
 
@@ -39,7 +38,7 @@ void Geometry::createArcR(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 	angleDeg++;
 	for (int i = 0; i <= angleDeg; i++) {
 		float t = (float)i / angleDeg;
-		
+
 		glm::vec3 result = geomSlerp(v1, v2, t);
 
 		r.verts.push_back(centre + result);

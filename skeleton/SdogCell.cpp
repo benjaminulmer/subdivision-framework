@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "SdogCell.h"
 
 #include <algorithm>
@@ -201,7 +200,7 @@ SdogCell::SdogCell(const std::string& code, double gridRadius) : code(code), gri
 // longRad - longitude of point in radians
 // radius - radius of point
 bool SdogCell::contains(double latRad, double longRad, double radius) {
-	
+
 	if (type == SdogCellType::INVALID) return false;
 
 	// Special cases for negative numbers

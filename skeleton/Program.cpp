@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "Program.h"
 
 #include <GL/glew.h>
@@ -36,7 +35,7 @@ Program::Program() {
 #define WindInsert false
 
 // Called to start the program. Conducts set up then enters the main loop
-void Program::start() {	
+void Program::start() {
 
 	setupWindow();
 	GLenum err = glewInit();
@@ -273,18 +272,18 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 	glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();
 	glm::mat4 invProjView = glm::inverse(projView);
 
-	float oldXN = (2.f * oldX) / (width) - 1.f; 
+	float oldXN = (2.f * oldX) / (width) - 1.f;
 	float oldYN = (2.f * oldY) / (height) - 1.f;
 	oldYN *= -1.0;
 
-	float newXN = (2.f * newX) / (width) - 1.f; 
+	float newXN = (2.f * newX) / (width) - 1.f;
 	float newYN = (2.f * newY) / (height) - 1.f;
 	newYN *= -1.f;
 
 	glm::vec4 worldOld(oldXN, oldYN, -1.f, 1.f);
 	glm::vec4 worldNew(newXN, newYN, -1.f, 1.f);
 
-	worldOld = invProjView * worldOld; 
+	worldOld = invProjView * worldOld;
 
 	worldOld.x /= worldOld.w;
 	worldOld.y /= worldOld.w;
@@ -304,7 +303,7 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 
 	glm::vec3 iPosOld, iPosNew, iNorm;
 
-	if (glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm) && 
+	if (glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm) &&
 			glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
 
 		float longOld = atan(iPosOld.x / iPosOld.z);

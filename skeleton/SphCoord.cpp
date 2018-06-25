@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "SphCoord.h"
 
 #include <glm/gtc/epsilon.hpp>
@@ -127,7 +126,7 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 }
 
 // Returns if a great circle arc and line of latitude intersect. If they do, the result is stored in intersection
-// 
+//
 // a0 - start of arc
 // a1 - end of arc
 // latRad - line of latitude in radians

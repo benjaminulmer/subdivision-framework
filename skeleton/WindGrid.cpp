@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "WindGrid.h"
 
 #include "Constants.h"
@@ -188,7 +187,7 @@ void WindGrid::readFromJson(const rapidjson::Document& d, std::vector<WindGrid>&
 				layer(r, c).x = dataU[index].GetDouble();
 				layer(r, c).y = dataV[index].GetDouble();
 			}
-		}	
+		}
 
 		out.push_back(layer);
 	}
