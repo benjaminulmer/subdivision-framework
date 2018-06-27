@@ -23,19 +23,19 @@ SdogDB::SdogDB(const std::string& path, double radius) : radius(radius) {
 	sqlite3_open(path.c_str(), &db);
 
 	// Create tables in the database
-	char* tab0 = "CREATE TABLE info(lock INTEGER, gridRadius REAL,"
+	const char* tab0 = "CREATE TABLE info(lock INTEGER, gridRadius REAL,"
 	             "PRIMARY KEY(Lock), CONSTRAINT info_locked CHECK(lock = 0) )";
 
-	char* tab1 = "CREATE TABLE cells (cellID INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, windU REAL, windV REAL);";
+	const char* tab1 = "CREATE TABLE cells (cellID INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, windU REAL, windV REAL);";
 
-	char* tab2 = "CREATE TABLE airSigmets (airSigmetID INTEGER PRIMARY KEY AUTOINCREMENT, validFrom TEXT, validUntil TEXT,"
+	const char* tab2 = "CREATE TABLE airSigmets (airSigmetID INTEGER PRIMARY KEY AUTOINCREMENT, validFrom TEXT, validUntil TEXT,"
 	             "minAltKM REAL, maxAltKM REAL, dirDeg INTEGER, speedKT INTEGER, hazard INTEGER, severity INTEGER, type INTEGER)";
 
-	char* tab3 = "CREATE TABLE airSigmetBounds (airSigmetID INTEGER, number INTEGER, latRad REAL, longRad REAL,"
+	const char* tab3 = "CREATE TABLE airSigmetBounds (airSigmetID INTEGER, number INTEGER, latRad REAL, longRad REAL,"
 	             "PRIMARY KEY(airSigmetID, number),"
 	             "FOREIGN KEY(airSigmetID) REFERENCES airSigmet(airSigmetID) )";
 
-	char* tab4 = "CREATE TABLE cellHasAirSigmet (cellID INTEGER, airSigmetID INTEGER, boundary INTEGER,"
+	const char* tab4 = "CREATE TABLE cellHasAirSigmet (cellID INTEGER, airSigmetID INTEGER, boundary INTEGER,"
 	             "PRIMARY KEY(cellID, airSigmetID),"
 	             "FOREIGN KEY(airSigmetID) REFERENCES airSigmet(airSigmetID),"
 	             "FOREIGN KEY(cellID) REFERENCES cells(cellID) )";
@@ -46,7 +46,7 @@ SdogDB::SdogDB(const std::string& path, double radius) : radius(radius) {
 	sqlite3_exec(db, tab3, NULL, NULL, NULL);
 	sqlite3_exec(db, tab4, NULL, NULL, NULL);
 
-	char* config = "INSERT OR IGNORE INTO info(lock, gridRadius) VALUES (0, @RA)";
+	const char* config = "INSERT OR IGNORE INTO info(lock, gridRadius) VALUES (0, @RA)";
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, config, -1, &stmt, NULL);
 
@@ -73,7 +73,7 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 	sqlite3_stmt *insert0Stmt, *insert1Stmt, *insert2Stmt, *selectStmt;
 
 	// Insert AirSigmet data into DB
-	char* sqlInsert0 = "INSERT INTO airSigmets(validFrom, validUntil, minAltKM, maxAltKM, dirDeg, speedKT, hazard, severity, type)"
+	const char* sqlInsert0 = "INSERT INTO airSigmets(validFrom, validUntil, minAltKM, maxAltKM, dirDeg, speedKT, hazard, severity, type)"
 	                   "VALUES (@VF, @VU, @MIN, @MAX, @DIR, @SPD, @HAZ, @SEV, @TYP)";
 
 	sqlite3_prepare_v2(db, sqlInsert0, -1, &insert0Stmt, NULL);
@@ -92,7 +92,7 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 	int airSigmetID = sqlite3_last_insert_rowid(db);
 
 	// Insert the geometry of the AirSigmet into the DB
-	char* sqlInsert1 = "INSERT INTO airSigmetBounds(airSigmetID, number, latRad, longRad) VALUES (@ID, @NUM, @LAT, @LNG)";
+	const char* sqlInsert1 = "INSERT INTO airSigmetBounds(airSigmetID, number, latRad, longRad) VALUES (@ID, @NUM, @LAT, @LNG)";
 	sqlite3_prepare_v2(db, sqlInsert1, -1, &insert1Stmt, NULL);
 
 	int i = 0;
@@ -108,8 +108,8 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 		sqlite3_reset(insert1Stmt);
 	}
 
-	char* sqlInsert2 = "INSERT INTO cellHasAirSigmet(cellID, airSigmetID, boundary) VALUES (@CO, @AS, @BO)";
-	char* sqlSelect = "SELECT cellID FROM cells WHERE code = @CO;";
+	const char* sqlInsert2 = "INSERT INTO cellHasAirSigmet(cellID, airSigmetID, boundary) VALUES (@CO, @AS, @BO)";
+	const char* sqlSelect = "SELECT cellID FROM cells WHERE code = @CO;";
 
 	sqlite3_prepare_v2(db, sqlInsert2, -1, &insert2Stmt, NULL);
 	sqlite3_prepare_v2(db, sqlSelect, -1, &selectStmt, NULL);
@@ -183,8 +183,8 @@ void SdogDB::insertWindData(const std::vector<std::pair<std::string, glm::vec2>>
 	sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, NULL);
 	sqlite3_stmt *insertStmt, *updateStmt;
 
-	char* sqlInsert = "INSERT INTO cells(code, windU, windV) VALUES (@CO, @WU, @WV)";
-	char* sqlUpdate = "UPDATE cells SET windU = @WU, windV = @WV WHERE code = @CO";
+	const char* sqlInsert = "INSERT INTO cells(code, windU, windV) VALUES (@CO, @WU, @WV)";
+	const char* sqlUpdate = "UPDATE cells SET windU = @WU, windV = @WV WHERE code = @CO";
 
 	sqlite3_prepare_v2(db, sqlInsert, -1, &insertStmt, NULL);
 	sqlite3_prepare_v2(db, sqlUpdate, -1, &updateStmt, NULL);
@@ -225,7 +225,7 @@ void SdogDB::insertWindData(const std::vector<std::pair<std::string, glm::vec2>>
 void SdogDB::getAirSigmetCells(std::vector<AirSigmetCells>& out) {
 
 	// Get all cells from DB that are associate with an AirSigmet
-	char* sqlCells = "SELECT c.code, r.boundary, r.airSigmetID FROM cells as c, cellHasAirSigmet as r WHERE c.cellID = r.cellID";
+	const char* sqlCells = "SELECT c.code, r.boundary, r.airSigmetID FROM cells as c, cellHasAirSigmet as r WHERE c.cellID = r.cellID";
 	sqlite3_stmt* cellsStmt;
 	sqlite3_prepare_v2(db, sqlCells, -1, &cellsStmt, NULL);
 
@@ -246,7 +246,7 @@ void SdogDB::getAirSigmetCells(std::vector<AirSigmetCells>& out) {
 	sqlite3_finalize(cellsStmt);
 
 	// Get all AirSigmets from DB
-	char* sqlAirSigs = "SELECT airSigmetID, validFrom, validUntil, minAltKM, maxAltKM, dirDeg, speedKT, hazard, severity, type FROM airSigmets";
+	const char* sqlAirSigs = "SELECT airSigmetID, validFrom, validUntil, minAltKM, maxAltKM, dirDeg, speedKT, hazard, severity, type FROM airSigmets";
 	sqlite3_stmt* airSigsStmt;
 	sqlite3_prepare_v2(db, sqlAirSigs, -1, &airSigsStmt, NULL);
 
@@ -267,7 +267,7 @@ void SdogDB::getAirSigmetCells(std::vector<AirSigmetCells>& out) {
 		a.airSigmet.severity = (Severity)sqlite3_column_int(airSigsStmt, 8);
 		a.airSigmet.type = (AirSigmetType)sqlite3_column_int(airSigsStmt, 9);
 
-		char* sqlBounds = "SELECT b.latRad, b.longRad FROM airSigmets as a, airSigmetBounds as b WHERE b.airSigmetID = @ID";
+		const char* sqlBounds = "SELECT b.latRad, b.longRad FROM airSigmets as a, airSigmetBounds as b WHERE b.airSigmetID = @ID";
 		sqlite3_stmt* boundsStmt;
 		sqlite3_prepare_v2(db, sqlBounds, -1, &boundsStmt, NULL);
 		sqlite3_bind_int(boundsStmt, 1, airSigID);
@@ -303,7 +303,7 @@ void SdogDB::getAirSigmetCells(std::vector<AirSigmetCells>& out) {
 // out - output list of cells and their associated wind data - treats as empty
 void SdogDB::getWindCells(std::vector<std::pair<std::string, glm::vec2>>& out) {
 
-	char* sql = "SELECT code, windU, windV FROM cells WHERE windU IS NOT NULL";
+	const char* sql = "SELECT code, windU, windV FROM cells WHERE windU IS NOT NULL";
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
@@ -325,7 +325,7 @@ void SdogDB::getWindCells(std::vector<std::pair<std::string, glm::vec2>>& out) {
 // code - code of the cell to insert
 void SdogDB::insertCell(const std::string& code) {
 
-	char* sql = "INSERT OR IGNORE INTO cells(code) VALUES (@CO)";
+	const char* sql = "INSERT OR IGNORE INTO cells(code) VALUES (@CO)";
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
@@ -341,7 +341,7 @@ void SdogDB::insertCell(const std::string& code) {
 void SdogDB::insertCells(const std::vector<std::string>& codes) {
 
 	sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, NULL);
-	char* sql = "INSERT OR IGNORE INTO cells(code) VALUES (@CO)";
+	const char* sql = "INSERT OR IGNORE INTO cells(code) VALUES (@CO)";
 	sqlite3_stmt* stmt;
 	sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
