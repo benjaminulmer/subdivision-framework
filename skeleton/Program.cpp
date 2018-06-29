@@ -56,15 +56,13 @@ void Program::start() {
 	RenderEngine::assignBuffers(wind, false);
 
 	// Set starting radius
-	scale = 1.f;
-	radius = RADIUS_EARTH_KM * 4.f / 3.f;
+	scale = 1.0;
+	radius = RADIUS_EARTH_M * 4.0 / 3.0;
 
 	// Load coastline vector data
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
 	RenderEngine::assignBuffers(coastLines, false);
-	float s = 1.f + std::numeric_limits<float>::epsilon();
-	coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
 	// Create grid database connection and load data sets
 	dataBase = new SdogDB("test.db", radius);
@@ -91,6 +89,12 @@ void Program::start() {
 
 	//airSigRender1();
 	windRender1();
+
+	cells.doubleToFloats();
+	bound.doubleToFloats();
+	polys.doubleToFloats();
+	wind.doubleToFloats();
+	coastLines.doubleToFloats();
 
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(bound, false);
@@ -151,6 +155,85 @@ void Program::insertAirSigmets() {
 	}
 }
 
+void Program::testSmallScale() {
+
+	SphCoord wayPoint(51.08, -114.1292294, false);
+	wind.verts.push_back(wayPoint.toCartesian(RADIUS_EARTH_M));
+	wind.colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+
+	std::vector<std::string> interior, boundary;
+	AirSigmet a;
+	a.polygon.push_back(SphCoord(51.0798777, -114.1292294, false));
+	a.polygon.push_back(SphCoord(51.0798757, -114.1289109, false));
+	a.polygon.push_back(SphCoord(51.0798094, -114.1289093, false));
+	a.polygon.push_back(SphCoord(51.0797771, -114.1288856, false));
+	a.polygon.push_back(SphCoord(51.0796888, -114.1288963, false));
+	a.polygon.push_back(SphCoord(51.0796550, -114.1288985, false));
+	a.polygon.push_back(SphCoord(51.0795592, -114.1288985, false));
+	a.polygon.push_back(SphCoord(51.0794433, -114.1288941, false));
+	a.polygon.push_back(SphCoord(51.0793132, -114.1288856, false));
+	a.polygon.push_back(SphCoord(51.0791902, -114.1287488, false));
+	a.polygon.push_back(SphCoord(51.0791544, -114.1288303, false));
+	a.polygon.push_back(SphCoord(51.0791790, -114.1290326, false));
+	a.polygon.push_back(SphCoord(51.0792537, -114.1290988, false));
+	a.polygon.push_back(SphCoord(51.0792437, -114.1293121, false));
+	a.polygon.push_back(SphCoord(51.0791826, -114.1292773, false));
+	a.polygon.push_back(SphCoord(51.0791322, -114.1295018, false));
+	a.polygon.push_back(SphCoord(51.0791941, -114.1295727, false));
+	a.polygon.push_back(SphCoord(51.0790480, -114.1296606, false));
+	a.polygon.push_back(SphCoord(51.0790886, -114.1300041, false));
+	a.polygon.push_back(SphCoord(51.0792530, -114.1300216, false));
+	a.polygon.push_back(SphCoord(51.0793164, -114.1300339, false));
+	a.polygon.push_back(SphCoord(51.0793268, -114.1299840, false));
+	a.polygon.push_back(SphCoord(51.0793504, -114.1299812, false));
+	a.polygon.push_back(SphCoord(51.0793944, -114.1299808, false));
+	a.polygon.push_back(SphCoord(51.0795293, -114.1299796, false));
+	a.polygon.push_back(SphCoord(51.0795291, -114.1299226, false));
+	a.polygon.push_back(SphCoord(51.0795725, -114.1299245, false));
+	a.polygon.push_back(SphCoord(51.0795734, -114.1292100, false));
+	a.polygon.push_back(SphCoord(51.0796241, -114.1292161, false));
+	a.polygon.push_back(SphCoord(51.0796218, -114.1293551, false));
+	a.polygon.push_back(SphCoord(51.0796469, -114.1293566, false));
+	a.polygon.push_back(SphCoord(51.0796486, -114.1293960, false));
+	a.polygon.push_back(SphCoord(51.0797354, -114.1293984, false));
+	a.polygon.push_back(SphCoord(51.0797348, -114.1293601, false));
+	a.polygon.push_back(SphCoord(51.0797601, -114.1293612, false));
+	a.polygon.push_back(SphCoord(51.0797595, -114.1292704, false));
+	a.polygon.push_back(SphCoord(51.0797814, -114.1292706, false));
+	a.polygon.push_back(SphCoord(51.0798077, -114.1292708, false));
+	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
+	a.polygon.push_back(SphCoord(51.0798065, -114.1292260, false));
+	a.minAltM = 0.0; a.maxAltM = 21.0234;
+
+	int depth = 25;
+	a.gridInsertion(radius, depth, interior, boundary);
+
+	polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
+	polys.drawMode = GL_LINES;
+	for (int i = 0; i < a.polygon.size(); i++) {
+		glm::vec3 v1 = a.polygon[i].toCartesian(RADIUS_EARTH_M);
+		glm::vec3 v2 = a.polygon[(i + 1) % a.polygon.size()].toCartesian(RADIUS_EARTH_M);
+		Geometry::createArcR(v1, v2, glm::dvec3(0.0), polys);
+	}
+
+	for (const std::string& code : interior) {
+
+		SdogCell cell(code, radius);
+		if (abs(cell.getMinRad() - RADIUS_EARTH_M) > 0.0001) continue;
+
+		cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), false);
+	}
+	for (const std::string& code : boundary) {
+
+		if (code.length() < depth + 1) continue;
+
+		SdogCell cell(code, radius);
+		if (abs(cell.getMinRad() - RADIUS_EARTH_M) > 0.0001) continue;
+
+		cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f), false);
+	}
+}
+
 // Reads wind data from file, inserts into grid, and then inserts into DB
 void Program::insertWind() {
 
@@ -176,8 +259,8 @@ void Program::airSigRender1() {
 		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
 		polys.drawMode = GL_LINES;
 		for (int i = 0; i < datum.airSigmet.polygon.size(); i++) {
-			glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			glm::vec3 v1 = datum.airSigmet.polygon[i].toCartesian(datum.airSigmet.maxAltM * 2.2 + RADIUS_EARTH_M);
+			glm::vec3 v2 = datum.airSigmet.polygon[(i + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltM * 2.2 + RADIUS_EARTH_M);
 			Geometry::createArcR(v1, v2, glm::vec3(), polys);
 		}
 		RenderEngine::setBufferData(polys, false);
@@ -186,7 +269,7 @@ void Program::airSigRender1() {
 		for (const std::string& code : datum.interior) {
 
 			SdogCell cell(code, radius);
-			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f));
+			cell.addToRenderable(cells, glm::vec3(1.f, 1.f, 0.5f), true);
 		}
 
 		for (const std::string& code : datum.boundary) {
@@ -194,7 +277,7 @@ void Program::airSigRender1() {
 			if (code.length() < 11) continue;
 
 			SdogCell cell(code, radius);
-			cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f));
+			cell.addToRenderable(bound, glm::vec3(0.2f, 0.2f, 0.5f), true);
 		}
 	}
 }
@@ -230,8 +313,8 @@ void Program::windRender1() {
 
 		if (norm < 0.4f) continue;
 
-		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
-		cell.addToRenderable(cells, glm::vec3(norm, col, col));
+		float col = (float)(cell.getMinRad() - RADIUS_EARTH_M) / 120.f;
+		cell.addToRenderable(wind, glm::vec3(norm, col, col), true);
 	}
 }
 
@@ -246,21 +329,18 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		float far = glm::length(camera->getPosition() - glm::vec3(0.f, 0.f, 0.f));
-		//info.frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), far);
-
 		// Find min and max distance from camera to cell renderable - used for fading effect
 		glm::vec3 cameraPos = camera->getPosition();
 		float max = glm::length(cameraPos) + RADIUS_EARTH_VIEW;
 		float min = glm::length(cameraPos) - RADIUS_EARTH_VIEW;
 
-		glm::mat4 worldModel(1.f);
-		float s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
-		worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
-		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
-		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
+		glm::dmat4 worldModel(1.f);
+		double s = scale * (1.0 / RADIUS_EARTH_M) * RADIUS_EARTH_VIEW;
+		worldModel = glm::scale(worldModel, glm::dvec3(s, s, s));
+		worldModel = glm::rotate(worldModel, latRot, glm::dvec3(-1.0, 0.0, 0.0));
+		worldModel = glm::rotate(worldModel, longRot, glm::dvec3(0.0, 1.0, 0.0));
 
-		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
+		renderEngine->render(objects, (glm::dmat4)camera->getLookAt() * worldModel, max, min);
 		SDL_GL_SwapWindow(window);
 	}
 
@@ -271,48 +351,42 @@ void Program::mainLoop() {
 // Locations are in pixel coordinates
 void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) {
 
-	glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();
-	glm::mat4 invProjView = glm::inverse(projView);
+	glm::dmat4 projView = renderEngine->getProjection() * camera->getLookAt();
+	glm::dmat4 invProjView = glm::inverse(projView);
 
-	float oldXN = (2.f * oldX) / (width) - 1.f;
-	float oldYN = (2.f * oldY) / (height) - 1.f;
+	double oldXN = (2.0 * oldX) / (width) - 1.0;
+	double oldYN = (2.0 * oldY) / (height) - 1.0;
 	oldYN *= -1.0;
 
-	float newXN = (2.f * newX) / (width) - 1.f;
-	float newYN = (2.f * newY) / (height) - 1.f;
-	newYN *= -1.f;
+	double newXN = (2.0 * newX) / (width) - 1.0;
+	double newYN = (2.0 * newY) / (height) - 1.0;
+	newYN *= -1.0;
 
-	glm::vec4 worldOld(oldXN, oldYN, -1.f, 1.f);
-	glm::vec4 worldNew(newXN, newYN, -1.f, 1.f);
+	glm::dvec4 worldOld(oldXN, oldYN, -1.0, 1.0);
+	glm::dvec4 worldNew(newXN, newYN, -1.0, 1.0);
 
 	worldOld = invProjView * worldOld;
-
-	worldOld.x /= worldOld.w;
-	worldOld.y /= worldOld.w;
-	worldOld.z /= worldOld.w;
+	worldOld /= worldOld.w;
 
 	worldNew = invProjView * worldNew;
+	worldNew /= worldNew.w;
 
-	worldNew.x /= worldNew.w;
-	worldNew.y /= worldNew.w;
-	worldNew.z /= worldNew.w;
+	glm::dvec3 rayO = camera->getPosition();
+	glm::dvec3 rayDOld = glm::normalize(glm::dvec3(worldOld) - rayO);
+	glm::dvec3 rayDNew = glm::normalize(glm::dvec3(worldNew) - rayO);
+	double sphereRad = RADIUS_EARTH_VIEW * scale;
+	glm::dvec3 sphereO = glm::dvec3(0.0);
 
-	glm::vec3 rayO = camera->getPosition();
-	glm::vec3 rayDOld = glm::normalize(glm::vec3(worldOld) - rayO);
-	glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
-	float sphereRad = RADIUS_EARTH_VIEW * scale;
-	glm::vec3 sphereO = glm::vec3(0.f, 0.f, 0.f);
-
-	glm::vec3 iPosOld, iPosNew, iNorm;
+	glm::dvec3 iPosOld, iPosNew, iNorm;
 
 	if (glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm) &&
 			glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
 
-		float longOld = atan(iPosOld.x / iPosOld.z);
-		float latOld = (float)( M_PI / 2.f - acos(iPosOld.y / sphereRad) );
+		double longOld = atan2(iPosOld.x, iPosOld.z);
+		double latOld = M_PI_2 - acos(iPosOld.y / sphereRad);
 
-		float longNew = atan(iPosNew.x / iPosNew.z);
-		float latNew = (float)( M_PI / 2.f - acos(iPosNew.y / sphereRad) );
+		double longNew = atan2(iPosNew.x, iPosNew.z);
+		double latNew = M_PI_2 - acos(iPosNew.y / sphereRad);
 
 		if (skew) {
 			camera->updateLatitudeRotation(latNew - latOld);

@@ -43,15 +43,17 @@ private:
 
 	std::vector<const Renderable*> objects;
 
-	float radius;
+	double radius;
 
-	float scale;
-	float latRot;
-	float longRot;
+	double scale;
+	double latRot;
+	double longRot;
 
 	void setupWindow();
 	void insertAirSigmets();
 	void insertWind();
+
+	void testSmallScale();
 
 	void airSigRender1();
 	void windRender1();

@@ -36,8 +36,8 @@ enum class Severity {
 // Class for storing information about an AirSigmet
 struct AirSigmet {
 
-	double minAltKM;
-	double maxAltKM;
+	double minAltM;
+	double maxAltM;
 	std::vector<SphCoord> polygon;
 
 	std::string validFrom;

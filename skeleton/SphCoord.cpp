@@ -3,6 +3,7 @@
 #include <glm/gtc/epsilon.hpp>
 #include <glm/gtx/intersect.hpp>
 
+#include <algorithm>
 #include <cmath>
 
 // Zero all fields
@@ -24,8 +25,8 @@ SphCoord::SphCoord(double latitude, double longitude, bool radians) {
 
 
 // Constructs from a cartesian point. Assumes sphere is at origin
-SphCoord::SphCoord(const glm::vec3& point) {
-	float radius = glm::length(point);
+SphCoord::SphCoord(const glm::dvec3& point) {
+	double radius = glm::length(point);
 	latitude = asin(point.y / radius);
 	longitude = atan2(point.x, point.z);
 }
@@ -36,21 +37,30 @@ SphCoord::SphCoord(const glm::vec3& point) {
 // other - other spherical point to calculate arc length between
 double SphCoord::arcLength(const SphCoord& other) const {
 
-	glm::vec3 cart1 = this->toCartesian(1.0);
-	glm::vec3 cart2 = other.toCartesian(1.0);
+	glm::dvec3 cart1 = this->toCartesian(1.0);
+	glm::dvec3 cart2 = other.toCartesian(1.0);
 
-	float sin = glm::length(glm::cross(cart1, cart2));
-	float cos = glm::dot(cart1, cart2);
+	return asin(glm::length(glm::cross(cart1, cart2)));
+}
 
-	return atan(sin / cos);
+
+// Returns the arc length between this and a vector representing a spherical point
+//
+// other - other spherical point to calculate arc length between
+double SphCoord::arcLength(const glm::dvec3& other) const {
+
+	glm::dvec3 cart1 = this->toCartesian(1.0);
+	glm::dvec3 cart2 = glm::normalize(other);
+
+	return asin(glm::length(glm::cross(cart1, cart2)));
 }
 
 
 // Converts spherical coordinates to cartesian with a given spherical radius. Assumes sphere is at origin
 //
 // radius - radius of sphere
-glm::vec3 SphCoord::toCartesian(double radius) const {
-	return glm::vec3( sin(longitude) * cos(latitude), sin(latitude), cos(longitude) * cos(latitude) ) * (float)radius;
+glm::dvec3 SphCoord::toCartesian(double radius) const {
+	return glm::dvec3( sin(longitude) * cos(latitude), sin(latitude), cos(longitude) * cos(latitude) ) * radius;
 }
 
 
@@ -76,42 +86,42 @@ double SphCoord::longitudeDeg() const {
 bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, const SphCoord& b0, const SphCoord& b1, SphCoord& intersection) {
 
 	// Calculate planes for the two arcs
-	glm::vec3 planeA = glm::normalize(glm::cross(a0.toCartesian(1.0), a1.toCartesian(1.0)));
-	glm::vec3 planeB = glm::normalize(glm::cross(b0.toCartesian(1.0), b1.toCartesian(1.0)));
+	glm::dvec3 planeA = glm::normalize(glm::cross(a0.toCartesian(1.0), a1.toCartesian(1.0)));
+	glm::dvec3 planeB = glm::normalize(glm::cross(b0.toCartesian(1.0), b1.toCartesian(1.0)));
 
 	// If planes are parallel, treat as no intersection
-	glm::bvec3 equal = glm::epsilonEqual(planeA, planeB, 0.0001f);
+	glm::bvec3 equal = glm::epsilonEqual(planeA, planeB, 0.000001);
 	if (equal.x && equal.y && equal.z) {
 		return false;
 	}
 
 	// Planes are not the same, get the line of intersection between them
-	glm::vec3 lineDir = glm::cross(planeA, planeB);
+	glm::dvec3 lineDir = glm::cross(planeA, planeB);
 
 	// Find the candidate intersection points by intersecting the line with the sphere
-	glm::vec3 inter1, inter2, norm1, norm2;
-	if (glm::intersectLineSphere(glm::vec3(), lineDir, glm::vec3(), 1.0, inter1, norm1, inter2, norm2)) {
+	glm::dvec3 inter1, inter2, norm1, norm2;
+	if (glm::intersectLineSphere(glm::dvec3(), lineDir, glm::dvec3(), 1.0, inter1, norm1, inter2, norm2)) {
 
 		double arcA = a0.arcLength(a1);
 		double arcB = b0.arcLength(b1);
+		double eps = std::min(arcA, arcB) * 0.01;
 
 		// Test if point 1 is on both arcs
-		double distA0 = a0.arcLength(SphCoord(inter1));
-		double distA1 = a1.arcLength(SphCoord(inter1));
-		double distB0 = b0.arcLength(SphCoord(inter1));
-		double distB1 = b1.arcLength(SphCoord(inter1));
+		double distA0 = a0.arcLength(inter1);
+		double distA1 = a1.arcLength(inter1);
+		double distB0 = b0.arcLength(inter1);
+		double distB1 = b1.arcLength(inter1);
 
-		double eps = 0.0001;
 		if (abs(arcA - distA0 - distA1) < eps && abs(arcB - distB0 - distB1) < eps) {
 			intersection = SphCoord(inter1);
 			return true;
 		}
 
 		// Test if point 2 is on both arcs
-		distA0 = a0.arcLength(SphCoord(inter2));
-		distA1 = a1.arcLength(SphCoord(inter2));
-		distB0 = b0.arcLength(SphCoord(inter2));
-		distB1 = b1.arcLength(SphCoord(inter2));
+		distA0 = a0.arcLength(inter2);
+		distA1 = a1.arcLength(inter2);
+		distB0 = b0.arcLength(inter2);
+		distB1 = b1.arcLength(inter2);
 
 		if (abs(arcA - distA0 - distA1) < eps && abs(arcB - distB0 - distB1) < eps) {
 			intersection = SphCoord(inter2);
@@ -125,6 +135,7 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 	}
 }
 
+
 // Returns if a great circle arc and line of latitude intersect. If they do, the result is stored in intersection
 //
 // a0 - start of arc
@@ -135,41 +146,41 @@ bool SphCoord::greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, 
 // intersection - output for intersection point
 bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1, double latRad, double minLongRad, double maxLongRad, SphCoord& intersection) {
 
-	glm::vec3 planeA = glm::normalize(glm::cross(a0.toCartesian(1.0), a1.toCartesian(1.0)));
-	glm::vec3 planeLat = glm::vec3(0.f, 1.f, 0.f);
+	glm::dvec3 planeA = glm::normalize(glm::cross(a0.toCartesian(1.0), a1.toCartesian(1.0)));
+	glm::dvec3 planeLat = glm::dvec3(0.0, 1.0, 0.0);
 
 	// If planes are parallel, treat as no intersection
-	glm::bvec3 equal = glm::epsilonEqual(planeA, planeLat, 0.0001f);
+	glm::bvec3 equal = glm::epsilonEqual(planeA, planeLat, 0.000001);
 	if (equal.x && equal.y && equal.z) {
 		return false;
 	}
 
 	// Planes are not the same, get the line of intersection between them
-	glm::vec3 lineDir = glm::cross(planeA, planeLat);
-	glm::vec3 linePoint;
-	float y = (float) sin(latRad);
+	glm::dvec3 lineDir = glm::cross(planeA, planeLat);
+	glm::dvec3 linePoint;
+	double y = sin(latRad);
 
-	if (abs(planeA.x) > 0.0001f) {
-		float x = -(planeA.y / planeA.x) * y;
-		linePoint = glm::vec3(x, y, 0.f);
+	if (abs(planeA.x) > 0.0001) {
+		double x = -(planeA.y / planeA.x) * y;
+		linePoint = glm::dvec3(x, y, 0.0);
 	}
 	else {
-		float z = -(planeA.y / planeA.z) * y;
-		linePoint = glm::vec3(0.f, y, z);
+		double z = -(planeA.y / planeA.z) * y;
+		linePoint = glm::dvec3(0.0, y, z);
 	}
 
 	// Find the candidate intersection points by intersecting the line with the sphere
-	glm::vec3 inter1, inter2, norm1, norm2;
-	if (glm::intersectLineSphere(linePoint, linePoint + lineDir, glm::vec3(), 1.0, inter1, norm1, inter2, norm2)) {
+	glm::dvec3 inter1, inter2, norm1, norm2;
+	if (glm::intersectLineSphere(linePoint, linePoint + lineDir, glm::dvec3(), 1.0, inter1, norm1, inter2, norm2)) {
 
 		double arcA = a0.arcLength(a1);
+		double eps = std::min(arcA, abs(maxLongRad - minLongRad)) * 0.01;
 
 		// Test if point 1 is on both arcs
-		double distA0 = a0.arcLength(SphCoord(inter1));
-		double distA1 = a1.arcLength(SphCoord(inter1));
+		double distA0 = a0.arcLength(inter1);
+		double distA1 = a1.arcLength(inter1);
 		SphCoord sph1(inter1);
 
-		double eps = 0.0001;
 		if (abs(arcA - distA0 - distA1) < eps &&
 				((minLongRad < (sph1.longitude + eps) && sph1.longitude < (maxLongRad + eps)) ||
 				(maxLongRad < (sph1.longitude + eps) && sph1.longitude < (minLongRad + eps)))) {
@@ -179,8 +190,8 @@ bool SphCoord::greatCircleArcLatIntersect(const SphCoord& a0, const SphCoord& a1
 		}
 
 		// Test if point 2 is on both arcs
-		distA0 = a0.arcLength(SphCoord(inter2));
-		distA1 = a1.arcLength(SphCoord(inter2));
+		distA0 = a0.arcLength(inter2);
+		distA1 = a1.arcLength(inter2);
 		SphCoord sph2(inter2);
 
 		if (abs(arcA - distA0 - distA1) < eps &&

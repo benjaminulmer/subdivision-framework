@@ -11,6 +11,7 @@
 // maxDepth - maximum depth (subdivision level) to find cells for
 // interior - output list of all interior cells - treats as empty
 // boundary - output list of all boundary cells - treats as empty
+#include <iostream>
 void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) const {
 
 	// Enum for identifying boundary, interior, and exterior cases
@@ -49,6 +50,10 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 
 		SdogCell c = toTest[toTest.size() - 1];
 		toTest.pop_back();
+
+		if (c.getCode() == "32056445647456465646660") {
+			std::cout << std::endl;
+		}
 
 		int horizontal = NONE;
 		int vertical = NONE;
@@ -99,28 +104,28 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 					SphCoord point1(c.getMinLat(), c.getMinLong());
 					SphCoord point2(c.getMaxLat(), c.getMaxLong());
 
-					float ang1 = acos(glm::dot(point1.toCartesian(1.0), polygon[0].toCartesian(1.0)));
-					float ang2 = acos(glm::dot(point2.toCartesian(1.0), polygon[0].toCartesian(1.0)));
+					double ang1 = acos(glm::dot(point1.toCartesian(1.0), polygon[0].toCartesian(1.0)));
+					double ang2 = acos(glm::dot(point2.toCartesian(1.0), polygon[0].toCartesian(1.0)));
 
-					glm::vec3 testNorm = (ang1 < ang2) ? point1.toCartesian(1.0) : point2.toCartesian(1.0);
+					glm::dvec3 testNorm = (ang1 < ang2) ? point1.toCartesian(1.0) : point2.toCartesian(1.0);
 
 					// Calculate winding number of a point in the cell with respect to the polygon
-					float sum = 0.f;
+					double sum = 0.0;
 					for (int i = 0; i < polygon.size(); i++) {
 
-						glm::vec3 plane1 = glm::normalize(glm::cross(testNorm, polygon[i].toCartesian(1.0)));
-						glm::vec3 plane2 = glm::normalize(glm::cross(testNorm, polygon[(i + 1) % polygon.size()].toCartesian(1.0)));
+						glm::dvec3 plane1 = glm::normalize(glm::cross(testNorm, polygon[i].toCartesian(1.0)));
+						glm::dvec3 plane2 = glm::normalize(glm::cross(testNorm, polygon[(i + 1) % polygon.size()].toCartesian(1.0)));
 
-						glm::vec3 cross = glm::cross(plane1, plane2);
-						float dot = glm::dot(plane1, plane2);
+						glm::dvec3 cross = glm::cross(plane1, plane2);
+						double dot = glm::dot(plane1, plane2);
 
-						if (dot > 1.f) dot = 1.f;
-						if (dot < -1.f) dot = -1.f;
+						if (dot > 1.0) dot = 1.0;
+						if (dot < -1.0) dot = -1.0;
 
-						float angle = (glm::dot(cross, testNorm) < 0) ? -acos(dot) : acos(dot);
+						double angle = (glm::dot(cross, testNorm) < 0.0) ? -acos(dot) : acos(dot);
 						sum += angle;
 					}
-					horizontal = (abs(sum) < 1.f) ? EXTER : INTER;
+					horizontal = (abs(sum) < 1.0) ? EXTER : INTER;
 				}
 			}
 			// Cache results
@@ -128,10 +133,10 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 		}
 
 		// Veritcal test
-		if (c.getMinRad() > altToAbs(minAltKM) && c.getMaxRad() < altToAbs(maxAltKM)) {
+		if (c.getMinRad() > altToAbs(minAltM) - 0.001 && c.getMaxRad() < altToAbs(maxAltM) + 0.001) {
 			vertical = INTER;
 		}
-		else if (c.getMaxRad() < altToAbs(minAltKM) || c.getMinRad() > altToAbs(maxAltKM)) {
+		else if (c.getMaxRad() < altToAbs(minAltM) + 0.001 || c.getMinRad() > altToAbs(maxAltM) - 0.001) {
 			vertical = EXTER;
 		}
 		else {
@@ -140,6 +145,12 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 
 		// If cell is interior or boundary act accordingly - do nothing with exterior cells
 		if (horizontal == INTER && vertical == INTER) {
+
+			//if (c.getCode().length() == 23 && c.getMinLong() > -1.99192244) {
+			//	std::cout << std::endl;
+			//}
+
+
 			interior.push_back(c.getCode()); // update state in DB
 		}
 		else if (horizontal != EXTER && vertical != EXTER) {
@@ -193,8 +204,8 @@ void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet
 			int minFT = (entry["altitude"].HasMember("_min_ft_msl")) ? std::stoi(entry["altitude"]["_min_ft_msl"].GetString()) : 0;
 			int maxFT = (entry["altitude"].HasMember("_max_ft_msl")) ? std::stoi(entry["altitude"]["_max_ft_msl"].GetString()) : 0;
 
-			next.minAltKM = minFT * (0.3048 / 1000.0); // feet to KM
-			next.maxAltKM = (maxFT > 0) ? maxFT * (0.3048 / 1000.0) : 30.0;
+			next.minAltM = minFT * 0.3048; // feet to M
+			next.maxAltM = (maxFT > 0) ? maxFT * 0.3048 : 30000.0;
 		}
 
 		const rapidjson::Value& pointArray = entry["area"]["point"];

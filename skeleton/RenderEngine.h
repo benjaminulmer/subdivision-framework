@@ -14,7 +14,7 @@ class RenderEngine {
 public:
 	RenderEngine(SDL_Window* window);
 
-	void render(const std::vector<const Renderable*>& objects, const glm::mat4& view, float max, float min);
+	void render(const std::vector<const Renderable*>& objects, const glm::dmat4& view, float max, float min);
 
 	static void assignBuffers(Renderable& renderable, bool texture);
 	static void setBufferData(Renderable& renderable, bool texture);
@@ -24,23 +24,23 @@ public:
 	void setWindowSize(int newWidth, int newHeight);
 	void toggleFade() { fade = !fade; }
 
-	float getFovY() { return fovYRad; }
-	float getAspectRatio() { return (float)width/height; }
-	float getNear() { return near; }
-	float getFar() { return far; }
-	glm::mat4 getProjection() { return projection; }
+	double getFovY() { return fovYRad; }
+	double getAspectRatio() { return (float)width/height; }
+	double getNear() { return near; }
+	double getFar() { return far; }
+	glm::dmat4 getProjection() { return projection; }
 
 private:
 	SDL_Window* window;
 	int width, height;
 
-	const float fovYRad = 60.f * ((float)M_PI / 180.f);
-	const float near = 1.f;
-	const float far = 1000.f;
+	const double fovYRad = 60.f * ((float)M_PI / 180.f);
+	const double near = 1.f;
+	const double far = 1000.f;
 
 	GLuint mainProgram;
 	bool fade;
 
-	glm::mat4 projection;
+	glm::dmat4 projection;
 };
 

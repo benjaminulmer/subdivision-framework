@@ -7,7 +7,7 @@
 #include <cmath>
 
 // Creates a WindGrid with the provided dimensions, altitude, and delta (1 / step size)
-WindGrid::WindGrid(int numRows, int numCols, double altKM, double delta) : numRows(numRows), numCols(numCols), altKM(altKM), delta(delta) {
+WindGrid::WindGrid(int numRows, int numCols, double altM, double delta) : numRows(numRows), numCols(numCols), altM(altM), delta(delta) {
 	data = new glm::vec2[numRows * numCols];
 }
 
@@ -32,7 +32,7 @@ const glm::vec2& WindGrid::operator()(int r, int c) const {
 
 // Order wind grids by increasing altitude
 bool WindGrid::operator<(const WindGrid & r) const {
-	return altKM < r.altKM;
+	return altM < r.altM;
 }
 
 
@@ -44,8 +44,8 @@ bool WindGrid::operator<(const WindGrid & r) const {
 // out - output list of cells and their associated wind information
 void WindGrid::gridInsertion(double gridRadius, int depth, const std::vector<WindGrid>& grids, std::vector<std::pair<std::string, glm::vec2>>& out) {
 
-	double minAltKM = grids[0].altKM;
-	double maxAltKM = grids[grids.size() - 1].altKM;
+	double minAltKM = grids[0].altM;
+	double maxAltKM = grids[grids.size() - 1].altM;
 	double delta = grids[0].delta; // assume all deltas are the same
 
 	// Create list of cells to process and populate with octants
@@ -101,7 +101,7 @@ void WindGrid::gridInsertion(double gridRadius, int depth, const std::vector<Win
 			// Find radial index that is closest to radius of cell without going over
 			int radIndex = 0;
 			for (int i = 1; i < grids.size(); i++) {
-				if (midRad > altToAbs(grids[i].altKM)) {
+				if (midRad > altToAbs(grids[i].altM)) {
 					radIndex++;
 				}
 				else {
@@ -112,7 +112,7 @@ void WindGrid::gridInsertion(double gridRadius, int depth, const std::vector<Win
 			// Find percentage cell is toward the next index in each dimension
 			double latPerc = midLatDeg * delta - midLatTrunc;
 			double longPerc = midLongDeg * delta - midLongTrunc;
-			double radPerc = 1.0 - (midRad - altToAbs(grids[radIndex].altKM)) / (altToAbs(grids[radIndex + 1].altKM) - altToAbs(grids[radIndex].altKM));
+			double radPerc = 1.0 - (midRad - altToAbs(grids[radIndex].altM)) / (altToAbs(grids[radIndex + 1].altM) - altToAbs(grids[radIndex].altM));
 
 			// Acccount for negative cases
 			if (latPerc < 0.0) latPerc = 1.0 + latPerc;
@@ -169,7 +169,7 @@ void WindGrid::readFromJson(const rapidjson::Document& d, std::vector<WindGrid>&
 		double mb = header["surface1Value"].GetDouble() / 100.0;
 
 		double altFT = 145366.45 * (1.0 - pow(mb / 1013.25, 0.190284)); // mb to feet
-		double altKM = altFT * (0.3048 / 1000.0); // feet to KM
+		double altM = altFT * 0.3048; // feet to M
 
 		double delta = 1.0 / header["dx"].GetDouble();
 
@@ -177,15 +177,15 @@ void WindGrid::readFromJson(const rapidjson::Document& d, std::vector<WindGrid>&
 		int numRows = 180 * delta + 1;
 		int numCols = 360 * delta;
 
-		WindGrid layer(numRows, numCols, altKM, delta);
+		WindGrid layer(numRows, numCols, altM, delta);
 
 		// Populate array from data
 		for (int r = 0; r < numRows; r++) {
 			for (int c = 0; c < numCols; c++) {
 
 				int index = r * numCols + c;
-				layer(r, c).x = dataU[index].GetDouble();
-				layer(r, c).y = dataV[index].GetDouble();
+				layer(r, c).x = (float)dataU[index].GetDouble();
+				layer(r, c).y = (float)dataV[index].GetDouble();
 			}
 		}
 

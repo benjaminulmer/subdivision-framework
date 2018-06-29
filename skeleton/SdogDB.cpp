@@ -79,8 +79,8 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 	sqlite3_prepare_v2(db, sqlInsert0, -1, &insert0Stmt, NULL);
 	sqlite3_bind_text(insert0Stmt, 1, airSigmet.validFrom.c_str(), -1, SQLITE_STATIC);
 	sqlite3_bind_text(insert0Stmt, 2, airSigmet.validUntil.c_str(), -1, SQLITE_STATIC);
-	sqlite3_bind_double(insert0Stmt, 3, airSigmet.minAltKM);
-	sqlite3_bind_double(insert0Stmt, 4, airSigmet.maxAltKM);
+	sqlite3_bind_double(insert0Stmt, 3, airSigmet.minAltM);
+	sqlite3_bind_double(insert0Stmt, 4, airSigmet.maxAltM);
 	sqlite3_bind_int(insert0Stmt, 5, airSigmet.dirDeg);
 	sqlite3_bind_int(insert0Stmt, 6, airSigmet.speedKT);
 	sqlite3_bind_int(insert0Stmt, 7, (int)airSigmet.hazard);
@@ -89,7 +89,7 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 	sqlite3_step(insert0Stmt);
 	sqlite3_finalize(insert0Stmt);
 
-	int airSigmetID = sqlite3_last_insert_rowid(db);
+	int airSigmetID = (int)sqlite3_last_insert_rowid(db);
 
 	// Insert the geometry of the AirSigmet into the DB
 	const char* sqlInsert1 = "INSERT INTO airSigmetBounds(airSigmetID, number, latRad, longRad) VALUES (@ID, @NUM, @LAT, @LNG)";
@@ -123,7 +123,7 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 
 		if (sqlite3_step(selectStmt) == SQLITE_DONE) {
 			insertCell(code);
-			cellID = sqlite3_last_insert_rowid(db);
+			cellID = (int)sqlite3_last_insert_rowid(db);
 		}
 		else {
 			cellID = sqlite3_column_int(selectStmt, 0);
@@ -151,7 +151,7 @@ void SdogDB::insertAirSigmet(const std::vector<std::string>& interior, const std
 
 		if (sqlite3_step(selectStmt) == SQLITE_DONE) {
 			insertCell(code);
-			cellID = sqlite3_last_insert_rowid(db);
+			cellID = (int)sqlite3_last_insert_rowid(db);
 		}
 		else {
 			cellID = sqlite3_column_int(selectStmt, 0);
@@ -259,8 +259,8 @@ void SdogDB::getAirSigmetCells(std::vector<AirSigmetCells>& out) {
 
 		a.airSigmet.validFrom = std::string(reinterpret_cast<const char*>(sqlite3_column_text(airSigsStmt, 1)));
 		a.airSigmet.validUntil = std::string(reinterpret_cast<const char*>(sqlite3_column_text(airSigsStmt, 2)));
-		a.airSigmet.minAltKM = sqlite3_column_double(airSigsStmt, 3);
-		a.airSigmet.maxAltKM = sqlite3_column_double(airSigsStmt, 4);
+		a.airSigmet.minAltM = sqlite3_column_double(airSigsStmt, 3);
+		a.airSigmet.maxAltM = sqlite3_column_double(airSigsStmt, 4);
 		a.airSigmet.dirDeg = sqlite3_column_int(airSigsStmt, 5);
 		a.airSigmet.speedKT = sqlite3_column_int(airSigsStmt, 6);
 		a.airSigmet.hazard = (HazardType)sqlite3_column_int(airSigsStmt, 7);
@@ -311,8 +311,8 @@ void SdogDB::getWindCells(std::vector<std::pair<std::string, glm::vec2>>& out) {
 
 		std::string code = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
 		glm::vec3 vec;
-		vec.x = sqlite3_column_double(stmt, 1);
-		vec.y = sqlite3_column_double(stmt, 2);
+		vec.x = (float)sqlite3_column_double(stmt, 1);
+		vec.y = (float)sqlite3_column_double(stmt, 2);
 
 		out.push_back(std::pair<std::string, glm::vec2>(code, vec));
 	}
