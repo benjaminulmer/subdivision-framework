@@ -32,13 +32,11 @@ Program::Program() {
 	width = height = 800;
 }
 
-#define AirSigmetInsert true
-#define WindInsert false
+#define AirSigmetInsert false
+#define WindInsert false 
 
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {	
-
-
 
 	setupWindow();
 	GLenum err = glewInit();
@@ -51,13 +49,6 @@ void Program::start() {
 	camera = new Camera();
 	renderEngine = new RenderEngine(window);
 	InputHandler::setUp(camera, renderEngine, this);
-
-
-
-	//scale = 7379336.7465132149;
-	//camera->setScale(scale);
-	//updateRotation(365, 369, 363, 365, false);
-
 
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
@@ -73,8 +64,6 @@ void Program::start() {
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
 	RenderEngine::assignBuffers(coastLines, false);
-	//float s = 1.f + std::numeric_limits<float>::epsilon();
-	//coastLines.model = glm::scale(glm::vec3(s * scale, s * scale, s * scale));
 
 	// Create grid database connection and load data sets
 	dataBase = new SdogDB("test.db", radius);
@@ -94,13 +83,13 @@ void Program::start() {
 	objects.push_back(&wind);
 
 	// Draw stuff
-	cells.drawMode = GL_LINES;
-	bound.drawMode = GL_LINES;
-	wind.drawMode = GL_POINTS;
+	cells.drawMode = GL_TRIANGLES;
+	bound.drawMode = GL_TRIANGLES;
+	wind.drawMode = GL_TRIANGLES;
 	polys.drawMode = GL_LINES;
 
 	//airSigRender1();
-	//windRender1();
+	windRender1();
 
 	cells.doubleToFloats();
 	bound.doubleToFloats();
@@ -151,18 +140,21 @@ void Program::setupWindow() {
 // Reads AirSigmets from file, inserts into grid, and then inserts into DB
 void Program::insertAirSigmets() {
 
-	//rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
-	//std::vector<AirSigmet> airSigmets;
-	//AirSigmet::readFromJson(sig, airSigmets);
+	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
+	std::vector<AirSigmet> airSigmets;
+	AirSigmet::readFromJson(sig, airSigmets);
 
-	//int c = 0;
-	//for (const AirSigmet& a : airSigmets) {
-	//	std::cout << "AirSigmet " << c << " of " << airSigmets.size() << std::endl;
-	//	std::vector<std::string> interior, boundary;
-	//	a.gridInsertion(radius, 10, interior, boundary);
-	//	dataBase->insertAirSigmet(interior, boundary, a);
-	//	c++;
-	//}
+	int c = 0;
+	for (const AirSigmet& a : airSigmets) {
+		std::cout << "AirSigmet " << c << " of " << airSigmets.size() << std::endl;
+		std::vector<std::string> interior, boundary;
+		a.gridInsertion(radius, 10, interior, boundary);
+		dataBase->insertAirSigmet(interior, boundary, a);
+		c++;
+	}
+}
+
+void Program::testSmallScale() {
 
 	SphCoord wayPoint(51.08, -114.1292294, false);
 	wind.verts.push_back(wayPoint.toCartesian(RADIUS_EARTH_M));
@@ -321,7 +313,7 @@ void Program::windRender1() {
 		if (norm < 0.4f) continue;
 
 		float col = (float)(cell.getMinRad() - RADIUS_EARTH_M) / 120.f;
-		cell.addToRenderable(cells, glm::vec3(norm, col, col), true);
+		cell.addToRenderable(wind, glm::vec3(norm, col, col), true);
 	}
 }
 
@@ -335,9 +327,6 @@ void Program::mainLoop() {
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
-
-		float far = glm::length(camera->getPosition() - glm::dvec3(0.0));
-		//info.frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), far);
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
 		glm::vec3 cameraPos = camera->getPosition();
@@ -359,7 +348,6 @@ void Program::mainLoop() {
 
 // Updates camera rotation
 // Locations are in pixel coordinates
-#include <iomanip>
 void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) {
 
 	glm::dmat4 projView = renderEngine->getProjection() * camera->getLookAt();
@@ -398,24 +386,14 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 
 		double longNew = atan2(iPosNew.x, iPosNew.z);
 		double latNew = M_PI_2 - acos(iPosNew.y / sphereRad);
-
-
-		std::cout << "pixel old: (" << oldXN << ", " << oldYN << ")\t" << "pixel new: (" << newXN << ", " << newYN << ")" << std::endl;
 		
-
 		if (skew) {
 			camera->updateLatitudeRotation(latNew - latOld);
 		}
 		else {
 			latRot += latNew - latOld;
 			longRot += longNew - longOld;
-
-			std::cout << std::setprecision(10) << latRot << " : " << longRot << std::endl;
 		}
-	}
-	else {
-		std::cout << "no ray intersect" << std::endl;
-		glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm);
 	}
 }
 

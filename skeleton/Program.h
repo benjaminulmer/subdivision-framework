@@ -53,6 +53,8 @@ private:
 	void insertAirSigmets();
 	void insertWind();
 
+	void testSmallScale();
+
 	void airSigRender1();
 	void windRender1();
 
