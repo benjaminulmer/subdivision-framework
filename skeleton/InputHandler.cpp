@@ -41,7 +41,7 @@ void InputHandler::pollEvent(SDL_Event& e) {
 
 // Callback for key presses
 void InputHandler::key(SDL_KeyboardEvent& e) {
-	
+
 	auto key = e.keysym.sym;
 
 	if (e.state == SDL_PRESSED) {
@@ -113,5 +113,6 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 void InputHandler::reshape(SDL_WindowEvent& e) {
 	if (e.event == SDL_WINDOWEVENT_RESIZED) {
 		renderEngine->setWindowSize(e.data1, e.data2);
+		program->setWindowSize(e.data1, e.data2);
 	}
 }

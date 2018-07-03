@@ -409,3 +409,7 @@ void Program::updateScale(int inc) {
 	}
 	camera->setScale(scale);
 }
+void Program::setWindowSize(int w, int h) {
+	width = w;
+	height = h;
+}

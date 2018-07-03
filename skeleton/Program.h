@@ -25,6 +25,7 @@ public:
 
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
 	void updateScale(int inc);
+	void setWindowSize(int width, int height);
 
 private:
 	SDL_Window* window;
