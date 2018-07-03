@@ -559,3 +559,10 @@ bool SdogCell::codeIsValid(std::string code) {
 	}
 	return true;
 }
+std::pair<SphCoord, double> SdogCell::getMidPoint() const {
+	double midLat = (getMinLat() + getMaxLat()) / 2.;
+	double midLng = (getMinLong() + getMaxLong()) / 2.;
+	double midRad = (getMinRad() + getMaxRad()) / 2.;
+
+	return std::make_pair(SphCoord(midLat, midLng), midRad);
+}

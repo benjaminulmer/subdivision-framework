@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderable.h"
+#include "SphCoord.h"
 
 #include <glm/glm.hpp>
 
@@ -30,6 +31,7 @@ public:
 	double getMaxRad() const { return maxRad; }
 	double getGridRad() const { return gridRadius; }
 	SdogCellType getType() const { return type; }
+	std::pair<SphCoord, double> getMidPoint() const;
 
 	bool contains(double latRad, double longRad, double radius);
 

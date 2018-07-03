@@ -13,6 +13,7 @@
 #include "AStar.h"
 #include "Constants.h"
 #include "ContentReadWrite.h"
+#include "FlightCost.h"
 #include "Geometry.h"
 #include "InputHandler.h"
 #include "SdogCell.h"
@@ -93,28 +94,19 @@ void Program::start() {
 
 	unsigned int level = 6;
 	SphCoord start{51.045, -114.057222, false}; // calgary
-	// SphCoord end{48.864716, 2.349014, false}; // paris
+	SphCoord end{48.864716, 2.349014, false}; // paris
 	//SphCoord end{17.385, 78.4867, false}; // hyderabad
-	SphCoord end{-31.953512, 115.857048, false}; // Perth
+	//SphCoord end{-31.953512, 115.857048, false}; // Perth
 	auto g = [&](std::string startCode, std::string endCode) {
-		SdogCell s{startCode, radius};
 		SdogCell e{endCode, radius};
-		double s_midLat = (s.getMinLat() + s.getMaxLat()) / 2.;
-		double s_midLng = (s.getMinLong() + s.getMaxLong()) / 2.;
-		double s_midRad = (s.getMinRad() + s.getMaxRad()) / 2.;
-
-		double e_midLat = (e.getMinLat() + e.getMaxLat()) / 2.;
-		double e_midLng = (e.getMinLong() + e.getMaxLong()) / 2.;
-		double e_midRad = (e.getMinRad() + e.getMaxRad()) / 2.;
-		SphCoord s_coord{s_midLat, s_midLng};
-		SphCoord e_coord{e_midLat, e_midLng};
-		return glm::length(
-			s_coord.toCartesian(s_midRad) - e_coord.toCartesian(e_midRad));
+		if (e.getMaxRad() < RADIUS_EARTH_M) {
+			return std::numeric_limits<double>::max();
+		}
+		return FlightCost::GreatCircleArcDistance(startCode, endCode, radius);
 	};
-	auto h = g;//[&](std::string startCode, std::string endCode) {
-		//return 1.;
-	//};
-
+	auto h = [&](std::string startCode, std::string endCode) {
+		return FlightCost::GreatCircleArcDistance(startCode, endCode, radius);
+	};
 	std::vector<std::string> results = AStar::findPath(
 		start, end, g, h, 6371000., radius, level
 	);
