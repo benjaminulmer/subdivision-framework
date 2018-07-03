@@ -9,14 +9,15 @@
 #include <limits>
 #include <iostream>
 
-#include "Constants.h"
-#include "WindGrid.h"
-#include "ContentReadWrite.h"
-#include "InputHandler.h"
 #include "AirSigmet.h"
+#include "AStar.h"
+#include "Constants.h"
+#include "ContentReadWrite.h"
+#include "Geometry.h"
+#include "InputHandler.h"
 #include "SdogCell.h"
 #include "SphCoord.h"
-#include "Geometry.h"
+#include "WindGrid.h"
 
 Program::Program() {
 
@@ -88,7 +89,40 @@ void Program::start() {
 	polys.drawMode = GL_LINES;
 
 	//airSigRender1();
-	windRender1();
+	//windRender1();
+
+	unsigned int level = 6;
+	SphCoord start{51.045, -114.057222, false}; // calgary
+	// SphCoord end{48.864716, 2.349014, false}; // paris
+	//SphCoord end{17.385, 78.4867, false}; // hyderabad
+	SphCoord end{-31.953512, 115.857048, false}; // Perth
+	auto g = [&](std::string startCode, std::string endCode) {
+		SdogCell s{startCode, radius};
+		SdogCell e{endCode, radius};
+		double s_midLat = (s.getMinLat() + s.getMaxLat()) / 2.;
+		double s_midLng = (s.getMinLong() + s.getMaxLong()) / 2.;
+		double s_midRad = (s.getMinRad() + s.getMaxRad()) / 2.;
+
+		double e_midLat = (e.getMinLat() + e.getMaxLat()) / 2.;
+		double e_midLng = (e.getMinLong() + e.getMaxLong()) / 2.;
+		double e_midRad = (e.getMinRad() + e.getMaxRad()) / 2.;
+		SphCoord s_coord{s_midLat, s_midLng};
+		SphCoord e_coord{e_midLat, e_midLng};
+		return glm::length(
+			s_coord.toCartesian(s_midRad) - e_coord.toCartesian(e_midRad));
+	};
+	auto h = g;//[&](std::string startCode, std::string endCode) {
+		//return 1.;
+	//};
+
+	std::vector<std::string> results = AStar::findPath(
+		start, end, g, h, 6371000., radius, level
+	);
+	for (const auto &code : results) {
+		SdogCell cell{code, radius};
+		cell.addToRenderable(wind, glm::vec3{1.0, 1.0, 0.0}, true);
+	}
+	std::cout << "Results.size(): " << results.size() << std::endl;
 
 	cells.doubleToFloats();
 	bound.doubleToFloats();

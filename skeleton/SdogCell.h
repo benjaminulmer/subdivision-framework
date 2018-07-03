@@ -40,6 +40,7 @@ public:
 
 	static std::string codeForPos(double latRad, double longRad, double radius, double gridRadius, unsigned int level);
 	static bool codeIsValid(std::string code);
+	operator std::string() const { return getCode(); }
 
 private:
 	std::string code;
