@@ -35,4 +35,6 @@ private:
 	float latitudeRotRad;
 
 	glm::vec3 translation;
+
+	glm::vec3 originalPosition;
 };

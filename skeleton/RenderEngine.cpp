@@ -14,6 +14,7 @@ RenderEngine::RenderEngine(SDL_Window* window) : window(window), fade(true) {
 	SDL_GetWindowSize(window, &width, &height);
 
 	mainProgram = ShaderTools::compileShaders("./shaders/main.vert", "./shaders/main.frag");
+	skyboxProgram = ShaderTools::compileShaders("./shaders/skybox.vert", "./shaders/skybox.frag");
 
 	projection = glm::perspective(fovYRad, (float)width/height, near, far);
 
@@ -29,7 +30,51 @@ RenderEngine::RenderEngine(SDL_Window* window) : window(window), fade(true) {
 
 	glPointSize(30.f);
 	glLineWidth(1.5f);
-	glClearColor(0.4f, 0.4f, 0.4f, 1.f);
+	glClearColor(0.f, .0078f, 0.1686f, 1.f);
+
+	createSkybox();
+}
+
+void RenderEngine::createSkybox() {
+
+	skybox = Renderable();
+	// Load skybox texture from .png image file
+	skybox.textureID = loadTexture("textures/skybox.png");
+
+	skybox.fade = false;
+
+	skybox.verts = {
+		glm::vec3(-30000.f, -30000.f, 0.f),
+		glm::vec3(30000.f, -30000.f, 0.f),
+		glm::vec3(30000.f, 30000.f, 0.f),
+		glm::vec3(30000.f, 30000.f, 0.f),
+		glm::vec3(-30000.f, 30000.f, 0.f),
+		glm::vec3(-30000.f, -30000.f, 0.f)
+	};
+
+	skybox.uvs = {
+		glm::vec2(0.f, 0.f),
+		glm::vec2(1.f, 0.f),
+		glm::vec2(1.f, 1.f),
+		glm::vec2(1.f, 1.f),
+		glm::vec2(0.f, 1.f),
+		glm::vec2(0.f, 0.f)
+	};
+
+	skybox.colours = {
+		glm::vec3(1.f, 1.f, 1.f),
+		glm::vec3(1.f, 1.f, 1.f),
+		glm::vec3(1.f, 1.f, 1.f),
+		glm::vec3(1.f, 1.f, 1.f)
+	};
+
+	skybox.renderColour = glm::vec3(1.f, 1.f, 1.f);
+	skybox.drawMode = GL_TRIANGLES;
+
+	skybox.model = glm::scale(skybox.model, glm::vec3(1.f, 1.f, 1.f));
+
+	assignBuffers(skybox, true);
+	setBufferData(skybox, true);
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
@@ -66,7 +111,30 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 		glDrawArrays(r->drawMode, 0, (GLsizei)r->verts.size());
 		glBindVertexArray(0);
 	}
+	glUseProgram(0);
+
+	renderSkybox(view);
 }
+
+void RenderEngine::renderSkybox(const glm::mat4& view) {
+	// Render the skybox
+	glUseProgram(skyboxProgram);
+
+	glBindVertexArray(skybox.vao);
+
+	//glm::mat4 modelView = view * skybox.model;
+	glm::mat4 modelView = view;
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+	Texture::bind2DTexture(skyboxProgram, skybox.textureID, "imTexture");
+
+	glDrawArrays(skybox.drawMode, 0, (GLsizei)skybox.verts.size());
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+}
+
 
 // Assigns buffers for a renderable
 void RenderEngine::assignBuffers(Renderable& renderable, bool texture) {
@@ -146,4 +214,41 @@ void RenderEngine::setWindowSize(int newWidth, int newHeight) {
 	height = newHeight;
 	projection = glm::perspective(fovYRad, (float)width / height, near, far);
 	glViewport(0, 0, width, height);
+}
+
+void RenderEngine::setScale(double scale) {
+	//skybox.model = glm::scale(skybox.model, glm::vec3(scale, scale, 1.f));
+}
+
+void RenderEngine::updateCameraAngle(glm::vec3 cameraPos, glm::vec3 upVec) {
+	// Determine the rotation of the skybox required to have it face the camera
+
+	glm::vec3 centre = glm::normalize(cameraPos);
+	glm::vec3 up = glm::normalize(upVec);
+
+	glm::vec3 right = glm::normalize(glm::cross(centre, up));
+
+	glm::vec3 topLeft, topRight, bottomLeft, bottomRight;
+
+	topLeft = 30000.f * glm::normalize(glm::vec3(0.f, 0.f, 0.f) + up - right);
+	topRight = 30000.f * glm::normalize(glm::vec3(0.f, 0.f, 0.f) + up + right);
+	bottomLeft = 30000.f * glm::normalize(glm::vec3(0.f, 0.f, 0.f) - up - right);
+	bottomRight = 30000.f * glm::normalize(glm::vec3(0.f, 0.f, 0.f) - up + right);
+	
+	/*
+	std::cout << "recalculating verts " << topLeft.x << " " << topLeft.y << " " << topLeft.z << std::endl; 
+
+	skybox.verts = {
+		bottomLeft,
+		bottomRight,
+		topRight,
+		topRight,
+		topLeft,
+		bottomLeft
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, skybox.vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*skybox.verts.size(), skybox.verts.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	*/
 }

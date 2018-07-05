@@ -7,6 +7,7 @@
 
 #include "Constants.h"
 
+#include <iostream>
 Camera::Camera() : zoomScale(1.3f), rotScale(0.008f) {
 	reset();
 }
@@ -31,6 +32,8 @@ glm::vec3 Camera::getPosition() const {
 
 	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
 	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, glm::cross(eyeTemp, glm::vec3(0.f, 1.f, 0.f)));
+
+	//std::cout << "Camera pos: " << (eyeTemp + translation).x << " " << (eyeTemp + translation).y << " " << (eyeTemp + translation).z << std::endl;
 
 	return eyeTemp + translation;
 }

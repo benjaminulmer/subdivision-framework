@@ -6,8 +6,9 @@
 
 #include <vector>
 
-#include "Renderable.h"
 #include "Camera.h"
+#include "lodepng.h"
+#include "Renderable.h"
 
 class RenderEngine {
 
@@ -15,6 +16,7 @@ public:
 	RenderEngine(SDL_Window* window);
 
 	void render(const std::vector<const Renderable*>& objects, const glm::mat4& view, float max, float min);
+	void renderSkybox(const glm::mat4& view);
 
 	static void assignBuffers(Renderable& renderable, bool texture);
 	static void setBufferData(Renderable& renderable, bool texture);
@@ -30,7 +32,15 @@ public:
 	float getFar() { return far; }
 	glm::mat4 getProjection() { return projection; }
 
+	void setScale(double scale);
+
+	void updateCameraAngle(glm::vec3 cameraPos, glm::vec3 upVec);
+
+	glm::mat4 origView;
+
 private:
+	void createSkybox();
+
 	SDL_Window* window;
 	int width, height;
 
@@ -39,7 +49,10 @@ private:
 	const float far = 1000.f;
 
 	GLuint mainProgram;
+	GLuint skyboxProgram;
 	bool fade;
+
+	Renderable skybox;
 
 	glm::mat4 projection;
 };

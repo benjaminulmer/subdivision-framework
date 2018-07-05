@@ -91,7 +91,7 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 // Callback for mouse scroll
 void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 	int dy;
-	dy = e.x - e.y;
+	dy = e.y;
 
 	const Uint8 *state = SDL_GetKeyboardState(0);
 	if (state[SDL_SCANCODE_U]) {
@@ -104,7 +104,7 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 		//program->updateRadialBounds(RadialBound::BOTH, -dy);
 	}
 	else {
-		program->updateScale(-dy);
+		if (abs(dy) > 0) program->updateScale(dy);
 		//camera->updateZoom(dy);
 	}
 }

@@ -33,7 +33,7 @@ Program::Program() {
 	width = height = 800;
 }
 
-#define AirSigmetInsert true
+#define AirSigmetInsert false
 #define WindInsert false
 
 // Called to start the program. Conducts set up then enters the main loop
@@ -86,7 +86,7 @@ void Program::start() {
 	wind.drawMode = GL_TRIANGLES;
 	polys.drawMode = GL_LINES;
 
-	airSigRender1();
+	//airSigRender1();
 	//windRender1();
 
 	// Objects to draw initially
@@ -105,6 +105,14 @@ void Program::start() {
 	RenderEngine::setBufferData(stormPolys, false);
 	RenderEngine::setBufferData(wind, false);
 	RenderEngine::setBufferData(coastLines, false);
+
+	glm::mat4 worldModel(1.f);
+	s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
+	worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
+	worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
+	worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
+
+	renderEngine->origView = camera->getLookAt() * worldModel;
 
 	mainLoop();
 }
@@ -512,6 +520,14 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 			latRot += latNew - latOld;
 			longRot += longNew - longOld;
 		}
+
+		glm::mat4 worldModel(1.f);
+		float s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
+		worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
+		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
+		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
+
+		renderEngine->updateCameraAngle(worldModel * glm::vec4(camera->getPosition(), 1.f), worldModel * glm::vec4(camera->getUp(), 1.f));
 	}
 }
 
@@ -525,4 +541,6 @@ void Program::updateScale(int inc) {
 		scale *= 1.4f;
 	}
 	camera->setScale(scale);
+	renderEngine->setScale(scale);
+	//std::cout << scale << std::endl;
 }
