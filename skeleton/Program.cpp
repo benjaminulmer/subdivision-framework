@@ -106,14 +106,6 @@ void Program::start() {
 	RenderEngine::setBufferData(wind, false);
 	RenderEngine::setBufferData(coastLines, false);
 
-	glm::mat4 worldModel(1.f);
-	s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
-	worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
-	worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
-	worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
-
-	renderEngine->origView = camera->getLookAt() * worldModel;
-
 	mainLoop();
 }
 
@@ -366,12 +358,10 @@ void Program::airSigRender1() {
 				for (AirSigmet a : sigs) {
 					if (a.hazard == datum.airSigmet.hazard) {
 						hasSig = true;
-						//std::cout << "Has sigmet" << std::endl;
 						break;
 					}
 				}
 			}
-			//if (hasSig) std::cout << "still has sigmet" << std::endl;
 			cell.renderNeighbors.outside = hasSig;
 
 			cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
@@ -462,7 +452,6 @@ void Program::mainLoop() {
 		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
 		SDL_GL_SwapWindow(window);
 	}
-
 	delete dataBase;
 }
 
@@ -526,8 +515,6 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 		worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
 		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
 		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
-
-		renderEngine->updateCameraAngle(worldModel * glm::vec4(camera->getPosition(), 1.f), worldModel * glm::vec4(camera->getUp(), 1.f));
 	}
 }
 
@@ -540,7 +527,6 @@ void Program::updateScale(int inc) {
 	else {
 		scale *= 1.4f;
 	}
-	camera->setScale(scale);
 	renderEngine->setScale(scale);
-	//std::cout << scale << std::endl;
+	camera->setScale(scale);
 }

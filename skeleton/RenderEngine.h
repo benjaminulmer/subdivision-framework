@@ -32,11 +32,7 @@ public:
 	float getFar() { return far; }
 	glm::mat4 getProjection() { return projection; }
 
-	void setScale(double scale);
-
-	void updateCameraAngle(glm::vec3 cameraPos, glm::vec3 upVec);
-
-	glm::mat4 origView;
+	void setScale(float s) { scale = s; }
 
 private:
 	void createSkybox();
@@ -55,5 +51,7 @@ private:
 	Renderable skybox;
 
 	glm::mat4 projection;
+
+	float scale;
 };
 
