@@ -35,8 +35,9 @@ public:
 
 	bool contains(double latRad, double longRad, double radius);
 
-	void children(std::vector<std::string>& out);
-	void neighbours(std::vector<std::string>& out);
+	std::vector<std::string> children();
+	std::vector<std::string> faceNeighbours();
+	std::vector<std::string> allNeighbours();
 
 	void addToRenderable(Renderable& r, const glm::vec3& colour, bool face);
 

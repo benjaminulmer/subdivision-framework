@@ -39,6 +39,7 @@ class AStarPriorityQueue
 		}
 };
 
+
 std::vector<std::string> AStar::reconstructPath(
 	std::map<std::string, std::string> cameFrom,
 	std::string current
@@ -51,6 +52,8 @@ std::vector<std::string> AStar::reconstructPath(
 	}
 	return path;
 }
+
+
 std::vector<std::string> AStar::findPath(
 	SphCoord startCoord,
 	SphCoord endCoord,
@@ -97,9 +100,9 @@ std::vector<std::string> AStar::findPath(
 		openSet.pop();
 		closedSet.insert(current);
 
-		std::vector<std::string> neighbours;
+		
 		SdogCell cell(current, gridRadius);
-		cell.neighbours(neighbours);
+		std::vector<std::string> neighbours = cell.allNeighbours();
 		for(std::string neighbour : neighbours) {
 			if (closedSet.count(neighbour) > 0) {
 				continue;

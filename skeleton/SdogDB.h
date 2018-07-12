@@ -2,7 +2,7 @@
 
 #include "AirSigmet.h"
 
-#include <sqlite3.h>
+#include <sqlite\sqlite3.h>
 
 #include <string>
 #include <vector>
@@ -17,8 +17,9 @@ public:
 
 	void insertAirSigmet(const std::vector<std::string>& interior, const std::vector<std::string>& boundary, const AirSigmet& airSigmet);
 	void insertWindData(const std::vector<std::pair<std::string, glm::vec2>>& list);
-	void getAirSigmetCells(std::vector<AirSigmetCells>& out);
-	void getWindCells(std::vector<std::pair<std::string, glm::vec2>>& out);
+	std::vector<AirSigmetCells> getAirSigmetCells();
+	std::vector<AirSigmet> getAirSigmetForCell(const std::string& code);
+	std::vector<std::pair<std::string, glm::vec2>> getWindCells();
 
 private:
 	sqlite3* db;

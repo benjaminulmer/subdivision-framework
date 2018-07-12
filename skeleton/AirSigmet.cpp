@@ -158,8 +158,7 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 
 			// See if we have reached max depth yet
 			if (c.getCode().length() < maxDepth + 1) {
-				std::vector<std::string> children;
-				c.children(children);
+				std::vector<std::string> children = c.children();
 
 				for (std::string child : children) {
 					toTest.push_back(SdogCell(child, gridRadius));
@@ -173,9 +172,10 @@ void AirSigmet::gridInsertion(double gridRadius, int maxDepth, std::vector<std::
 // Creats a list of AirSigmets as specified in the provided JSON file
 //
 // d - rapidjson document containing the information about the AirSigmet(s)
-// out - output list of the AirSigmet(s) stored in d - treats as empty
-void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet>& out) {
+// return - list of the AirSigmet(s) stored in d
+std::vector<AirSigmet> AirSigmet::readFromJson(const rapidjson::Document& d) {
 
+	std::vector<AirSigmet> toReturn;
 	const rapidjson::Value& airSigArray = d["response"]["data"]["AIRSIGMET"];
 
 	for (rapidjson::SizeType i = 0; i < airSigArray.Size(); i++) {
@@ -213,9 +213,9 @@ void AirSigmet::readFromJson(const rapidjson::Document& d, std::vector<AirSigmet
 		for (rapidjson::SizeType j = 0; j < pointArray.Size() - 1; j++) {
 			next.polygon.push_back(SphCoord(std::stod(pointArray[j]["latitude"].GetString()), std::stod(pointArray[j]["longitude"].GetString()), false));
 		}
-
-		out.push_back(next);
+		toReturn.push_back(next);
 	}
+	return toReturn;
 }
 
 

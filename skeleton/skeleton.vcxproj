@@ -109,7 +109,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -143,7 +143,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -156,9 +156,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AirSigmet.h" />
+    <ClInclude Include="AStar.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="ContentReadWrite.h" />
+    <ClInclude Include="FlightCost.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="WindGrid.h" />
     <ClInclude Include="InputHandler.h" />
@@ -174,8 +176,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AirSigmet.cpp" />
+    <ClCompile Include="AStar.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ContentReadWrite.cpp" />
+    <ClCompile Include="FlightCost.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="WindGrid.cpp" />
     <ClCompile Include="InputHandler.cpp" />

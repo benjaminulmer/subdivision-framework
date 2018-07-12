@@ -68,8 +68,7 @@ void WindGrid::gridInsertion(double gridRadius, int depth, const std::vector<Win
 		// If cell is not at desired depth subdivide
 		if (c.getCode().length() < depth + 1) {
 
-			std::vector<std::string> children;
-			c.children(children);
+			std::vector<std::string> children = c.children();
 
 			for (const std::string& childCode : children) {
 
@@ -156,8 +155,10 @@ void WindGrid::gridInsertion(double gridRadius, int depth, const std::vector<Win
 // Creates a list of WindGrids as specified in the provided JSON file, ordered by increasing altitude
 //
 // d - rapidjson document containing the wind information
-// out - output list of WindGrid(s) stored in d- treats as empty
-void WindGrid::readFromJson(const rapidjson::Document& d, std::vector<WindGrid>& out) {
+// return - list of WindGrid(s) stored in d
+std::vector<WindGrid> WindGrid::readFromJson(const rapidjson::Document& d) {
+
+	std::vector<WindGrid> toReturn;
 
 	for (rapidjson::SizeType i = 0; i < d.Size(); i += 2) {
 
@@ -188,9 +189,9 @@ void WindGrid::readFromJson(const rapidjson::Document& d, std::vector<WindGrid>&
 				layer(r, c).y = (float)dataV[index].GetDouble();
 			}
 		}
-
-		out.push_back(layer);
+		toReturn.push_back(layer);
 	}
 	// Sort list by increasing altitude
-	std::sort(out.begin(), out.end());
+	std::sort(toReturn.begin(), toReturn.end());
+	return toReturn;
 }

@@ -92,6 +92,24 @@ void Program::start() {
 	//airSigRender1();
 	//windRender1();
 
+	// **************************************
+	// **************************************
+	// **************************************
+
+	AirSigmet a;
+	a.minAltM = 0.0;
+	a.maxAltM = 100000.0;
+	a.polygon.push_back(SphCoord(60.0, -55.0, false));
+	a.polygon.push_back(SphCoord(60.0, -35.0, false));
+	a.polygon.push_back(SphCoord(75.0, -35.0, false));
+	a.polygon.push_back(SphCoord(75.0, -55.0, false));
+
+	std::vector<std::string> interior, boundary;
+	a.gridInsertion(radius, 10, interior, boundary);
+	dataBase->insertAirSigmet(interior, boundary, a);
+
+	//airSigRender1();
+
 	unsigned int level = 6;
 	SphCoord start{51.045, -114.057222, false}; // calgary
 	SphCoord end{48.864716, 2.349014, false}; // paris
@@ -99,22 +117,33 @@ void Program::start() {
 	//SphCoord end{-31.953512, 115.857048, false}; // Perth
 	auto g = [&](std::string startCode, std::string endCode) {
 		SdogCell e{endCode, radius};
-		if (e.getMaxRad() < RADIUS_EARTH_M) {
+		if (e.getMaxRad() <= RADIUS_EARTH_M) {
 			return std::numeric_limits<double>::max();
 		}
+		//if (dataBase->getAirSigmetForCell(endCode).size() != 0) {
+		//	return std::numeric_limits<double>::max();
+		//}
 		return FlightCost::GreatCircleArcDistance(startCode, endCode, radius);
 	};
 	auto h = [&](std::string startCode, std::string endCode) {
 		return FlightCost::GreatCircleArcDistance(startCode, endCode, radius);
 	};
 	std::vector<std::string> results = AStar::findPath(
-		start, end, g, h, 6371000., radius, level
+		start, end, g, h, 6376000., radius, level
 	);
 	for (const auto &code : results) {
 		SdogCell cell{code, radius};
 		cell.addToRenderable(wind, glm::vec3{1.0, 1.0, 0.0}, true);
 	}
 	std::cout << "Results.size(): " << results.size() << std::endl;
+
+
+
+
+
+	// **************************************
+	// **************************************
+	// **************************************
 
 	cells.doubleToFloats();
 	bound.doubleToFloats();
@@ -168,8 +197,7 @@ void Program::setupWindow() {
 void Program::insertAirSigmets() {
 
 	rapidjson::Document sig = ContentReadWrite::readJSON("data/sigmet.json");
-	std::vector<AirSigmet> airSigmets;
-	AirSigmet::readFromJson(sig, airSigmets);
+	std::vector<AirSigmet> airSigmets = AirSigmet::readFromJson(sig);
 
 	int c = 0;
 	for (const AirSigmet& a : airSigmets) {
@@ -264,8 +292,7 @@ void Program::testSmallScale() {
 void Program::insertWind() {
 
 	rapidjson::Document wind = ContentReadWrite::readJSON("data/wind-25.json");
-	std::vector<WindGrid> grids;
-	WindGrid::readFromJson(wind, grids);
+	std::vector<WindGrid> grids = WindGrid::readFromJson(wind);
 
 	std::vector<std::pair<std::string, glm::vec2>> codes;
 	WindGrid::gridInsertion(radius, 9, grids, codes);
@@ -274,13 +301,10 @@ void Program::insertWind() {
 
 void Program::airSigRender1() {
 
-	std::vector<AirSigmetCells> data;
-	dataBase->getAirSigmetCells(data);
+	std::vector<AirSigmetCells> data = dataBase->getAirSigmetCells();
 
 	int i = -1;
 	for (const AirSigmetCells& datum : data) {
-		i++;
-		if (i != 11) continue;
 
 		polys.lineColour = glm::vec3(0.f, 1.f, 0.f);
 		polys.drawMode = GL_LINES;
@@ -310,8 +334,7 @@ void Program::airSigRender1() {
 
 void Program::windRender1() {
 
-	std::vector<std::pair<std::string, glm::vec2>> codes;
-	dataBase->getWindCells(codes);
+	std::vector<std::pair<std::string, glm::vec2>> codes = dataBase->getWindCells();
 
 	float max = -1.f;
 	float min = 9999999.f;

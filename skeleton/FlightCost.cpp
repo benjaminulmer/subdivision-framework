@@ -4,8 +4,8 @@
 #include <tuple>
 
 double FlightCost::GreatCircleArcDistance(std::string startCode, std::string endCode, double radius) {
-	SdogCell s{startCode, radius};
-	SdogCell e{endCode, radius};
+	SdogCell s(startCode, radius);
+	SdogCell e(endCode, radius);
 
 	SphCoord s_coord;
 	double s_midRad;

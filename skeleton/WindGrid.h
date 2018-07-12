@@ -17,7 +17,7 @@ public:
 	bool operator<(const WindGrid& r) const;
 
 	static void gridInsertion(double gridRadius, int depth, const std::vector<WindGrid>& grids, std::vector<std::pair<std::string, glm::vec2>>& out);
-	static void readFromJson(const rapidjson::Document& d, std::vector<WindGrid>& out);
+	static std::vector<WindGrid> readFromJson(const rapidjson::Document& d);
 
 private:
 	int numRows;

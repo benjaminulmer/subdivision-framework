@@ -50,7 +50,7 @@ struct AirSigmet {
 
 	void gridInsertion(double gridRadius, int maxDepth, std::vector<std::string>& interior, std::vector<std::string>& boundary) const;
 
-	static void readFromJson(const rapidjson::Document& d, std::vector<AirSigmet>& out);
+	static std::vector<AirSigmet> readFromJson(const rapidjson::Document& d);
 	static AirSigmetType stringToAirSigmetType(const std::string& s);
 	static HazardType stringToHazardType(const std::string& s);
 	static Severity stringToSeverity(const std::string& s);

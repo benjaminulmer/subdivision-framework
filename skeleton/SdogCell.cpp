@@ -228,44 +228,49 @@ bool SdogCell::contains(double latRad, double longRad, double radius) {
 
 // Gets the codes of the children of the cell
 //
-// out - output vector that stores the children - treats as empty
-void SdogCell::children(std::vector<std::string>& out) {
+// return - list of codes for children
+std::vector<std::string> SdogCell::children() {
 
-	if (type == SdogCellType::INVALID) return;
+	std::vector<std::string> toReturn;
+
+	if (type == SdogCellType::INVALID) return toReturn;
 
 	if (type == SdogCellType::NG) {
-		out.push_back(code + "0");
-		out.push_back(code + "1");
-		out.push_back(code + "2");
-		out.push_back(code + "3");
-		out.push_back(code + "4");
-		out.push_back(code + "5");
-		out.push_back(code + "6");
-		out.push_back(code + "7");
+		toReturn.push_back(code + "0");
+		toReturn.push_back(code + "1");
+		toReturn.push_back(code + "2");
+		toReturn.push_back(code + "3");
+		toReturn.push_back(code + "4");
+		toReturn.push_back(code + "5");
+		toReturn.push_back(code + "6");
+		toReturn.push_back(code + "7");
 	}
 	else if (type == SdogCellType::LG) {
-		out.push_back(code + "0");
-		out.push_back(code + "1");
-		out.push_back(code + "2");
-		out.push_back(code + "3");
-		out.push_back(code + "4");
-		out.push_back(code + "5");
+		toReturn.push_back(code + "0");
+		toReturn.push_back(code + "1");
+		toReturn.push_back(code + "2");
+		toReturn.push_back(code + "3");
+		toReturn.push_back(code + "4");
+		toReturn.push_back(code + "5");
 	}
 	else {// type == SdogCellType::SG
-		out.push_back(code + "0");
-		out.push_back(code + "1");
-		out.push_back(code + "2");
-		out.push_back(code + "3");
+		toReturn.push_back(code + "0");
+		toReturn.push_back(code + "1");
+		toReturn.push_back(code + "2");
+		toReturn.push_back(code + "3");
 	}
+	return toReturn;
 }
 
 
 // Gets the codes of the neighbours that share a face with the cell
 //
-// out - output vector that stores the neighbours - treats as empty
-void SdogCell::neighbours(std::vector<std::string>& out) {
+// return - list of codes for face neighbours
+std::vector<std::string> SdogCell::faceNeighbours() {
 
-	if (type == SdogCellType::INVALID) return;
+	std::vector<std::string> toReturn;
+
+	if (type == SdogCellType::INVALID) return toReturn;
 
 	unsigned int level = (unsigned int)code.length() - 1;
 
@@ -278,25 +283,51 @@ void SdogCell::neighbours(std::vector<std::string>& out) {
 	double radDist = maxRad - minRad;
 
 	// Get codes for location of all posible neighbours
-	out.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level));
-	out.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level));
-	out.push_back(codeForPos(midLat, midLong - longDist, midRad, gridRadius, level));
-	out.push_back(codeForPos(midLat, midLong, midRad - radDist, gridRadius, level));
+	toReturn.push_back(codeForPos(midLat + latDist, midLong, midRad, gridRadius, level)); // +lat
+	toReturn.push_back(codeForPos(midLat, midLong + longDist, midRad, gridRadius, level)); // +long
+	toReturn.push_back(codeForPos(midLat, midLong - longDist, midRad, gridRadius, level)); // -long
+	toReturn.push_back(codeForPos(midLat, midLong, midRad - radDist, gridRadius, level)); // -rad
 
-	out.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level));
-	out.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level));
+	toReturn.push_back(codeForPos(midLat - latDist, midLong + 0.01 * longDist, midRad, gridRadius, level)); // -lat1
+	toReturn.push_back(codeForPos(midLat - latDist, midLong - 0.01 * longDist, midRad, gridRadius, level)); // -lat2
 
-	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
-	out.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
-	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level));
-	out.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level));
+	toReturn.push_back(codeForPos(midLat + 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level)); // +rad1
+	toReturn.push_back(codeForPos(midLat + 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level)); // +rad2
+	toReturn.push_back(codeForPos(midLat - 0.01 * latDist, midLong + 0.01 * longDist, midRad + radDist, gridRadius, level)); // +rad3
+	toReturn.push_back(codeForPos(midLat - 0.01 * latDist, midLong - 0.01 * longDist, midRad + radDist, gridRadius, level)); // +rad4
 
 	// Remove duplicates and self
-	std::sort(out.begin(), out.end());
-	out.erase(std::unique(out.begin(), out.end()), out.end());
-	out.erase(std::remove(out.begin(), out.end(), code), out.end());
+	std::sort(toReturn.begin(), toReturn.end());
+	toReturn.erase(std::unique(toReturn.begin(), toReturn.end()), toReturn.end());
+	toReturn.erase(std::remove(toReturn.begin(), toReturn.end(), code), toReturn.end());
+
+	return toReturn;
 }
 
+
+// Gets the codes of the neighbours that share a face, edge, or vertex with the cell
+//
+// return - list of codes for neighbours
+std::vector<std::string> SdogCell::allNeighbours() {
+	
+	std::vector<std::string> n1 = faceNeighbours();
+	std::vector<std::string> n2;// , n3;
+
+	for (const std::string& neighbour : n1) {
+
+		SdogCell c(neighbour, gridRadius);
+		std::vector<std::string> n = c.faceNeighbours();
+		n2.insert(n2.end(), n.begin(), n.end());
+	}
+	//for (const std::string& neighbour : n2) {
+
+	//	SdogCell c(neighbour, gridRadius);
+	//	std::vector<std::string> n = c.faceNeighbours();
+	//	n3.insert(n3.end(), n.begin(), n.end());
+	//}
+
+	return n2;
+}
 
 #include "Geometry.h"
 void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, bool face) {
