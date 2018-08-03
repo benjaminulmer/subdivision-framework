@@ -79,3 +79,111 @@ bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 	fclose(file);
 	return true;
 }
+
+std::vector<double>* ContentReadWrite::loadPopulationData(const char * path, unsigned int* ncols, unsigned int* nrows, double* xllcorner, double* yllcorner, double* cellsize) {
+
+	//Parse the data file
+	int NODATA_value = 0;
+
+	FILE * file;
+	file = fopen(path, "r");
+	if (file == NULL) {
+		printf("Cannot open file. Check path.");
+		getchar();
+		return false;
+	}
+
+	char lineHeader[128];
+
+	// read ncols
+	int res = fscanf(file, "%s", lineHeader);
+	if (res == EOF) {
+		std::cout << "Missing ncols, invalid ESRI ASCII format." << std::endl;
+		exit(1); // EOF = End Of File. Invalid format.
+	}
+	// else : parse lineHeader
+
+	if (strcmp(lineHeader, "ncols") == 0) {
+		fscanf(file, "%d\n", ncols);
+	}
+
+	// read nrows
+	res = fscanf(file, "%s", lineHeader);
+	if (res == EOF) {
+		std::cout << "Missing nrows, invalid ESRI ASCII format." << std::endl;
+		exit(1); // EOF = End Of File. Invalid format.
+	}
+	// else : parse lineHeader
+
+	if (strcmp(lineHeader, "nrows") == 0) {
+		fscanf(file, "%d\n", nrows);
+	}
+
+	// read xllcorner
+	res = fscanf(file, "%s", lineHeader);
+	if (res == EOF) {
+		std::cout << "Missing xllcorner, invalid ESRI ASCII format." << std::endl;
+		exit(1); // EOF = End Of File. Invalid format.
+	}
+	// else : parse lineHeader
+
+	if (strcmp(lineHeader, "xllcorner") == 0) {
+		fscanf(file, "%lg\n", xllcorner);
+	}
+
+	// read yllcorner
+	res = fscanf(file, "%s", lineHeader);
+	if (res == EOF) {
+		std::cout << "Missing yllcorner, invalid ESRI ASCII format." << std::endl;
+		exit(1); // EOF = End Of File. Invalid format.
+	}
+	// else : parse lineHeader
+
+	if (strcmp(lineHeader, "yllcorner") == 0) {
+		fscanf(file, "%lg\n", yllcorner);
+	}
+
+	// read cellsize
+	res = fscanf(file, "%s", lineHeader);
+	if (res == EOF) {
+		std::cout << "Missing cellsize, invalid ESRI ASCII format." << std::endl;
+		exit(1); // EOF = End Of File. Invalid format.
+	}
+	// else : parse lineHeader
+
+	if (strcmp(lineHeader, "cellsize") == 0) {
+		fscanf(file, "%lg\n", cellsize);
+	}
+
+	// read NODATA_VALUE
+	res = fscanf(file, "%s", lineHeader);
+	if (res == EOF) {
+		std::cout << "Missing NODATA_value, invalid ESRI ASCII format." << std::endl;
+		exit(1); // EOF = End Of File. Invalid format.
+	}
+	// else : parse lineHeader
+
+	if (strcmp(lineHeader, "NODATA_value") == 0) {
+		fscanf(file, "%d\n", &NODATA_value);
+	}
+
+	std::vector<double>* data = new std::vector<double>((*ncols)*(*nrows));
+	double tempDouble = 0.0;
+	unsigned int counter = 0;
+	while (true) {
+		if (fscanf(file, "%lg", &tempDouble) != EOF) {
+			if (round(tempDouble) == NODATA_value) {
+				(*data)[counter] = 0.0;
+				counter++;
+			} else {
+				(*data)[counter] = tempDouble;
+				counter++;
+			}
+			
+		} else {
+			break; //Invalid file format?
+		}
+	}
+
+	return data;
+}

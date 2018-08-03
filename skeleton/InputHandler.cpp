@@ -55,7 +55,7 @@ void InputHandler::mouse(SDL_MouseButtonEvent& e) {
 	mouseOldY = e.y;
 
 	if (e.button == SDL_BUTTON_LEFT && !moved) {
-		//program->_3Dpick(true);
+		program->_3DPick();
 	}
 }
 
@@ -78,8 +78,8 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 	SDL_GetWindowSize(window, &width, &height);
 
 	int iX = e.x;
-	int iY = height - e.y;
-	//program->setMousePos(iX, iY);
+	int iY = e.y;
+	program->setMousePos(iX, iY);
 
 	mouseOldX = e.x;
 	mouseOldY = e.y;
@@ -95,7 +95,7 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 		//program->moveCurrentPart(dy * -0.25f);
 	}
 	else {
-		camera->updatePosition(glm::vec3(0.f, 0.f, dy));
+		camera->updatePosition(glm::vec3(0.f, 0.f, dy * 0.1));
 	}
 }
 

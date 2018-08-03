@@ -25,15 +25,17 @@ public:
 	void setWindowSize(int newWidth, int newHeight);
 	void updateLightPos(glm::vec3 add);
 
+	glm::mat4 projection;
+
 private:
 	SDL_Window* window;
 	int width, height;
 
 	GLuint mainProgram;
+	GLuint Texture;
 
 	Camera* camera;
 	glm::mat4 view;
-	glm::mat4 projection;
 	glm::vec3 lightPos;
 };
 

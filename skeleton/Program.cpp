@@ -6,7 +6,7 @@ Program::Program() {
 	camera = nullptr;
 
 	mouseX = mouseY = 0;
-	width = height = 512;
+	width = height = 1000;
 }
 
 // Called to start the program. Conducts set up then enters the main loop
@@ -22,6 +22,55 @@ void Program::start() {
 	InputHandler::setUp(camera, renderEngine, this);
 
 	mainLoop();
+}
+
+void Program::setMousePos(int x, int y) {
+	mouseX = x;
+	mouseY = y;
+}
+
+void Program::_3DPick() {
+	float x = (2.0f * mouseX) / width - 1.0f;
+	float y = 1.0f - (2.0f * mouseY) / height;
+	float z = 1.0f;
+	glm::vec3 ray_nds = glm::vec3(x, y, z);
+	glm::vec4 ray_clip = glm::vec4(ray_nds.x, ray_nds.y, -1.0, 1.0);
+	glm::vec4 ray_eye = glm::inverse(renderEngine->projection) * ray_clip;
+	ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
+	glm::vec3 ray_wor = (glm::inverse(camera->getLookAt()) * ray_eye);
+	// don't forget to normalise the vector at some point
+	ray_wor = glm::normalize(ray_wor);
+
+	float t0, t1; // solutions for t if the ray intersects  
+	glm::vec3 L = camera->getPosition();
+	float a = glm::dot(ray_wor, ray_wor);
+	float b = 2 * glm::dot(ray_wor, L);
+	float c = glm::dot(L, L) - 1.0f;
+	float discr = b * b - 4 * a * c;
+	if (discr < 0) {
+		return;
+	} else if (discr == 0) {
+		t0 = t1 = -0.5 * b / a;
+	} else {
+		float q = (b > 0) ?
+			-0.5 * (b + sqrt(discr)) :
+			-0.5 * (b - sqrt(discr));
+		t0 = q / a;
+		t1 = c / q;
+	}
+	if (t0 > t1) std::swap(t0, t1);
+
+	if (t0 < 0) {
+		t0 = t1; // if t0 is negative, let's use t1 instead 
+		if (t0 < 0) {
+			return; // both t0 and t1 are negative
+		}
+	}
+
+	glm::vec3 hitPos = camera->getPosition() + t0 * ray_wor;
+	double lon = atan2(hitPos.y, hitPos.x);
+	double lat = (M_PI / 2.0) - acos(hitPos.z);
+	myDGGS.select(d128Vec2(lat, lon));
 }
 
 // Creates SDL window for the program and sets callbacks for input
@@ -58,27 +107,34 @@ void Program::setupWindow() {
 
 // Main loop
 void Program::mainLoop() {
-	Renderable a;
-	ContentReadWrite::loadOBJ("models/oct.obj", a);
-	RenderEngine::assignBuffers(a);
-	RenderEngine::setBufferData(a);
-	a.colour = glm::vec3(1.f, 1.f, 1.f);
 
-	Sdog sdog(2.0);
-	Renderable b;
-	sdog.createRenderable(b, 3);
-	RenderEngine::assignBuffers(b);
-	RenderEngine::setBufferData(b);
-	b.colour = glm::vec3(0.f, 0.f, 0.f);
+	unsigned int ncols;
+	unsigned int nrows;
+	double xllcorner;
+	double yllcorner;
+	double cellsize;
 
-	objects.push_back(a);
-	objects.push_back(b);
+	std::vector<double>* data = ContentReadWrite::loadPopulationData("gpw_v4_population_density_rev10_2015_1_deg.asc", &ncols, &nrows, &xllcorner, &yllcorner, &cellsize);
+
+	Renderable equalAreaTrianglePts;
+	EqualAreaTetrahedron sphere = EqualAreaTetrahedron(equalAreaTrianglePts, 3);
+
+	myDGGS = DGGS(sphere.vertsRhombicTriacontahedron, sphere.verts, sphere.faces);
+
+	DGGSDB myDB = DGGSDB("DGGS.db", &myDGGS, data, ncols, nrows, xllcorner, yllcorner, cellsize, equalAreaTrianglePts);
+
+	RenderEngine::assignBuffers(equalAreaTrianglePts);
+	RenderEngine::setBufferData(equalAreaTrianglePts);
+	equalAreaTrianglePts.colour = glm::vec3(1.f, 1.f, 1.f);
+	equalAreaTrianglePts.drawMode = GL_TRIANGLES;
+	objects.push_back(equalAreaTrianglePts);
 
 	while (true) {
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
 			InputHandler::pollEvent(e);
 		}
+
 		renderEngine->render(objects, camera->getLookAt());
 		SDL_GL_SwapWindow(window);
 	}

@@ -3,21 +3,18 @@
 out vec4 colour;
 
 uniform sampler2D image;
-uniform int hasTexture;
 uniform vec3 objColour;
 in vec3 N;
-in vec3 L;
-in vec3 V;
 in vec2 UV;
 
 void main(void) {    	
+	
+	if(N.x < 0.05) {
+		colour = vec4(texture(image, UV).rgb, 1.0);
+	} else {
+		colour = vec4(N, 1.0);
+	}
 
-	float diffuse =  (dot(N, L) + 1) / 2;
+	//colour = vec4(N, 1.0);
 
-	// Use for shading
-	//vec3 col = vec3(1.0, 1.0, 1.0);
-	colour = vec4(objColour * diffuse, 1.0);
-
-	// Use for flat shading
-	//colour = vec4(0.0, 0.0, 0.0, 1.0);
 }
