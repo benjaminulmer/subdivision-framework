@@ -421,6 +421,9 @@ void SdogCell::getLeftNeighbours(std::vector<std::string>& out) {
 void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderable& p) {
 	// Anything using 'p' is temporary - used to visualize borders of individual cells
 
+	std::vector<glm::vec3> polyVerts;
+	int pCount = 0;
+
 	glm::vec3 o1 = glm::vec3(sin(minLong)*cos(minLat), sin(minLat), cos(minLong)*cos(minLat)) * (float)maxRad;
 	glm::vec3 o2 = glm::vec3(sin(maxLong)*cos(minLat), sin(minLat), cos(maxLong)*cos(minLat)) * (float)maxRad;
 	glm::vec3 o3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)maxRad;
@@ -437,25 +440,29 @@ void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderabl
 	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);
 	r.verts.push_back(o1); r.verts.push_back(o3); r.verts.push_back(o4);
 	
-	p.verts.push_back(o1); p.verts.push_back(o2); 
-	p.verts.push_back(o2); p.verts.push_back(o4);
-	p.verts.push_back(o4); p.verts.push_back(o1);
+	polyVerts.push_back(o1); polyVerts.push_back(o2); 
+	polyVerts.push_back(o2); polyVerts.push_back(o4);
+	polyVerts.push_back(o4); polyVerts.push_back(o1);
 
-	p.verts.push_back(o1); p.verts.push_back(o3); 
-	p.verts.push_back(o3); p.verts.push_back(o4);
-	p.verts.push_back(o4); p.verts.push_back(o1);
+	polyVerts.push_back(o1); polyVerts.push_back(o3); 
+	polyVerts.push_back(o3); polyVerts.push_back(o4);
+	polyVerts.push_back(o4); polyVerts.push_back(o1);
+
+	pCount += 12;
 
 	// Inside
 	r.verts.push_back(i1); r.verts.push_back(i2); r.verts.push_back(i4);
 	r.verts.push_back(i1); r.verts.push_back(i3); r.verts.push_back(i4);
 	
-	p.verts.push_back(i1); p.verts.push_back(i2);
-	p.verts.push_back(i2); p.verts.push_back(i4);
-	p.verts.push_back(i4); p.verts.push_back(i1);
+	polyVerts.push_back(i1); polyVerts.push_back(i2);
+	polyVerts.push_back(i2); polyVerts.push_back(i4);
+	polyVerts.push_back(i4); polyVerts.push_back(i1);
 
-	p.verts.push_back(i1); p.verts.push_back(i3); 
-	p.verts.push_back(i3); p.verts.push_back(i4);
-	p.verts.push_back(i4); p.verts.push_back(i1);
+	polyVerts.push_back(i1); polyVerts.push_back(i3); 
+	polyVerts.push_back(i3); polyVerts.push_back(i4);
+	polyVerts.push_back(i4); polyVerts.push_back(i1);
+
+	pCount += 12;
 
 	// Sides
 
@@ -467,22 +474,25 @@ void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderabl
 	r.verts.push_back(o2); r.verts.push_back(i2); r.verts.push_back(i4);
 	r.verts.push_back(o2); r.verts.push_back(o4); r.verts.push_back(i4);
 	
-	p.verts.push_back(o1); p.verts.push_back(i1); 
-	p.verts.push_back(i1); p.verts.push_back(i3);
-	p.verts.push_back(i3); p.verts.push_back(o1);
+	polyVerts.push_back(o1); polyVerts.push_back(i1); 
+	polyVerts.push_back(i1); polyVerts.push_back(i3);
+	polyVerts.push_back(i3); polyVerts.push_back(o1);
 
-	p.verts.push_back(o1); p.verts.push_back(o3);
-	p.verts.push_back(o3); p.verts.push_back(i3);
-	p.verts.push_back(i3); p.verts.push_back(o1);
+	polyVerts.push_back(o1); polyVerts.push_back(o3);
+	polyVerts.push_back(o3); polyVerts.push_back(i3);
+	polyVerts.push_back(i3); polyVerts.push_back(o1);
 
+	pCount += 12;
 
-	p.verts.push_back(o2); p.verts.push_back(i2); 
-	p.verts.push_back(i2); p.verts.push_back(i4);
-	p.verts.push_back(i4); p.verts.push_back(o2);
+	polyVerts.push_back(o2); polyVerts.push_back(i2); 
+	polyVerts.push_back(i2); polyVerts.push_back(i4);
+	polyVerts.push_back(i4); polyVerts.push_back(o2);
 
-	p.verts.push_back(o2); p.verts.push_back(o4); 
-	p.verts.push_back(o4); p.verts.push_back(i4);
-	p.verts.push_back(i4); p.verts.push_back(o2);
+	polyVerts.push_back(o2); polyVerts.push_back(o4); 
+	polyVerts.push_back(o4); polyVerts.push_back(i4);
+	polyVerts.push_back(i4); polyVerts.push_back(o2);
+
+	pCount += 12;
 
 	// Top and bottom
 	// Top
@@ -493,28 +503,32 @@ void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderabl
 	r.verts.push_back(o1); r.verts.push_back(i1); r.verts.push_back(i2);
 	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(i2);
 	
-	p.verts.push_back(o3); p.verts.push_back(i3); 
-	p.verts.push_back(i3); p.verts.push_back(i4);
-	p.verts.push_back(i4); p.verts.push_back(o3);
+	polyVerts.push_back(o3); polyVerts.push_back(i3); 
+	polyVerts.push_back(i3); polyVerts.push_back(i4);
+	polyVerts.push_back(i4); polyVerts.push_back(o3);
 
-	p.verts.push_back(o3); p.verts.push_back(o4); 
-	p.verts.push_back(o4); p.verts.push_back(i4);
-	p.verts.push_back(i4); p.verts.push_back(o3);
+	polyVerts.push_back(o3); polyVerts.push_back(o4); 
+	polyVerts.push_back(o4); polyVerts.push_back(i4);
+	polyVerts.push_back(i4); polyVerts.push_back(o3);
 
+	pCount += 12;
 
-	p.verts.push_back(o1); p.verts.push_back(i1); 
-	p.verts.push_back(i1); p.verts.push_back(i2);
-	p.verts.push_back(i2); p.verts.push_back(o1);
+	polyVerts.push_back(o1); polyVerts.push_back(i1); 
+	polyVerts.push_back(i1); polyVerts.push_back(i2);
+	polyVerts.push_back(i2); polyVerts.push_back(o1);
 
-	p.verts.push_back(o1); p.verts.push_back(o2); 
-	p.verts.push_back(o2); p.verts.push_back(i2);
-	p.verts.push_back(i2); p.verts.push_back(o1);
+	polyVerts.push_back(o1); polyVerts.push_back(o2); 
+	polyVerts.push_back(o2); polyVerts.push_back(i2);
+	polyVerts.push_back(i2); polyVerts.push_back(o1);
+
+	pCount += 12;
 
 	for (int i = 0; i < 36; i++) {
 		r.colours.push_back(colour);
 	}
-	for (int i = 0; i < 64; i++) {
-		p.colours.push_back(glm::vec3(0.f, 0.f, 0.f));
+	for (int i = 0; i < pCount; i++) {
+		//p.verts.push_back(polyVerts[i]);
+		//p.colours.push_back(glm::vec3(0.f, 0.f, 0.f));
 	}
 }
 

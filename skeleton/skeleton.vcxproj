@@ -87,7 +87,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\include\cuda;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\lib\x64\GL;$(SolutionDir)\lib\x64\SDL2;$(SolutionDir)\lib\x64\sqlite;$(SolutionDir)\lib\x64\poly2tri;$(SolutionDir)\lib\x64\triangle;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -162,6 +162,7 @@
     <ClInclude Include="Constants.h" />
     <ClInclude Include="ContentReadWrite.h" />
     <ClInclude Include="Geometry.h" />
+    <ClInclude Include="RayTracer.h" />
     <ClInclude Include="WindGrid.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="lodepng.h" />
@@ -179,6 +180,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ContentReadWrite.cpp" />
     <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="RayTracer.cpp" />
     <ClCompile Include="WindGrid.cpp" />
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="lodepng.cpp" />
@@ -193,6 +195,7 @@
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="RayTracer.cu" />
     <None Include="shaders\main.frag" />
     <None Include="shaders\main.vert" />
     <None Include="shaders\skybox.frag" />

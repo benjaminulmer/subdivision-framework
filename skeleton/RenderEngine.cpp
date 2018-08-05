@@ -16,7 +16,7 @@ RenderEngine::RenderEngine(SDL_Window* window) : window(window), fade(true), sca
 	mainProgram = ShaderTools::compileShaders("./shaders/main.vert", "./shaders/main.frag");
 	skyboxProgram = ShaderTools::compileShaders("./shaders/skybox.vert", "./shaders/skybox.frag");
 
-	projection = glm::perspective(fovYRad, (float)width/height, near, far);
+	projection = glm::perspective(fovYRad, (float)width/height, fovNear, fovFar);
 
 	// Default openGL state
 	// If you change state you must change back to default after
@@ -213,6 +213,6 @@ GLuint RenderEngine::loadTexture(const std::string& filename) {
 void RenderEngine::setWindowSize(int newWidth, int newHeight) {
 	width = newWidth;
 	height = newHeight;
-	projection = glm::perspective(fovYRad, (float)width / height, near, far);
+	projection = glm::perspective(fovYRad, (float)width / height, fovNear, fovFar);
 	glViewport(0, 0, width, height);
 }

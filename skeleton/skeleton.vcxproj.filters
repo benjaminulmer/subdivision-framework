@@ -62,6 +62,9 @@
     <ClInclude Include="WindGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RayTracer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Program.cpp">
@@ -112,6 +115,9 @@
     <ClCompile Include="WindGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RayTracer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\main.frag">
@@ -125,6 +131,9 @@
     </None>
     <None Include="shaders\skybox.frag">
       <Filter>shaders</Filter>
+    </None>
+    <None Include="RayTracer.cu">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

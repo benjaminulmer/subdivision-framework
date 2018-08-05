@@ -8,6 +8,7 @@
 
 #include "Camera.h"
 #include "lodepng.h"
+#include "RayTracer.h"
 #include "Renderable.h"
 
 class RenderEngine {
@@ -28,8 +29,8 @@ public:
 
 	float getFovY() { return fovYRad; }
 	float getAspectRatio() { return (float)width/height; }
-	float getNear() { return near; }
-	float getFar() { return far; }
+	float getNear() { return fovNear; }
+	float getFar() { return fovFar; }
 	glm::mat4 getProjection() { return projection; }
 
 	void setScale(float s) { scale = s; }
@@ -41,8 +42,8 @@ private:
 	int width, height;
 
 	const float fovYRad = 60.f * ((float)M_PI / 180.f);
-	const float near = 1.f;
-	const float far = 1000.f;
+	const float fovNear = 1.f;
+	const float fovFar = 1000.f;
 
 	GLuint mainProgram;
 	GLuint skyboxProgram;

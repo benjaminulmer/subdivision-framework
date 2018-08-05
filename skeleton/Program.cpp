@@ -86,7 +86,7 @@ void Program::start() {
 	wind.drawMode = GL_TRIANGLES;
 	polys.drawMode = GL_LINES;
 
-	//airSigRender1();
+	airSigRender1();
 	//windRender1();
 
 	// Objects to draw initially
@@ -211,7 +211,7 @@ void Program::airSigRender1() {
 		stormPolys.drawMode = GL_LINES;
 
 		glm::vec3 center(0.f, 0.f, 0.f);
-
+		
 		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
 
 			center += datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.minAltKM);
@@ -236,13 +236,14 @@ void Program::airSigRender1() {
 			drawPolys->colours.push_back(drawPolys->renderColour);
 			drawPolys->colours.push_back(drawPolys->renderColour);
 			drawPolys->colours.push_back(drawPolys->renderColour);
-			/*}
-			else {
-				v1 = datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-				v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
-			}*/
+			//}
+			//else {
+			//	v1 = datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			//	v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
+			//}
 			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
 		}
+		/*
 		for (const std::string& code : datum.boundary) {
 			if (code.length() < 11) continue;
 
@@ -367,6 +368,15 @@ void Program::airSigRender1() {
 			cell.addToSigmetRenderable(*r, r->renderColour, &datum, *drawPolys);
 			
 		}
+		*/
+
+		for (const std::string& code : datum.boundary) {
+			if (code.length() < 11) continue;
+
+			SdogCell cell(code, radius);
+
+			cell.addToRenderable(*r, r->renderColour, *drawPolys);
+		}
 
 		/*
 		for (const std::string& code : datum.interior) {
@@ -435,7 +445,7 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		float far = glm::length(camera->getPosition() - glm::vec3(0.f, 0.f, 0.f));
+		float fovFar = glm::length(camera->getPosition() - glm::vec3(0.f, 0.f, 0.f));
 		//info.frust = Frustum(*camera, renderEngine->getFovY(), renderEngine->getAspectRatio(), renderEngine->getNear(), far);
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
