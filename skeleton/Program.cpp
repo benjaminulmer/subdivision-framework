@@ -15,7 +15,7 @@ Program::Program() {
 
 	refOn = false;
 	fullSphereRef = false;
-	fullSizeRef = false;
+	fullSizeRef = true;
 
 	width = height = 800;
 }
@@ -35,10 +35,10 @@ void Program::start() {
 	InputHandler::setUp(camera, renderEngine, this);
 
 	// Assign buffers
-	RenderEngine::assignBuffers(referenceOct, true);
-	RenderEngine::assignBuffers(referenceSphere, true);
-	referenceOct.textureID = RenderEngine::loadTexture("textures/oct.png");
-	referenceSphere.textureID = RenderEngine::loadTexture("textures/sphere.png");
+	RenderEngine::assignBuffers(referenceOct, false);
+	RenderEngine::assignBuffers(referenceSphere, false);
+	//referenceOct.textureID = RenderEngine::loadTexture("textures/oct.png");
+	//referenceSphere.textureID = RenderEngine::loadTexture("textures/sphere.png");
 
 	RenderEngine::assignBuffers(grids, false);
 	grids.fade = true;
@@ -46,17 +46,22 @@ void Program::start() {
 
 	// Create geometry for references
 	ContentReadWrite::loadOBJ("models/octTex.obj", referenceOct);
-	RenderEngine::setBufferData(referenceOct, true);
+	referenceOct.colours.clear();
+	for (const glm::vec3& v : referenceOct.verts) { referenceOct.colours.push_back(glm::vec3(0.4)); }
+	RenderEngine::setBufferData(referenceOct, false);
 
 	ContentReadWrite::loadOBJ("models/sphereTex.obj", referenceSphere);
-	RenderEngine::setBufferData(referenceSphere, true);
+	for (const glm::vec3& v : referenceSphere.verts) { referenceSphere.colours.push_back(glm::vec3(0.4)); }
+	referenceSphere.colours.clear();
+	RenderEngine::setBufferData(referenceSphere, false);
 
 	// Objects to draw initially
 	objects.push_back(&grids);
+	grids.lineColour = glm::vec3(0.0);
 
 	// Set up GridInfo
 	info.radius = 8.0 / 3.0;
-	info.mode = SubdivisionMode::FULL;
+	info.mode = SubdivisionMode::SELECTION;
 
 	info.cull.maxRadius = 4.0;   info.cull.minRadius = 0.0;
 	info.cull.maxLat = M_PI / 2; info.cull.minLat = 0.0;
