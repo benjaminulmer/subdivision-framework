@@ -6,6 +6,10 @@
 
 // This is the class that links with NVIDIA CUDA to do ray casting on the gpu. 
 #include <cudaSamples/helper_gl.h>
+//#include <GL/glew.h>
+//#include <glm/glm.hpp>
+//#include <SDL2/SDL.h>
+
 #include <GL/freeglut.h>
 
 // CUDA Runtime, Interop, and includes
@@ -54,5 +58,10 @@ private:
 	int wHeight;
 
 	SdogDB* database;
+
+	/*SDL_Window* window;
+
+	void pollEvent(SDL_Event& e);*/
+
 };
 

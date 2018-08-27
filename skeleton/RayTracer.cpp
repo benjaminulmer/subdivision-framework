@@ -97,17 +97,14 @@ void trace()
 	// clear image
 	checkCudaErrors(cudaMemset(d_output, 0, width*height * 4));
 
-	int wWidth = glutGet(GLUT_WINDOW_WIDTH);
-	int wHeight = glutGet(GLUT_WINDOW_HEIGHT);
-
 	dim3 blockSize(16, 16);
-	dim3 gridSize = dim3(iDivUp(wWidth, blockSize.x), iDivUp(wHeight, blockSize.y));
+	dim3 gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
 
 	// call CUDA kernel, writing results to PBO
 	SdogDB* database;
 
 	//render_kernel(gridSize, blockSize, d_output, wWidth, wHeight, database);
-	render_kernel(gridSize, blockSize, d_output, wWidth, wHeight, density, brightness, transferOffset, transferScale);
+	render_kernel(gridSize, blockSize, d_output, width, height, density, brightness, transferOffset, transferScale);
 
 	getLastCudaError("kernel failed");
 
@@ -118,11 +115,6 @@ void RayTracer::resize(unsigned int w, unsigned int h)
 {
 	wWidth = w;
 	wHeight = h;
-}
-
-void idle()
-{
-	glutPostRedisplay();
 }
 
 /*
@@ -172,6 +164,123 @@ void computeFPS()
 		sdkResetTimer(&timer);
 	}
 }
+
+//Camera* RayTracer::camera;
+//RenderEngine* RayTracer::renderEngine;
+//Program* RayTracer::program;
+//int RayTracer::mouseOldX;
+//int RayTracer::mouseOldY;
+//bool RayTracer::moved;
+//
+//// Must be called before processing any SDL2 events
+//void RayTracer::setUp(Camera* camera, RenderEngine* renderEngine, Program* program) {
+//	InputHandler::camera = camera;
+//	InputHandler::renderEngine = renderEngine;
+//	InputHandler::program = program;
+//}
+//
+//void RayTracer::pollEvent(SDL_Event& e) {
+//	if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+//		InputHandler::key(e.key);
+//	}
+//	else if (e.type == SDL_MOUSEBUTTONDOWN) {
+//		moved = false;
+//	}
+//	else if (e.type == SDL_MOUSEBUTTONUP) {
+//		InputHandler::mouse(e.button);
+//	}
+//	else if (e.type == SDL_MOUSEMOTION) {
+//		InputHandler::motion(e.motion);
+//	}
+//	else if (e.type == SDL_MOUSEWHEEL) {
+//		InputHandler::scroll(e.wheel);
+//	}
+//	else if (e.type == SDL_WINDOWEVENT) {
+//		InputHandler::reshape(e.window);
+//	}
+//	else if (e.type == SDL_QUIT) {
+//		SDL_Quit();
+//		exit(0);
+//	}
+//}
+//
+//// Callback for key presses
+//void RayTracer::key(SDL_KeyboardEvent& e) {
+//
+//	auto key = e.keysym.sym;
+//
+//	if (e.state == SDL_PRESSED) {
+//		if (key == SDLK_f) {
+//			renderEngine->toggleFade();
+//		}
+//		else if (key == SDLK_ESCAPE) {
+//			SDL_Quit();
+//			exit(0);
+//		}
+//	}
+//}
+//
+//// Callback for mouse button presses
+//void RayTracer::mouse(SDL_MouseButtonEvent& e) {
+//	mouseOldX = e.x;
+//	mouseOldY = e.y;
+//}
+//
+//// Callback for mouse motion
+//void RayTracer::motion(SDL_MouseMotionEvent& e) {
+//	int dx, dy;
+//	dx = e.x - mouseOldX;
+//	dy = e.y - mouseOldY;
+//
+//	// left mouse button moves camera
+//	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+//		program->updateRotation(mouseOldX, e.x, mouseOldY, e.y, false);
+//	}
+//	else if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
+//		program->updateRotation(mouseOldX, e.x, mouseOldY, e.y, true);
+//	}
+//
+//	// Update current position of the mouse
+//	int width, height;
+//	SDL_Window* window = SDL_GetWindowFromID(e.windowID);
+//	SDL_GetWindowSize(window, &width, &height);
+//
+//	int iX = e.x;
+//	int iY = height - e.y;
+//	//program->setMousePos(iX, iY);
+//
+//	mouseOldX = e.x;
+//	mouseOldY = e.y;
+//}
+//
+//// Callback for mouse scroll
+//void RayTracer::scroll(SDL_MouseWheelEvent& e) {
+//	int dy;
+//	dy = e.y;
+//
+//	const Uint8 *state = SDL_GetKeyboardState(0);
+//	if (state[SDL_SCANCODE_U]) {
+//		//program->updateRadialBounds(RadialBound::MAX, -dy);
+//	}
+//	else if (state[SDL_SCANCODE_J]) {
+//		//program->updateRadialBounds(RadialBound::MIN, -dy);
+//	}
+//	else if (state[SDL_SCANCODE_M]) {
+//		//program->updateRadialBounds(RadialBound::BOTH, -dy);
+//	}
+//	else {
+//		if (abs(dy) > 0) program->updateScale(dy);
+//		//camera->updateZoom(dy);
+//	}
+//}
+//
+//// Callback for window reshape/resize
+//void RayTracer::reshape(SDL_WindowEvent& e) {
+//	if (e.event == SDL_WINDOWEVENT_RESIZED) {
+//		renderEngine->setWindowSize(e.data1, e.data2);
+//	}
+//}
+
 
 void keyboard(unsigned char key, int x, int y)
 {
@@ -538,113 +647,6 @@ void RayTracer::runSingleTest(const char *ref_file, const char *exec_path)
 	exit(bTestResult ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Program main
-////////////////////////////////////////////////////////////////////////////////
-//
-//int
-//main(int argc, char **argv)
-//{
-//pArgc = &argc;
-//pArgv = argv;
-//
-//char *ref_file = NULL;
-//
-////start logs
-//printf("%s Starting...\n\n", sSDKsample);
-//
-//if (checkCmdLineFlag(argc, (const char **)argv, "file"))
-//{
-//getCmdLineArgumentString(argc, (const char **)argv, "file", &ref_file);
-//fpsLimit = frameCheckNumber;
-//}
-//
-//if (ref_file)
-//{
-//findCudaDevice(argc, (const char **)argv);
-//}
-//else
-//{
-//// First initialize OpenGL context, so we can properly set the GL for CUDA.
-//// This is necessary in order to achieve optimal performance with OpenGL/CUDA interop.
-////initGL(&argc, argv);
-//
-//findCudaDevice(argc, (const char **)argv);
-//}
-//
-//// parse arguments
-//char *filename;
-//
-//if (getCmdLineArgumentString(argc, (const char **) argv, "volume", &filename))
-//{
-//volumeFilename = filename;
-//}
-//
-//int n;
-//
-//if (checkCmdLineFlag(argc, (const char **) argv, "size"))
-//{
-//n = getCmdLineArgumentInt(argc, (const char **) argv, "size");
-//volumeSize.width = volumeSize.height = volumeSize.depth = n;
-//}
-//
-//if (checkCmdLineFlag(argc, (const char **) argv, "xsize"))
-//{
-//n = getCmdLineArgumentInt(argc, (const char **) argv, "xsize");
-//volumeSize.width = n;
-//}
-//
-//if (checkCmdLineFlag(argc, (const char **) argv, "ysize"))
-//{
-//n = getCmdLineArgumentInt(argc, (const char **) argv, "ysize");
-//volumeSize.height = n;
-//}
-//
-//if (checkCmdLineFlag(argc, (const char **) argv, "zsize"))
-//{
-//n= getCmdLineArgumentInt(argc, (const char **) argv, "zsize");
-//volumeSize.depth = n;
-//}
-//
-//// load volume data
-//char *path = sdkFindFilePath(volumeFilename, argv[0]);
-//
-//if (path == 0)
-//{
-//printf("Error finding file '%s'\n", volumeFilename);
-//exit(EXIT_FAILURE);
-//}
-//
-//size_t size = volumeSize.width*volumeSize.height*volumeSize.depth*sizeof(VolumeType);
-//void *h_volume = loadRawFile(path, size);
-//
-//initCuda(h_volume, volumeSize);
-//free(h_volume);
-//
-//sdkCreateTimer(&timer);
-//
-//printf("Press '+' and '-' to change density (0.01 increments)\n"
-//"      ']' and '[' to change brightness\n"
-//"      ';' and ''' to modify transfer function offset\n"
-//"      '.' and ',' to modify transfer function scale\n\n");
-//
-//// calculate new grid size
-//gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
-//
-//if (ref_file)
-//{
-//runSingleTest(ref_file, argv[0]);
-//}
-//else
-//{
-//// This is the normal rendering path for VolumeRender
-//
-//glutCloseFunc(cleanup);
-//
-//glutMainLoop();
-//}
-//}
-
 RayTracer::RayTracer() {
 
 	char *ref_file = NULL;
@@ -704,7 +706,6 @@ RayTracer::RayTracer() {
 		glutMouseFunc(mouse);
 		glutMotionFunc(motion);
 		glutReshapeFunc(reshape);
-		glutIdleFunc(idle);
 
 		initPixelBuffer();
 
