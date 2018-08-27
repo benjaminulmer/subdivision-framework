@@ -534,8 +534,6 @@ void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderabl
 
 void SdogCell::addToSigmetRenderable(Renderable& r, const glm::vec3& colour, const AirSigmetCells* cell, Renderable& p) {
 
-	//std::cout << "rendering now" << std::endl;
-
 	std::vector<glm::vec3> polyVerts;
 
 	// Get one neighboring cell in each direction

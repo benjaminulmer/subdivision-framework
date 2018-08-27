@@ -6,6 +6,7 @@
 #undef main
 
 #include "Camera.h"
+#include "RayTracer.h"
 #include "RenderEngine.h"
 
 #include "SdogDB.h"
@@ -32,6 +33,7 @@ private:
 
 	RenderEngine* renderEngine;
 	Camera* camera;
+	RayTracer* rayTracer;
 
 	SdogDB* dataBase;
 

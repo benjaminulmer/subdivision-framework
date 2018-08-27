@@ -26,7 +26,7 @@ SphCoord::SphCoord(double latitude, double longitude, bool radians) {
 
 // Constructs from a cartesian point. Assumes sphere is at origin
 SphCoord::SphCoord(const glm::vec3& point) {
-	float radius = glm::length(point);
+	radius = glm::length(point);
 	latitude = asin(point.y / radius);
 	longitude = atan2(point.x, point.z);
 }

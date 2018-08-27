@@ -8,7 +8,6 @@
 
 #include "Camera.h"
 #include "lodepng.h"
-#include "RayTracer.h"
 #include "Renderable.h"
 
 class RenderEngine {

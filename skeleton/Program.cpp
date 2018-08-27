@@ -106,6 +106,8 @@ void Program::start() {
 	RenderEngine::setBufferData(wind, false);
 	RenderEngine::setBufferData(coastLines, false);
 
+	RayTracer* tracer = new RayTracer();
+
 	mainLoop();
 }
 
@@ -437,6 +439,8 @@ void Program::windRender1() {
 // Main loop
 void Program::mainLoop() {
 
+	glutMainLoop();
+
 	while (true) {
 
 		// Process all SDL events
@@ -458,6 +462,10 @@ void Program::mainLoop() {
 		worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
 		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
 		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
+
+		std::cout << "about to ray trace" << std::endl;
+
+		//rayTracer->trace(dataBase);
 
 		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
 		SDL_GL_SwapWindow(window);

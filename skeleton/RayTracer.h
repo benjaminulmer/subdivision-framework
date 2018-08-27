@@ -1,7 +1,12 @@
 #pragma once
-// This is the class that links with NVIDIA CUDA to do ray casting on the gpu. 
 
+//#include <gl/glew.h>
+#include <glm/glm.hpp>
+#include <map>
+
+// This is the class that links with NVIDIA CUDA to do ray casting on the gpu. 
 #include <cudaSamples/helper_gl.h>
+#include <GL/freeglut.h>
 
 // CUDA Runtime, Interop, and includes
 #include <cuda/cuda_runtime.h>
@@ -16,12 +21,38 @@
 #include <cudaSamples/helper_functions.h>
 #include <cudaSamples/helper_timer.h>
 
+#include "SdogDB.h"
+
 class RayTracer
 {
 public:
-	RayTracer();
+	RayTracer();// {}
+	//RayTracer(unsigned int w, unsigned int h);
+
 	~RayTracer() {}
 
 	void trace();
+	//void trace(SdogDB* database);
+	void resize(unsigned int w, unsigned int h);
+
+	//int iDivUp(int a, int b);
+
+	std::vector<std::vector<glm::vec4>> renderBuffer;
+
+	// Stores colours (with alpha value) associated with a given sigmet
+	std::map<std::string, glm::vec4> cache;
+
+private:
+
+	//temporary:
+	//void display(SdogDB* database);
+	void runSingleTest(const char *ref_file, const char *exec_path);
+
+	// end temporary
+
+	int wWidth;
+	int wHeight;
+
+	SdogDB* database;
 };
 

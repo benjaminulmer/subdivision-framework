@@ -16,6 +16,7 @@ public:
 
 	double latitude;  // in radians
 	double longitude; // in radians
+	double radius;
 
 	// Static members
 	static bool greatCircleArc2Intersect(const SphCoord& a0, const SphCoord& a1, const SphCoord& b0, const SphCoord& b1, SphCoord& intersection);

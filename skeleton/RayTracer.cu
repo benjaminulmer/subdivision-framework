@@ -11,11 +11,15 @@
 
 // Simple 3D volume renderer
 
+#include <iostream>
+
 #ifndef _VOLUMERENDER_KERNEL_CU_
 #define _VOLUMERENDER_KERNEL_CU_
 
-#include <cudaSamples/helper_cuda.h>
-#include <cudaSamples/helper_math.h>
+#include <helper_cuda.h>
+#include <helper_math.h>
+
+#include "SdogDB.h"
 
 typedef unsigned int  uint;
 typedef unsigned char uchar;
@@ -99,6 +103,84 @@ __device__ uint rgbaFloatToInt(float4 rgba)
 	return (uint(rgba.w * 255) << 24) | (uint(rgba.z * 255) << 16) | (uint(rgba.y * 255) << 8) | uint(rgba.x * 255);
 }
 
+//__global__ void
+//d_render(uint* d_output, uint imageW, uint imageH, SdogDB* database)
+//{
+//	const int maxSteps = 500;
+//	const float tstep = 0.01f;
+//	const float opacityThreshold = 0.95f;
+//	const float3 boxMin = make_float3(-1.0f, -1.0f, -1.0f);
+//	const float3 boxMax = make_float3(1.0f, 1.0f, 1.0f);
+//
+//	uint x = blockIdx.x*blockDim.x + threadIdx.x;
+//	uint y = blockIdx.y*blockDim.y + threadIdx.y;
+//
+//	if ((x >= imageW) || (y >= imageH)) return;
+//
+//	float u = (x / (float)imageW)*2.0f - 1.0f;
+//	float v = (y / (float)imageH)*2.0f - 1.0f;
+//
+//	// calculate eye ray in world space
+//	Ray eyeRay;
+//	eyeRay.o = make_float3(mul(c_invViewMatrix, make_float4(0.0f, 0.0f, 0.0f, 1.0f)));
+//	eyeRay.d = normalize(make_float3(u, v, -2.0f));
+//	eyeRay.d = mul(c_invViewMatrix, eyeRay.d);
+//
+//	// find intersection with box
+//	float tnear, tfar;
+//	int hit = intersectBox(eyeRay, boxMin, boxMax, &tnear, &tfar);
+//
+//	if (!hit) return;
+//
+//	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
+//
+//										// march along ray from front to back, accumulating color
+//	float4 sum = make_float4(0.0f);
+//	float t = tnear;
+//	float3 pos = eyeRay.o + eyeRay.d*tnear;
+//	float3 step = eyeRay.d*tstep;
+//
+//	for (int i = 0; i<maxSteps; i++)
+//	{
+//		// read from 3D texture
+//		// remap position to [0, 1] coordinates
+//		float sample = tex3D(tex, pos.x*0.5f + 0.5f, pos.y*0.5f + 0.5f, pos.z*0.5f + 0.5f);
+//		//sample *= 64.0f;    // scale for 10-bit data
+//
+//		// lookup in transfer function texture
+//		//float4 col = tex1D(transferTex, (sample - transferOffset)*transferScale);
+//		//col.w *= density;
+//		float4 col;
+//
+//		// "under" operator for back-to-front blending
+//		//sum = lerp(sum, col, col.w);
+//
+//		// pre-multiply alpha
+//		col.x *= col.w;
+//		col.y *= col.w;
+//		col.z *= col.w;
+//		// "over" operator for front-to-back blending
+//		sum = sum + col * (1.0f - sum.w);
+//
+//		// exit early if opaque
+//		if (sum.w > opacityThreshold)
+//			break;
+//
+//		t += tstep;
+//
+//		if (t > tfar) break;
+//
+//		pos += step;
+//	}
+//
+//	//sum *= brightness;
+//
+//	// write output color
+//	d_output[y*imageW + x] = rgbaFloatToInt(sum);
+//	
+//	//printf("cast a ray");
+//}
+
 __global__ void
 d_render(uint *d_output, uint imageW, uint imageH,
 	float density, float brightness,
@@ -157,7 +239,7 @@ d_render(uint *d_output, uint imageW, uint imageH,
 		col.y *= col.w;
 		col.z *= col.w;
 		// "over" operator for front-to-back blending
-		sum = sum + col*(1.0f - sum.w);
+		sum = sum + col * (1.0f - sum.w);
 
 		// exit early if opaque
 		if (sum.w > opacityThreshold)
@@ -210,14 +292,14 @@ void initCuda(void *h_volume, cudaExtent volumeSize)
 	float4 transferFunc[] =
 	{
 		{ 0.0, 0.0, 0.0, 0.0, },
-		{ 1.0, 0.0, 0.0, 1.0, },
-		{ 1.0, 0.5, 0.0, 1.0, },
-		{ 1.0, 1.0, 0.0, 1.0, },
-		{ 0.0, 1.0, 0.0, 1.0, },
-		{ 0.0, 1.0, 1.0, 1.0, },
-		{ 0.0, 0.0, 1.0, 1.0, },
-		{ 1.0, 0.0, 1.0, 1.0, },
-		{ 0.0, 0.0, 0.0, 0.0, },
+	{ 1.0, 0.0, 0.0, 1.0, },
+	{ 1.0, 0.5, 0.0, 1.0, },
+	{ 1.0, 1.0, 0.0, 1.0, },
+	{ 0.0, 1.0, 0.0, 1.0, },
+	{ 0.0, 1.0, 1.0, 1.0, },
+	{ 0.0, 0.0, 1.0, 1.0, },
+	{ 1.0, 0.0, 1.0, 1.0, },
+	{ 0.0, 0.0, 0.0, 0.0, },
 	};
 
 	cudaChannelFormatDesc channelDesc2 = cudaCreateChannelDesc<float4>();
@@ -241,6 +323,13 @@ void freeCudaBuffers()
 }
 
 
+//extern "C"
+//void render_kernel(dim3 gridSize, dim3 blockSize, uint* d_output, uint imageW, uint imageH, SdogDB* database)
+//{
+//	d_render << <gridSize, blockSize >> >(d_output, imageW, imageH, database);
+//
+//}
+
 extern "C"
 void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, uint imageH,
 	float density, float brightness, float transferOffset, float transferScale)
@@ -248,6 +337,7 @@ void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, u
 	d_render << <gridSize, blockSize >> >(d_output, imageW, imageH, density,
 		brightness, transferOffset, transferScale);
 }
+
 
 extern "C"
 void copyInvViewMatrix(float *invViewMatrix, size_t sizeofMatrix)
