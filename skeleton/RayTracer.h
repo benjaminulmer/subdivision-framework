@@ -35,7 +35,8 @@ public:
 
 	~RayTracer() {}
 
-	void trace();
+	static void display();
+	//void trace();
 	//void trace(SdogDB* database);
 	void resize(unsigned int w, unsigned int h);
 

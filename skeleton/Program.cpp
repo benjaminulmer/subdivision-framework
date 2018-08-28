@@ -439,7 +439,9 @@ void Program::windRender1() {
 // Main loop
 void Program::mainLoop() {
 
-	glutMainLoop();
+	glutDisplayFunc(RayTracer::display);
+
+	//glutMainLoop();
 
 	while (true) {
 
@@ -465,9 +467,10 @@ void Program::mainLoop() {
 
 		std::cout << "about to ray trace" << std::endl;
 
+		glutMainLoopEvent();
 		//rayTracer->trace(dataBase);
 
-		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
+		//renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
 		SDL_GL_SwapWindow(window);
 	}
 	delete dataBase;

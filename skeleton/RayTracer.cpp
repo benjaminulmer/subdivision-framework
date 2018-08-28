@@ -390,7 +390,7 @@ void motion(int x, int y)
 
 // display results using OpenGL (called by GLUT)
 //void RayTracer::display(SdogDB* database)
-void display()
+void RayTracer::display()
 {
 	sdkStartTimer(&timer);
 
@@ -701,7 +701,6 @@ RayTracer::RayTracer() {
 	else
 	{
 		// This is the normal rendering path for VolumeRender
-		glutDisplayFunc(display);
 		glutKeyboardFunc(keyboard);
 		glutMouseFunc(mouse);
 		glutMotionFunc(motion);
@@ -711,6 +710,6 @@ RayTracer::RayTracer() {
 
 		glutCloseFunc(cleanup);
 
-		glutMainLoop();
+		//glutMainLoop();
 	}
 }
