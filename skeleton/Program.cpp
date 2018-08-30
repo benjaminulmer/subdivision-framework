@@ -47,11 +47,11 @@ void Program::start() {
 	// Create geometry for references
 	ContentReadWrite::loadOBJ("models/octTex.obj", referenceOct);
 	referenceOct.colours.clear();
-	for (const glm::vec3& v : referenceOct.verts) { referenceOct.colours.push_back(glm::vec3(0.4)); }
+	for (const glm::vec3& v : referenceOct.verts) { referenceOct.colours.push_back(glm::vec3(0.8)); }
 	RenderEngine::setBufferData(referenceOct, false);
 
 	ContentReadWrite::loadOBJ("models/sphereTex.obj", referenceSphere);
-	for (const glm::vec3& v : referenceSphere.verts) { referenceSphere.colours.push_back(glm::vec3(0.4)); }
+	for (const glm::vec3& v : referenceSphere.verts) { referenceSphere.colours.push_back(glm::vec3(0.8)); }
 	referenceSphere.colours.clear();
 	RenderEngine::setBufferData(referenceSphere, false);
 
@@ -199,6 +199,8 @@ void Program::updateGrid(int levelInc) {
 	}
 
 	root->createRenderable(grids, subdivLevel, dispMode);
+	//SphericalGrid g(GridType::SG, info, info.radius, 0.0, M_PI_2, 0.0, -M_PI_2, 0.0);
+	//g.fillRenderable(grids, dispMode);
 	RenderEngine::setBufferData(grids, false);
 }
 
@@ -292,8 +294,8 @@ void Program::updateReference() {
 		}
 		else {
 			float scale = info.radius / 2.0f;
-			referenceOct.scale = glm::scale(glm::vec3(scale, scale, scale));
-			referenceSphere.scale = glm::scale(glm::vec3(scale, scale, scale));
+			referenceOct.scale = glm::scale(glm::vec3(0.9995f * scale));
+			referenceSphere.scale = glm::scale(glm::vec3(0.9995f * scale));
 		}
 	}
 	else {
@@ -392,6 +394,7 @@ void Program::calculateVolumes(int level) {
 	float max = -FLT_MAX;
 	float min = FLT_MAX;
 	float avg = 0.f;
+	float sd = 0.f;
 
 	for (float v : volumes) {
 		avg += v;
@@ -400,6 +403,11 @@ void Program::calculateVolumes(int level) {
 		if (v < min) min = v;
 	}
 	avg /= volumes.size();
+	for (float v : volumes) {
+		sd += (v - avg) * (v - avg);
+	}
+	sd = sqrt(sd / volumes.size());
+
 	std::cout << max / min << std::endl;
 
 	// Store results for grids to use
@@ -407,4 +415,5 @@ void Program::calculateVolumes(int level) {
 	info.volMin = min;
 	info.volAvg = avg;
 	info.mode = old;
+	info.volSD = sd;
 }

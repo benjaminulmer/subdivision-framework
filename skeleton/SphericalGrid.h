@@ -44,7 +44,7 @@ struct GridInfo {
 	GridBounds cull;
 	GridBounds selection;
 
-	float volMin, volMax, volAvg;
+	float volMin, volMax, volAvg, volSD;
 	SphericalData data;
 };
 

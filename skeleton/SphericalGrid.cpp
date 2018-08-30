@@ -112,6 +112,18 @@ void SphericalGrid::binarySubdivide() {
 	// Set radius and latitude splitting points 
 	if (info.scheme == Scheme::NAIVE || info.scheme == Scheme::SDOG || info.scheme == Scheme::OPT_SDOG) {
 
+		//midRadius = (maxRadius + minRadius) / 2;
+		//midLat = (maxLat + minLat) / 2;
+		//if (info.scheme == Scheme::OPT_SDOG) {
+
+		//	if (type == GridType::NG || type == GridType::LG) {
+		//		midRadius = pow((maxRadius*maxRadius*maxRadius + minRadius * minRadius*minRadius) / 2.0, 1.0 / 3.0);
+		//	}
+
+		//	if (type == GridType::NG) {
+		//		midLat = asin((sin(maxLat) + sin(minLat)) / 2.0);
+		//	}
+		//}
 		midRadius = (maxRadius + minRadius) / 2;
 		if (info.scheme == Scheme::OPT_SDOG && type == GridType::SG) {
 			midLat = 0.57 * maxLat + 0.43 * minLat;
@@ -119,7 +131,6 @@ void SphericalGrid::binarySubdivide() {
 		else {
 			midLat = (maxLat + minLat) / 2;
 		}
-
 	}
 	else {//(info.scheme == Scheme::VOLUME)
 		double num = cbrt(-(pow(maxRadius, 3) + pow(minRadius, 3)) * (sin(maxLat) - sin(minLat)));
@@ -491,16 +502,40 @@ glm::vec3 SphericalGrid::getVolumeColour() {
 		return glm::vec3(0.5f, 0.5f, 0.5f);
 	}
 
-	// Set colour
-	if ((selfValue / max) > 0.999f && (selfValue / max) < 1.001f) {
-		colour = glm::vec3(1.f, 0.f, 0.f);
-	}
-	else if ((selfValue / min) > 0.999f && (selfValue / min) < 1.001f) {
-		colour = glm::vec3(0.f, 0.f, 1.f);
+	float sat = 0.f;
+	float light = 0.5f;
+	int hue = 0;
+
+	double z = (selfValue - info.volAvg) / info.volSD;
+	if (z > 0.0) {
+		hue = 0;
+		sat = 0.3 * z;
+		float c = (1.f - abs(2.f * light - 1.f)) * sat;
+		int h = hue / 60;
+		float x = c * (1.f - abs(h % 2 - 1));
+		float m = light - 0.5f * c;
+		colour = glm::vec3(c + m, x + m, m);
 	}
 	else {
-		float norm = (selfValue - min) / (max - min);
-		colour = glm::vec3(norm, norm, norm);
+		hue = 250;
+		sat = 0.3 * -z;
+		float c = (1.f - abs(2.f * light - 1.f)) * sat;
+		int h = hue / 60;
+		float x = c * (1.f - abs(h % 2 - 1));
+		float m = light - 0.5f * c;
+		colour = glm::vec3(x + m, m, c + m);
 	}
+
+	// Set colour
+	//if ((selfValue / max) > 0.999f && (selfValue / max) < 1.001f) {
+	//	colour = glm::vec3(1.f, 0.f, 0.f);
+	//}
+	//else if ((selfValue / min) > 0.999f && (selfValue / min) < 1.001f) {
+	//	colour = glm::vec3(0.f, 0.f, 1.f);
+	//}
+	//else {
+	//	float norm = (selfValue - min) / (max - min);
+	//	colour = glm::vec3(norm, norm, norm);
+	//}
 	return colour;
 }

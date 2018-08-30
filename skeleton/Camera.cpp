@@ -3,9 +3,11 @@
 Camera::Camera() {
 	reset();
 }
-
+#include <iostream>
 // Returns view matrix for the camera
 glm::mat4 Camera::getLookAt() {
+
+	std::cout << "Scale: " << "ee" << "\tLong: " << longitudeRotRad << "\tLat: " << latitudeRotRad << "\tTrans: " << translation.x << ", " << translation.y << ", " << translation.z << std::endl;
 
 	// Rotate eye along longitude
 	glm::vec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
@@ -74,8 +76,19 @@ void Camera::reset() {
 	up = glm::vec3(0.f, 1.f, 0.f);
 	centre = glm::vec3(0.f, 0.f, 0.f);
 
-	longitudeRotRad = 0;
-	latitudeRotRad = 0;
+	longitudeRotRad = 0.0;
+	latitudeRotRad = 0.0;
+	translation = glm::dvec3(0.0);
 
-	translation = glm::vec3(0.f, 0.f, 0.f);
+	longitudeRotRad = 2.41728;
+	latitudeRotRad = 0.575959;
+	translation = glm::dvec3(-0.721749, 0.747265, 0.672448);
+
+	longitudeRotRad = 9.40731;
+	latitudeRotRad = -0.00872728;
+	translation = glm::dvec3(-1.33246, 1.3438, 0.774795);
+
+	longitudeRotRad = 0.785398;
+	latitudeRotRad = 0.785398;
+	translation = glm::dvec3(0.0);
 }
