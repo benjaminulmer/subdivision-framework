@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <map>
 
+#include <vector>
+
 // This is the class that links with NVIDIA CUDA to do ray casting on the gpu. 
 #include <cudaSamples/helper_gl.h>
 //#include <GL/glew.h>
@@ -25,18 +27,26 @@
 #include <cudaSamples/helper_functions.h>
 #include <cudaSamples/helper_timer.h>
 
+#include "Camera.h"
+#include "Constants.h"
+#include "SdogCell.h"
 #include "SdogDB.h"
+
+struct Ray {
+	glm::vec3 dir;
+	glm::vec3 origin;
+};
 
 class RayTracer
 {
 public:
-	RayTracer();// {}
+	RayTracer(Camera* c);// {}
 	//RayTracer(unsigned int w, unsigned int h);
 
 	~RayTracer() {}
 
-	static void display();
-	//void trace();
+	void display();
+	void trace(Camera* c, SdogDB* database);
 	//void trace(SdogDB* database);
 	void resize(unsigned int w, unsigned int h);
 
@@ -59,6 +69,12 @@ private:
 	int wHeight;
 
 	SdogDB* database;
+
+	std::vector<std::vector<glm::vec3>> pixels;
+
+	void traceHelper(const Ray &ray, int depth, SdogDB* database);
+
+	Camera* camera;
 
 	/*SDL_Window* window;
 

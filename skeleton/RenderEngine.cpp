@@ -87,8 +87,11 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glUseProgram(mainProgram);
-
+	
 	for (const Renderable* r : objects) {	
+
+		//std::cout << r->verts[0].x << " " << r->verts[0].y << " " << r->verts[0].z << std::endl;
+		
 		glBindVertexArray(r->vao);
 
 		glm::mat4 modelView = view * r->model;

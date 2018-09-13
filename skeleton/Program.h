@@ -27,6 +27,8 @@ public:
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
 	void updateScale(int inc);
 
+	void rayTrace();
+
 private:
 	SDL_Window* window;
 	int width, height;

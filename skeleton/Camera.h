@@ -21,6 +21,9 @@ public:
 
 	void reset();
 
+	//temporary
+	bool isCreated;
+
 private:
 	const float zoomScale;
 	const float rotScale;

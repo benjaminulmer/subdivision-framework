@@ -6,6 +6,9 @@ typedef unsigned char uchar;
 #define MAX_EPSILON_ERROR 5.00f
 #define THRESHOLD         0.30f
 
+#define _USE_MATH_DEFINES
+#include <math.h> 
+
 // Define the files that are to be save and the reference images for validation
 const char *sOriginal[] =
 {
@@ -81,34 +84,157 @@ int iDivUp(int a, int b)
 }
 
 //void RayTracer::trace(SdogDB* database) 
-void trace() 
+//void trace() 
+//{
+//	copyInvViewMatrix(invViewMatrix, sizeof(float4) * 3);
+//
+//	// map PBO to get CUDA device pointer
+//	uint *d_output;
+//	// map PBO to get CUDA device pointer
+//	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_pbo_resource, 0));
+//	size_t num_bytes;
+//	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_output, &num_bytes,
+//		cuda_pbo_resource));
+//	//printf("CUDA mapped PBO: May access %ld bytes\n", num_bytes);
+//
+//	// clear image
+//	checkCudaErrors(cudaMemset(d_output, 0, width*height * 4));
+//
+//	dim3 blockSize(16, 16);
+//	dim3 gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
+//
+//	// call CUDA kernel, writing results to PBO
+//	SdogDB* database;
+//
+//	//render_kernel(gridSize, blockSize, d_output, wWidth, wHeight, database);
+//	render_kernel(gridSize, blockSize, d_output, width, height, density, brightness, transferOffset, transferScale);
+//
+//	getLastCudaError("kernel failed");
+//
+//	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
+//}
+
+const bool intersect(const glm::vec3 &rayorig, const glm::vec3 &raydir, float &t0, float &t1)
 {
-	copyInvViewMatrix(invViewMatrix, sizeof(float4) * 3);
+	/*glm::vec3 l = center - rayorig;
+	float tca = l.dot(raydir);
+	if (tca < 0) return false;
+	float d2 = l.dot(l) - tca * tca;
+	if (d2 > radius2) return false;
+	float thc = sqrt(radius2 - d2);
+	t0 = tca - thc;
+	t1 = tca + thc;
 
-	// map PBO to get CUDA device pointer
-	uint *d_output;
-	// map PBO to get CUDA device pointer
-	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_pbo_resource, 0));
-	size_t num_bytes;
-	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_output, &num_bytes,
-		cuda_pbo_resource));
-	//printf("CUDA mapped PBO: May access %ld bytes\n", num_bytes);
+	return true;*/
 
-	// clear image
-	checkCudaErrors(cudaMemset(d_output, 0, width*height * 4));
+	// Check cells for sigmets here
+}
 
-	dim3 blockSize(16, 16);
-	dim3 gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
+//glm::vec3 RayTracer::traceHelper(const Ray &ray, int depth)
+void RayTracer::traceHelper(const Ray &ray, int depth, SdogDB* database)
+{
+	bool hasSigmet = false;
 
-	// call CUDA kernel, writing results to PBO
-	SdogDB* database;
+	std::string prevCode = "";
 
-	//render_kernel(gridSize, blockSize, d_output, wWidth, wHeight, database);
-	render_kernel(gridSize, blockSize, d_output, width, height, density, brightness, transferOffset, transferScale);
+	int count = 0;
+	int k = 0; 
 
-	getLastCudaError("kernel failed");
+	glm::vec3 rayPos;
 
-	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
+	int continueCount = 0;
+
+	while(count < 15) 
+	{
+		glm::vec3 tracePoint = ray.origin + (5.f * (float)k * glm::normalize(ray.dir));
+		
+		k++;
+
+		SphCoord coord(tracePoint);
+
+		//std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 10);
+		std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 8);
+
+		std::vector<AirSigmet> sigs;
+
+		if (code.compare(prevCode) == 0) {
+			continueCount++;
+			if (continueCount > 100) break;
+			//std::cout << "continuing" << std::endl;
+			continue;
+		}
+		else if (stoi(code) == 0) break;
+
+		continueCount = 0;
+		std::cout << code << std::endl; 
+
+		prevCode = code; 
+		count++;
+
+		rayPos = tracePoint;
+
+		database->getAirSigmetForCell(code, sigs);
+		if (sigs.size() == 0) continue;
+
+		hasSigmet = true;
+
+	}
+	// point is illuminated
+	//return object->color * light.brightness;
+
+	//std::cout << "done casting a ray.";
+	//std::cout << "Pos: " << rayPos.x << " " << rayPos.y << " " << rayPos.z << std::endl;
+	if (hasSigmet)
+	{
+		std::cout << " Has a sigmet.";
+		while (true) {}
+	}
+	//std::cout << std::endl;
+}
+
+void RayTracer::trace(Camera* c, SdogDB* database)
+{
+	std::cout << c->getPosition().x << " " << c->getPosition().y << " " << c->getPosition().z << std::endl;
+	std::cout << c->getLookDir().x << " " << c->getLookDir().y << " " << c->getLookDir().z << std::endl;
+
+	glm::vec3 *image = new glm::vec3[width * height], *pixel = image;
+
+
+	float invWidth = 1 / float(width);
+	float invHeight = 1 / float(height);
+	float fov = 30.f;
+	float aspectratio = (float)width / float(height);
+	float angle = tan(M_PI * 0.5 * fov / 180.);
+
+
+	std::cout << c->isCreated << std::endl;
+
+	glm::vec3 source = c->getPosition();
+
+	int count = 0;
+	// for each pixel of the image
+	//for (int j = 0; j < height; ++j) {
+	//	for (int i = 0; i < width; ++i) {
+			// compute primary ray direction
+			/*int x = i - 1;
+			int y = j - 1;
+
+			float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
+			float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
+			glm::vec3 raydir(xx, yy, -1);
+			raydir = glm::normalize(raydir);*/
+
+			glm::vec3 raydir = glm::vec3(0.f, 0.f, -1.f);
+			Ray ray;
+			ray.origin = source;
+			ray.dir = raydir;
+
+			traceHelper(ray, 0, database);
+			count++;
+		//}
+		//std::cout << "Cast row " << j << " of " << height << std::endl;
+	//}
+	//std::cout << "cast " << count << " rays." << std::endl;
 }
 
 void RayTracer::resize(unsigned int w, unsigned int h)
@@ -418,7 +544,7 @@ void RayTracer::display()
 	invViewMatrix[10] = modelView[10];
 	invViewMatrix[11] = modelView[14];
 
-	trace();
+	//trace();
 	//trace(database);
 
 	// display results
@@ -647,69 +773,71 @@ void RayTracer::runSingleTest(const char *ref_file, const char *exec_path)
 	exit(bTestResult ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-RayTracer::RayTracer() {
+RayTracer::RayTracer(Camera* c) {
+	std::cout << "set camera" << std::endl;
 
-	char *ref_file = NULL;
+	camera = c;
+	//char *ref_file = NULL;
 
-	//start logs
-	printf("%s Starting...\n\n", sSDKsample);
+	////start logs
+	//printf("%s Starting...\n\n", sSDKsample);
 
-	int argc = 1;
-	char** argv;
+	//int argc = 1;
+	//char** argv;
 
-	// First initialize OpenGL context, so we can properly set the GL for CUDA.
-	// This is necessary in order to achieve optimal performance with OpenGL/CUDA interop.
-	initGL(&argc, argv);
+	//// First initialize OpenGL context, so we can properly set the GL for CUDA.
+	//// This is necessary in order to achieve optimal performance with OpenGL/CUDA interop.
+	//initGL(&argc, argv);
 
-	findCudaDevice(argc, (const char **)argv);
+	//findCudaDevice(argc, (const char **)argv);
 
-	std::cout << "argc: " << argc << std::endl;
-	std::cout << "argv: " << argv << std::endl;
+	//std::cout << "argc: " << argc << std::endl;
+	//std::cout << "argv: " << argv << std::endl;
 
-	// parse arguments
-	char *filename;
+	//// parse arguments
+	//char *filename;
 
-	// load volume data
-	char *path = sdkFindFilePath(volumeFilename, argv[0]);
+	//// load volume data
+	//char *path = sdkFindFilePath(volumeFilename, argv[0]);
 
-	if (path == 0)
-	{
-		printf("Error finding file '%s'\n", volumeFilename);
-		exit(EXIT_FAILURE);
-	}
+	//if (path == 0)
+	//{
+	//	printf("Error finding file '%s'\n", volumeFilename);
+	//	exit(EXIT_FAILURE);
+	//}
 
-	size_t size = volumeSize.width*volumeSize.height*volumeSize.depth * sizeof(VolumeType);
-	void *h_volume = loadRawFile(path, size);
+	//size_t size = volumeSize.width*volumeSize.height*volumeSize.depth * sizeof(VolumeType);
+	//void *h_volume = loadRawFile(path, size);
 
-	initCuda(h_volume, volumeSize);
-	free(h_volume);
+	//initCuda(h_volume, volumeSize);
+	//free(h_volume);
 
-	sdkCreateTimer(&timer);
+	//sdkCreateTimer(&timer);
 
-	printf("Press '+' and '-' to change density (0.01 increments)\n"
-		"      ']' and '[' to change brightness\n"
-		"      ';' and ''' to modify transfer function offset\n"
-		"      '.' and ',' to modify transfer function scale\n\n");
+	//printf("Press '+' and '-' to change density (0.01 increments)\n"
+	//	"      ']' and '[' to change brightness\n"
+	//	"      ';' and ''' to modify transfer function offset\n"
+	//	"      '.' and ',' to modify transfer function scale\n\n");
 
-	// calculate new grid size
-	gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
+	//// calculate new grid size
+	//gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
 
-	if (ref_file)
-	{
-		runSingleTest(ref_file, argv[0]);
-	}
-	else
-	{
-		// This is the normal rendering path for VolumeRender
-		glutKeyboardFunc(keyboard);
-		glutMouseFunc(mouse);
-		glutMotionFunc(motion);
-		glutReshapeFunc(reshape);
+	//if (ref_file)
+	//{
+	//	runSingleTest(ref_file, argv[0]);
+	//}
+	//else
+	//{
+	//	// This is the normal rendering path for VolumeRender
+	//	glutKeyboardFunc(keyboard);
+	//	glutMouseFunc(mouse);
+	//	glutMotionFunc(motion);
+	//	glutReshapeFunc(reshape);
 
-		initPixelBuffer();
+	//	initPixelBuffer();
 
-		glutCloseFunc(cleanup);
+	//	glutCloseFunc(cleanup);
 
-		//glutMainLoop();
-	}
+	//	//glutMainLoop();
+	//}
 }

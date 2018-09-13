@@ -51,6 +51,8 @@ void Program::start() {
 	renderEngine = new RenderEngine(window);
 	InputHandler::setUp(camera, renderEngine, this);
 
+	RayTracer* tracer = new RayTracer(camera);
+
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
 	RenderEngine::assignBuffers(polys, false);
@@ -105,8 +107,6 @@ void Program::start() {
 	RenderEngine::setBufferData(stormPolys, false);
 	RenderEngine::setBufferData(wind, false);
 	RenderEngine::setBufferData(coastLines, false);
-
-	RayTracer* tracer = new RayTracer();
 
 	mainLoop();
 }
@@ -214,6 +214,7 @@ void Program::airSigRender1() {
 
 		glm::vec3 center(0.f, 0.f, 0.f);
 		
+		/*
 		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
 
 			center += datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.minAltKM);
@@ -234,6 +235,8 @@ void Program::airSigRender1() {
 			drawPolys->verts.push_back(v2);
 			drawPolys->verts.push_back(maxV2);
 
+			std::cout << v1.x << " " << v1.y << " " << v1.z << std::endl;
+
 			drawPolys->colours.push_back(drawPolys->renderColour);
 			drawPolys->colours.push_back(drawPolys->renderColour);
 			drawPolys->colours.push_back(drawPolys->renderColour);
@@ -245,6 +248,7 @@ void Program::airSigRender1() {
 			//}
 			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
 		}
+		*/
 		/*
 		for (const std::string& code : datum.boundary) {
 			if (code.length() < 11) continue;
@@ -379,8 +383,7 @@ void Program::airSigRender1() {
 
 			cell.addToRenderable(*r, r->renderColour, *drawPolys);
 		}
-
-		/*
+		
 		for (const std::string& code : datum.interior) {
 			//if (code.length() < 11) continue;
 
@@ -388,7 +391,6 @@ void Program::airSigRender1() {
 
 			cell.addToRenderable(*r, r->renderColour, *drawPolys);
 		}
-		*/
 
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
@@ -433,13 +435,12 @@ void Program::windRender1() {
 		float col = (cell.getMinRad() - RADIUS_EARTH_KM) / 120.f;
 		cell.addToRenderable(cells, glm::vec3(norm, col, col), Renderable());
 	}
-	std::cout << "done" << std::endl;
 }
 
 // Main loop
 void Program::mainLoop() {
 
-	glutDisplayFunc(RayTracer::display);
+	//glutDisplayFunc(RayTracer::display);
 
 	//glutMainLoop();
 
@@ -465,15 +466,22 @@ void Program::mainLoop() {
 		worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
 		worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
 
-		std::cout << "about to ray trace" << std::endl;
+		//std::cout << "about to ray trace" << std::endl;
 
-		glutMainLoopEvent();
-		//rayTracer->trace(dataBase);
+		//glutMainLoopEvent();
 
-		//renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
+		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
+
 		SDL_GL_SwapWindow(window);
+
+		//rayTracer->trace(camera, dataBase);
+
 	}
 	delete dataBase;
+}
+
+void Program::rayTrace() {
+	rayTracer->trace(camera, dataBase);
 }
 
 // Updates camera rotation

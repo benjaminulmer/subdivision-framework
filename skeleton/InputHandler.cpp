@@ -48,6 +48,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		if (key == SDLK_f) {
 			renderEngine->toggleFade();
 		}
+		if (key == SDLK_r) {
+			program->rayTrace();
+		}
 		else if (key == SDLK_ESCAPE) {
 			SDL_Quit();
 			exit(0);
