@@ -99,10 +99,10 @@ void Program::start() {
 	objects.push_back(&polys);
 	objects.push_back(&stormPolys);
 	objects.push_back(&wind);
-
+/*
 	for (Renderable* r : bounds) {
 		objects.push_back(r);
-	}
+	}*/
 
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(polys, false);
@@ -560,6 +560,7 @@ void Program::mainLoop() {
 			std::cout << "Tracing..." << std::endl;
 			rayTracer->trace(bounds, camera, dataBase, projView, worldModel, scale);
 			std::cout << "Done tracing" << std::endl;
+			traceRays = false;
 		}
 
 		SDL_GL_SwapWindow(window);
