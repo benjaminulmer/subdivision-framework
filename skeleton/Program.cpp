@@ -31,6 +31,8 @@ Program::Program() {
 	latRot = 0;
 
 	width = height = 800;
+
+	traceRays = false;
 }
 
 #define AirSigmetInsert false
@@ -145,7 +147,7 @@ void Program::setupWindow() {
 // Reads AirSigmets from file, inserts into grid, and then inserts into DB
 void Program::insertAirSigmets() {
 
-	rapidjson::Document sig = ContentReadWrite::readJSON("data/testSigmet.json");
+	rapidjson::Document sig = ContentReadWrite::readJSON("data/oneSigmet.json");
 	std::vector<AirSigmet> airSigmets;
 	AirSigmet::readFromJson(sig, airSigmets);
 
@@ -178,6 +180,52 @@ void Program::airSigRender1() {
 	dataBase->getAirSigmetCells(data);
 
 	int count = 0;
+
+	Renderable* r = new Renderable();
+	bounds.push_back(r);
+	RenderEngine::assignBuffers(*r, false);
+/*
+	r->verts.push_back(glm::vec3(0.f, 0.f, 0.f));
+	r->verts.push_back(glm::vec3(RADIUS_EARTH_KM, 0.f, 0.f));
+	r->verts.push_back(glm::vec3(0.f, RADIUS_EARTH_KM, 0.f));
+
+	r->verts.push_back(glm::vec3(RADIUS_EARTH_KM, 0.f, 0.f));
+	r->verts.push_back(glm::vec3(RADIUS_EARTH_KM, RADIUS_EARTH_KM, 0.f));
+	r->verts.push_back(glm::vec3(0.f, RADIUS_EARTH_KM, 0.f));
+
+	r->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	r->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	r->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	r->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	r->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	r->colours.push_back(glm::vec3(1.f, 0.f, 0.f));*/
+	
+	r->alpha = 0.5f;
+	r->drawMode = GL_TRIANGLES;
+	RenderEngine::setBufferData(*r, false);
+
+	//Renderable* s = new Renderable();
+	//bounds.push_back(s);
+	//RenderEngine::assignBuffers(*s, false);
+
+	//s->verts.push_back(glm::vec3(0.f, 0.f, 0.f));
+	//s->verts.push_back(glm::vec3(0.f, -RADIUS_EARTH_KM, 0.f));
+	//s->verts.push_back(glm::vec3(-RADIUS_EARTH_KM, 0.f, 0.f));
+
+	//s->verts.push_back(glm::vec3(-RADIUS_EARTH_KM, 0.f, 0.f));
+	//s->verts.push_back(glm::vec3(-RADIUS_EARTH_KM, -RADIUS_EARTH_KM, 0.f));
+	//s->verts.push_back(glm::vec3(0.f, -RADIUS_EARTH_KM, 0.f));
+
+	//s->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	//s->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	//s->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	//s->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	//s->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+	//s->colours.push_back(glm::vec3(1.f, 0.f, 0.f));
+
+	//s->alpha = 0.5f;
+	//s->drawMode = GL_TRIANGLES;
+	//RenderEngine::setBufferData(*s, false);
 
 	for (const AirSigmetCells& datum : data) {
 
@@ -213,8 +261,9 @@ void Program::airSigRender1() {
 		stormPolys.drawMode = GL_LINES;
 
 		glm::vec3 center(0.f, 0.f, 0.f);
-		
-		/*
+
+		//std::vector<glm::vec2> polyCoords;
+		//
 		for (int j = 0; j < datum.airSigmet.polygon.size(); j++) {
 
 			center += datum.airSigmet.polygon[j].toCartesian(datum.airSigmet.minAltKM);
@@ -247,8 +296,35 @@ void Program::airSigRender1() {
 			//	v2 = datum.airSigmet.polygon[(j + 1) % datum.airSigmet.polygon.size()].toCartesian(datum.airSigmet.maxAltKM * 2.2 + RADIUS_EARTH_KM);
 			//}
 			Geometry::createArcR(v1, v2, glm::vec3(), *drawPolys);
+
+			// Add polygon points to vector to prepare for polygon triangulation
+			//polyCoords.push_back(glm::vec2(datum.airSigmet.polygon[j].latitude, datum.airSigmet.polygon[j].longitude));
 		}
-		*/
+		
+		//// Triangulate the polygon
+		//std::vector<glm::vec2> newSphereCoords = Geometry::triangulatePolygon(polyCoords);
+		//std::vector<SphCoord> newCoords;
+		//for (glm::vec2 coord : newSphereCoords) {
+
+		//	newCoords.push_back(SphCoord(coord.x, coord.y));
+		//}
+
+		//for (int j = 0; j < newCoords.size() - 1; j = j + 3) {
+		//	glm::vec3 v1 = newCoords[j].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+		//	glm::vec3 v2 = newCoords[j + 1].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+		//	glm::vec3 v3 = newCoords[j + 2].toCartesian(altToAbs(datum.airSigmet.minAltKM));
+
+		//	r->verts.push_back(v1);
+		//	r->verts.push_back(v2);
+		//	r->verts.push_back(v3);
+
+		//	r->colours.push_back(r->renderColour);
+		//	r->colours.push_back(r->renderColour);
+		//	r->colours.push_back(r->renderColour);
+		//}
+
+		//center = center / (float)datum.airSigmet.polygon.size();
+
 		/*
 		for (const std::string& code : datum.boundary) {
 			if (code.length() < 11) continue;
@@ -376,6 +452,7 @@ void Program::airSigRender1() {
 		}
 		*/
 
+
 		for (const std::string& code : datum.boundary) {
 			if (code.length() < 11) continue;
 
@@ -383,14 +460,14 @@ void Program::airSigRender1() {
 
 			cell.addToRenderable(*r, r->renderColour, *drawPolys);
 		}
-		
-		for (const std::string& code : datum.interior) {
-			//if (code.length() < 11) continue;
+		//
+		//for (const std::string& code : datum.interior) {
+		//	//if (code.length() < 11) continue;
 
-			SdogCell cell(code, radius);
+		//	SdogCell cell(code, radius);
 
-			cell.addToRenderable(*r, r->renderColour, *drawPolys);
-		}
+		//	cell.addToRenderable(*r, r->renderColour, *drawPolys);
+		//}
 
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
@@ -469,19 +546,30 @@ void Program::mainLoop() {
 		//std::cout << "about to ray trace" << std::endl;
 
 		//glutMainLoopEvent();
+/*
+			glm::vec4 vert = (objects[0]->model * glm::vec4(objects[0]->verts[0], 1.0)) * worldModel;
+
+			std::cout << vert.x << " " << vert.y << " " << vert.z << std::endl;*/
 
 		renderEngine->render(objects, camera->getLookAt() * worldModel, max, min);
 
-		SDL_GL_SwapWindow(window);
 
-		//rayTracer->trace(camera, dataBase);
+		glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();// *worldModel;
+
+		if (traceRays) {
+			std::cout << "Tracing..." << std::endl;
+			rayTracer->trace(bounds, camera, dataBase, projView, worldModel, scale);
+			std::cout << "Done tracing" << std::endl;
+		}
+
+		SDL_GL_SwapWindow(window);
 
 	}
 	delete dataBase;
 }
 
 void Program::rayTrace() {
-	rayTracer->trace(camera, dataBase);
+	traceRays = !traceRays;
 }
 
 // Updates camera rotation
@@ -513,6 +601,8 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 	worldNew.x /= worldNew.w;
 	worldNew.y /= worldNew.w;
 	worldNew.z /= worldNew.w;
+
+	//std::cout << "worldNew: " << worldNew.x << " " << worldNew.y << " " << worldNew.z << std::endl;
 
 	glm::vec3 rayO = camera->getPosition();
 	glm::vec3 rayDOld = glm::normalize(glm::vec3(worldOld) - rayO);

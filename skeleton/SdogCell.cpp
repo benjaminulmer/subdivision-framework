@@ -435,6 +435,8 @@ void SdogCell::addToRenderable(Renderable& r, const glm::vec3& colour, Renderabl
 	glm::vec3 i3 = glm::vec3(sin(minLong)*cos(maxLat), sin(maxLat), cos(minLong)*cos(maxLat)) * (float)minRad;
 	glm::vec3 i4 = glm::vec3(sin(maxLong)*cos(maxLat), sin(maxLat), cos(maxLong)*cos(maxLat)) * (float)minRad;
 
+	//std::cout << o1.x << " " << o1.y << " " << o1.z << std::endl; 
+
 	// Outside and inside
 	// Outside
 	r.verts.push_back(o1); r.verts.push_back(o2); r.verts.push_back(o4);

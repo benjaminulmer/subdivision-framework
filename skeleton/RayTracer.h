@@ -46,7 +46,8 @@ public:
 	~RayTracer() {}
 
 	void display();
-	void trace(Camera* c, SdogDB* database);
+	void trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB* database, glm::mat4 projView, glm::mat4 worldModel, float scale);
+	glm::vec4 traceHelper(const std::vector<Renderable*>& objects, float x, float y, glm::mat4 projView, glm::mat4 worldModel, float scale, glm::vec3 camPos);
 	//void trace(SdogDB* database);
 	void resize(unsigned int w, unsigned int h);
 
@@ -72,7 +73,7 @@ private:
 
 	std::vector<std::vector<glm::vec3>> pixels;
 
-	void traceHelper(const Ray &ray, int depth, SdogDB* database);
+	//void traceHelper(const Ray &ray, int depth, SdogDB* database, glm::mat4 worldModel);
 
 	Camera* camera;
 

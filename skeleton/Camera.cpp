@@ -36,6 +36,11 @@ glm::vec3 Camera::getPosition() const
 	return eyeTemp + translation;
 }
 
+glm::vec3 Camera::getEyePos() const
+{
+	return eye;
+}
+
 // Returns up of the camera
 glm::vec3 Camera::getUp() const {
 
@@ -66,11 +71,15 @@ void Camera::setScale(float scale) {
 // Rotates camera along longitudinal axis (spherical coords)
 void Camera::updateLongitudeRotation(float rad) {
 	longitudeRotRad += rad;
+
+	std::cout << longitudeRotRad << std::endl;
 }
 
 // Rotates camera along latitudinal axis (spherical coords)
 void Camera::updateLatitudeRotation(float rad) {
 	latitudeRotRad -= rad;
+
+	std::cout << latitudeRotRad << std::endl;
 }
 
 // Zooms camera in or out (+1 or -1)

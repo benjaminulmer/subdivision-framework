@@ -63,4 +63,6 @@ private:
 	void windRender1();
 
 	void mainLoop();
+
+	bool traceRays;
 };

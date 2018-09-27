@@ -85,16 +85,23 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 		std::cout << error << std::endl;
 	}
 
+	glEnable(GL_DEPTH_TEST);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glUseProgram(mainProgram);
 	
 	for (const Renderable* r : objects) {	
 
-		//std::cout << r->verts[0].x << " " << r->verts[0].y << " " << r->verts[0].z << std::endl;
-		
 		glBindVertexArray(r->vao);
 
 		glm::mat4 modelView = view * r->model;
+
+		/*if (r->verts.size() > 0) {
+			glm::vec4 vert = (r->model * glm::vec4(r->verts[0], 1.0)) * worldModel;
+
+			std::cout << r->verts[0].x << " " << r->verts[0].y << " " << r->verts[0].z << std::endl;
+		}*/
+
+
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
