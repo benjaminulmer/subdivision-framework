@@ -101,10 +101,10 @@ void Program::start() {
 	objects.push_back(&polys);
 	objects.push_back(&stormPolys);
 	objects.push_back(&wind);
-/*
+
 	for (Renderable* r : bounds) {
 		objects.push_back(r);
-	}*/
+	}
 
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(polys, false);
@@ -460,6 +460,8 @@ void Program::airSigRender1() {
 
 			SdogCell cell(code, radius);
 
+			//std::cout << code << std::endl;
+
 			cell.addToRenderable(*r, r->renderColour, *drawPolys);
 		}
 		//
@@ -578,6 +580,17 @@ void Program::mainLoop() {
 
 void Program::rayTrace() {
 	traceRays = !traceRays;
+
+	//glm::mat4 worldModel(1.f);
+	//float s = scale * (1.f / RADIUS_EARTH_KM) * RADIUS_EARTH_VIEW;
+	//worldModel = glm::scale(worldModel, glm::vec3(s, s, s));
+	//worldModel = glm::rotate(worldModel, latRot, glm::vec3(-1.f, 0.f, 0.f));
+	//worldModel = glm::rotate(worldModel, longRot, glm::vec3(0.f, 1.f, 0.f));
+
+	//glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();// *worldModel;
+
+	//rayTracer->trace(bounds, camera, dataBase, projView, worldModel, scale);
+
 }
 
 // Updates camera rotation

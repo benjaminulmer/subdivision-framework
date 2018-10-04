@@ -47,7 +47,7 @@ public:
 
 	void display();
 	void trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB* database, glm::mat4 projView, glm::mat4 worldModel, float scale);
-	glm::vec4 traceHelper(const std::vector<Renderable*>& objects, float x, float y, glm::mat4 projView, glm::mat4 worldModel, float scale, glm::vec3 camPos);
+	glm::vec4 traceHelper(const std::vector<Renderable*>& objects, float x, float y, glm::mat4 projView, glm::mat4 worldModel, float scale, glm::vec3 camPos, SdogDB* database);
 	//void trace(SdogDB* database);
 	void resize(unsigned int w, unsigned int h);
 
@@ -69,7 +69,7 @@ private:
 	//int wWidth;
 	//int wHeight;
 
-	SdogDB* database;
+	//SdogDB* database;
 
 	std::vector<std::vector<glm::vec3>> pixels;
 

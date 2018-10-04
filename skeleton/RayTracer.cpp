@@ -135,11 +135,14 @@ void initPixelBuffer();
 
 //glm::vec3 RayTracer::traceHelper(const Ray &ray, int depth)
 //void RayTracer::traceHelper(const Ray &ray, int depth, SdogDB* database, glm::mat4 projView)
-glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float x, float y, glm::mat4 projView, glm::mat4 worldModel, float scale, glm::vec3 camPos)
+glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float x, float y, glm::mat4 projView, glm::mat4 worldModel, float scale, glm::vec3 camPos, SdogDB* database)
 {
 	//std::cout << "in traceHelper" << std::endl;
 
 	glm::mat4 invProjView = glm::inverse(projView);
+
+	/*x = 0.f;
+	y = 0.f;*/
 
 	glm::vec4 worldNew(x, y, -1.f, 1.f);
 
@@ -153,11 +156,13 @@ glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float 
 	worldNew = glm::inverse(worldModel) * worldNew;
 
 	glm::vec3 rayO = camPos;
+	//glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
+
 	glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
-	float sphereRad = RADIUS_EARTH_VIEW * scale;
+	/*float sphereRad = RADIUS_EARTH_VIEW * scale;
 	glm::vec3 sphereO = glm::vec3(0.f, 0.f, 0.f);
 
-	glm::vec3 iPosNew, iNorm;
+	glm::vec3 iPosNew, iNorm;*/
 
 	glm::vec4 colour(0.f, 0.f, 0.f, 0.f);
 
@@ -167,31 +172,88 @@ glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float 
 	glm::vec4 v14(0.f, RADIUS_EARTH_VIEW * scale, 0.f, 1.f);
 	glm::vec4 v24(RADIUS_EARTH_VIEW * scale, 0.f, 0.f, 1.f);
 */
-	for (int i = 0; i < objects.size(); i++) {
+	//for (int i = 0; i < objects.size(); i++) {
 
-		for (int j = 0; j < objects[i]->verts.size(); j += 3) {
+	//	for (int j = 0; j < objects[i]->verts.size(); j += 3) {
 
-			glm::vec4 v04(objects[i]->verts[j],     1.f);
-			glm::vec4 v14(objects[i]->verts[j + 1], 1.f);
-			glm::vec4 v24(objects[i]->verts[j + 2], 1.f);
+	//		glm::vec4 v04(objects[i]->verts[j],     1.f);
+	//		glm::vec4 v14(objects[i]->verts[j + 1], 1.f);
+	//		glm::vec4 v24(objects[i]->verts[j + 2], 1.f);
 
-			/*v04 = worldModel * v04;
-			v14 = worldModel * v14;
-			v24 = worldModel * v24;*/
+	//		/*v04 = worldModel * v04;
+	//		v14 = worldModel * v14;
+	//		v24 = worldModel * v24;*/
 
-			glm::vec3 v0(v04.x, v04.y, v04.z);
-			glm::vec3 v1(v14.x, v14.y, v14.z);
-			glm::vec3 v2(v24.x, v24.y, v24.z);
+	//		glm::vec3 v0(v04.x, v04.y, v04.z);
+	//		glm::vec3 v1(v14.x, v14.y, v14.z);
+	//		glm::vec3 v2(v24.x, v24.y, v24.z);
 
-			if (glm::intersectRayTriangle(rayO, rayDNew, v0, v1, v2, iNorm)) {
-				//if (glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
-				colour = glm::vec4(0.5f, 0.f, 0.5f, 0.5f);
+	//		if (glm::intersectRayTriangle(rayO, rayDNew, v0, v1, v2, iNorm)) {
+	//			//if (glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
+	//			colour = glm::vec4(0.5f, 0.f, 0.5f, 0.5f);
+	//			break;
+	//		}
+	//	}
+	//}
+	
+	int continueCount = 0;
+	int count = 0;
+	int k = 0;
+	std::string prevCode = "";
+
+	while(count < 750) 
+	{
+		//glm::vec3 tracePoint = ray.origin + (5.f * (float)k * glm::normalize(ray.dir));
+		glm::vec3 tracePoint = rayO + ((float)k * glm::normalize(rayDNew));
+		
+		k += 50;
+
+		//glm::vec4 t = inverseModel * glm::vec4(tracePoint, 1.0);
+		//tracePoint = glm::vec3(t.x, t.y, t.z);
+
+		SphCoord coord(tracePoint);
+
+		//std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 10);
+		std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 8);
+
+		std::vector<AirSigmet> sigs;
+
+		if (code.compare(prevCode) == 0) {
+			continueCount++;
+			if (continueCount > 1000)
+			{
+				//std::cout << "too many continues" << std::endl;
+
 				break;
 			}
+			//std::cout << "continuing" << std::endl;
+			continue;
 		}
-}
-	
+		else if (stoi(code) == 0) break;
 
+		continueCount = 0;
+		//std::cout << code << std::endl; 
+
+		prevCode = code; 
+		count++;
+
+		//rayPos = tracePoint;
+
+		//std::cout << "getting sigmet" << std::endl;
+
+		database->getAirSigmetForCell(code, sigs);
+
+	//	std::cout << "got sigmet" << std::endl;
+
+		if (sigs.size() == 0) continue;
+
+		//std::cout << "has sigmet" << std::endl;
+
+		colour = glm::vec4(1.f, 0.f, 0.f, 0.5f);
+		break;
+		//hasSigmet = true;
+
+	}
 	
 
 	return colour;
@@ -275,6 +337,11 @@ void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB
 
 	std::cout << "camera pos = " << cPos.x << " " << cPos.y << " " << cPos.z << std::endl;
 
+	/*glm::vec3 colour = traceHelper(objects, 0, 0, projView, worldModel, scale, cPos, database);
+
+	if (colour.x > 0.f) {
+		std::cout << "Hit sigmet" << std::endl;
+	}*/
 	for (int i = 0; i < wWidth; i++) {
 		std::vector<glm::vec4> row;
 		for (int j = 0; j < wHeight; j++) {
@@ -283,8 +350,9 @@ void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB
 			float h = (((float)j / (float)wHeight) * 2.f) - 1.f;
 
 			//row.push_back(traceHelper(objects, w, h, projView, worldModel, scale, c->getPosition()));
-			row.push_back(traceHelper(objects, w, h, projView, worldModel, scale, cPos));
+			row.push_back(traceHelper(objects, w, h, projView, worldModel, scale, cPos, database));
 		}
+		std::cout << "done row " << i << " of " << wWidth << std::endl;
 		buffer.push_back(row);
 	}
 
