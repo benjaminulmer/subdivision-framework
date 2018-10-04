@@ -66,8 +66,8 @@ private:
 
 	// end temporary
 
-	int wWidth;
-	int wHeight;
+	//int wWidth;
+	//int wHeight;
 
 	SdogDB* database;
 

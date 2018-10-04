@@ -20,6 +20,8 @@
 #include "SphCoord.h"
 #include "Geometry.h"
 
+#include "VolumeRender.h"
+
 Program::Program() {
 
 	window = nullptr;
@@ -521,6 +523,9 @@ void Program::mainLoop() {
 
 	//glutMainLoop();
 
+	//VolumeRender* vRender = new VolumeRender();
+	//vRender->setup(1);
+
 	while (true) {
 
 		// Process all SDL events
@@ -560,10 +565,12 @@ void Program::mainLoop() {
 			std::cout << "Tracing..." << std::endl;
 			rayTracer->trace(bounds, camera, dataBase, projView, worldModel, scale);
 			std::cout << "Done tracing" << std::endl;
-			traceRays = false;
+			//traceRays = false;
 		}
 
 		SDL_GL_SwapWindow(window);
+
+		//vRender->loop();
 
 	}
 	delete dataBase;

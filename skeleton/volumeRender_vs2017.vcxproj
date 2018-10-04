@@ -134,6 +134,7 @@
     <ClCompile Include="ShaderTools.cpp" />
     <ClCompile Include="SphCoord.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="VolumeRender.cpp" />
     <ClCompile Include="WindGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -153,10 +154,12 @@
     <ClInclude Include="ShaderTools.h" />
     <ClInclude Include="SphCoord.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="VolumeRender.h" />
     <ClInclude Include="WindGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="RayTracer.cu" />
+    <CudaCompile Include="VolumeRender.cu" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\main.frag" />
