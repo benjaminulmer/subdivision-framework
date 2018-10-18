@@ -11,6 +11,7 @@ typedef unsigned char uchar;
 
 #include <glm/gtx/intersect.hpp>
 
+dim3 blockSize(16, 16);
 
 // Define the files that are to be save and the reference images for validation
 //const char *sOriginal[] =
@@ -65,88 +66,41 @@ typedef unsigned char uchar;
 //int *pArgc;
 //char **pArgv;
 
+typedef struct
+{
+	float4 m[4];
+} float4x4;
+
 #ifndef MAX
 #define MAX(a,b) ((a > b) ? a : b)
 #endif
 
-extern "C" void setTextureFilterMode(bool bLinearFilter);
+//extern "C" void setTextureFilterMode(bool bLinearFilter);
 extern "C" void initCuda(void *h_volume, cudaExtent volumeSize);
-extern "C" void freeCudaBuffers();
-extern "C" void copyInvViewMatrix(float *invViewMatrix, size_t sizeofMatrix);
-//extern "C" void render_kernel(dim3 gridSize, dim3 blockSize, unsigned int* d_output, unsigned int imageW, unsigned int imageH, SdogDB* database);
+//extern "C" void freeCudaBuffers();
+//extern "C" void copyInvViewMatrix(float *invViewMatrix, size_t sizeofMatrix);
+
+extern "C" void cudaCodeForPos(double latRad, double longRad, double radius, double gridRadius, unsigned int level, char* returnCode);
+
+extern "C" void getInteger(uint* returnInt);
 
 extern "C"
-void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, uint imageH,
-	float density, float brightness, float transferOffset, float transferScale);
+void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, uint imageH, float4x4 projView,
+	float4x4 worldModel, float3 camPos, SdogDB* database);
 
-void initPixelBuffer();
+//void initPixelBuffer();
 
-//int iDivUp(int a, int b)
-//{
-//	return (a % b != 0) ? (a / b + 1) : (a / b);
-//}
-
-//void RayTracer::trace(SdogDB* database) 
-//void trace() 
-//{
-//	copyInvViewMatrix(invViewMatrix, sizeof(float4) * 3);
-//
-//	// map PBO to get CUDA device pointer
-//	uint *d_output;
-//	// map PBO to get CUDA device pointer
-//	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_pbo_resource, 0));
-//	size_t num_bytes;
-//	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_output, &num_bytes,
-//		cuda_pbo_resource));
-//	//printf("CUDA mapped PBO: May access %ld bytes\n", num_bytes);
-//
-//	// clear image
-//	checkCudaErrors(cudaMemset(d_output, 0, width*height * 4));
-//
-//	dim3 blockSize(16, 16);
-//	dim3 gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
-//
-//	// call CUDA kernel, writing results to PBO
-//	SdogDB* database;
-//
-//	//render_kernel(gridSize, blockSize, d_output, wWidth, wHeight, database);
-//	render_kernel(gridSize, blockSize, d_output, width, height, density, brightness, transferOffset, transferScale);
-//
-//	getLastCudaError("kernel failed");
-//
-//	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
-//}
-
-//const bool intersect(const glm::vec3 &rayorig, const glm::vec3 &raydir, float &t0, float &t1)
-//{
-//	/*glm::vec3 l = center - rayorig;
-//	float tca = l.dot(raydir);
-//	if (tca < 0) return false;
-//	float d2 = l.dot(l) - tca * tca;
-//	if (d2 > radius2) return false;
-//	float thc = sqrt(radius2 - d2);
-//	t0 = tca - thc;
-//	t1 = tca + thc;
-//
-//	return true;*/
-//
-//	// Check cells for sigmets here
-//}
-
-//glm::vec3 RayTracer::traceHelper(const Ray &ray, int depth)
-//void RayTracer::traceHelper(const Ray &ray, int depth, SdogDB* database, glm::mat4 projView)
-glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float x, float y, glm::mat4 projView, glm::mat4 worldModel, float scale, glm::vec3 camPos, SdogDB* database)
+int iDivUp(int a, int b)
 {
-	//std::cout << "in traceHelper" << std::endl;
+	return (a % b != 0) ? (a / b + 1) : (a / b);
+}
 
+glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 projView, glm::mat4 worldModel, glm::vec3 camPos, SdogDB* database)
+{
 	glm::mat4 invProjView = glm::inverse(projView);
-
-	/*x = 0.f;
-	y = 0.f;*/
 
 	glm::vec4 worldNew(x, y, -1.f, 1.f);
 
-	//worldNew = projView * worldNew;
 	worldNew = invProjView * worldNew;
 
 	worldNew.x /= worldNew.w;
@@ -156,45 +110,10 @@ glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float 
 	worldNew = glm::inverse(worldModel) * worldNew;
 
 	glm::vec3 rayO = camPos;
-	//glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
 
-	glm::vec3 rayDNew = glm::normalize(glm::vec3(worldNew) - rayO);
-	/*float sphereRad = RADIUS_EARTH_VIEW * scale;
-	glm::vec3 sphereO = glm::vec3(0.f, 0.f, 0.f);
-
-	glm::vec3 iPosNew, iNorm;*/
+	glm::vec3 rayD = glm::normalize(glm::vec3(worldNew) - rayO);
 
 	glm::vec4 colour(0.f, 0.f, 0.f, 0.f);
-
-	//std::cout << "casting ray" << std::endl;
-/*
-	glm::vec4 v04(0.f, 0.f, 0.f, 1.f);
-	glm::vec4 v14(0.f, RADIUS_EARTH_VIEW * scale, 0.f, 1.f);
-	glm::vec4 v24(RADIUS_EARTH_VIEW * scale, 0.f, 0.f, 1.f);
-*/
-	//for (int i = 0; i < objects.size(); i++) {
-
-	//	for (int j = 0; j < objects[i]->verts.size(); j += 3) {
-
-	//		glm::vec4 v04(objects[i]->verts[j],     1.f);
-	//		glm::vec4 v14(objects[i]->verts[j + 1], 1.f);
-	//		glm::vec4 v24(objects[i]->verts[j + 2], 1.f);
-
-	//		/*v04 = worldModel * v04;
-	//		v14 = worldModel * v14;
-	//		v24 = worldModel * v24;*/
-
-	//		glm::vec3 v0(v04.x, v04.y, v04.z);
-	//		glm::vec3 v1(v14.x, v14.y, v14.z);
-	//		glm::vec3 v2(v24.x, v24.y, v24.z);
-
-	//		if (glm::intersectRayTriangle(rayO, rayDNew, v0, v1, v2, iNorm)) {
-	//			//if (glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
-	//			colour = glm::vec4(0.5f, 0.f, 0.5f, 0.5f);
-	//			break;
-	//		}
-	//	}
-	//}
 	
 	int continueCount = 0;
 	int count = 0;
@@ -203,18 +122,30 @@ glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float 
 
 	while(count < 750) 
 	{
-		//glm::vec3 tracePoint = ray.origin + (5.f * (float)k * glm::normalize(ray.dir));
-		glm::vec3 tracePoint = rayO + ((float)k * glm::normalize(rayDNew));
+		glm::vec3 tracePoint = rayO + ((float)k * glm::normalize(rayD));
 		
 		k += 50;
 
-		//glm::vec4 t = inverseModel * glm::vec4(tracePoint, 1.0);
-		//tracePoint = glm::vec3(t.x, t.y, t.z);
-
 		SphCoord coord(tracePoint);
 
-		//std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 10);
 		std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 8);
+
+		// Setup to get code from the GPU
+		char* cudaCode;
+
+		checkCudaErrors(cudaMalloc((void **)&cudaCode, 20 * sizeof(char)));
+
+		checkCudaErrors(cudaMemset(cudaCode, 0, 20 * sizeof(char)));
+
+		cudaCodeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 8, cudaCode);
+
+		getLastCudaError("kernel failed");
+
+		char *charCode = (char *)malloc(20 * sizeof(char));
+		checkCudaErrors(cudaMemcpy(charCode, cudaCode, 20 * sizeof(char), cudaMemcpyDeviceToHost));
+
+		//std::cout << "Code:     " << code << std::endl;
+		//std::cout << "charCode: " << charCode << std::endl;
 
 		std::vector<AirSigmet> sigs;
 
@@ -237,13 +168,7 @@ glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float 
 		prevCode = code; 
 		count++;
 
-		//rayPos = tracePoint;
-
-		//std::cout << "getting sigmet" << std::endl;
-
 		database->getAirSigmetForCell(code, sigs);
-
-	//	std::cout << "got sigmet" << std::endl;
 
 		if (sigs.size() == 0) continue;
 
@@ -251,79 +176,14 @@ glm::vec4 RayTracer::traceHelper(const std::vector<Renderable*>& objects, float 
 
 		colour = glm::vec4(1.f, 0.f, 0.f, 0.5f);
 		break;
-		//hasSigmet = true;
 
 	}
-	
 
 	return colour;
-	//bool hasSigmet = false;
-
-	//std::string prevCode = "";
-
-	//int count = 0;
-	//int k = 0; 
-
-	//glm::vec3 rayPos;
-
-	//int continueCount = 0;
-
-	//while(count < 15) 
-	//{
-	//	//glm::vec3 tracePoint = ray.origin + (5.f * (float)k * glm::normalize(ray.dir));
-	//	glm::vec3 tracePoint = ray.origin + ((float)k * glm::normalize(ray.dir));
-	//	
-	//	k++;
-
-	//	glm::vec4 t = inverseModel * glm::vec4(tracePoint, 1.0);
-	//	tracePoint = glm::vec3(t.x, t.y, t.z);
-
-	//	SphCoord coord(tracePoint);
-
-	//	//std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 10);
-	//	std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 8);
-
-	//	std::vector<AirSigmet> sigs;
-
-	//	if (code.compare(prevCode) == 0) {
-	//		continueCount++;
-	//		if (continueCount > 100) break;
-	//		//std::cout << "continuing" << std::endl;
-	//		continue;
-	//	}
-	//	else if (stoi(code) == 0) break;
-
-	//	continueCount = 0;
-	//	std::cout << code << std::endl; 
-
-	//	prevCode = code; 
-	//	count++;
-
-	//	rayPos = tracePoint;
-
-	//	database->getAirSigmetForCell(code, sigs);
-	//	if (sigs.size() == 0) continue;
-
-	//	hasSigmet = true;
-
-	//}
-	//// point is illuminated
-	////return object->color * light.brightness;
-
-	////std::cout << "done casting a ray.";
-	////std::cout << "Pos: " << rayPos.x << " " << rayPos.y << " " << rayPos.z << std::endl;
-	//if (hasSigmet)
-	//{
-	//	std::cout << " Has a sigmet.";
-	//	while (true) {}
-	//}
-	////std::cout << std::endl;
 }
 
 void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB* database, glm::mat4 projView, glm::mat4 worldModel, float scale)
 {
-
-
 	std::cout << "about to trace" << std::endl;
 
 	int wWidth = 800;
@@ -337,131 +197,62 @@ void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB
 
 	std::cout << "camera pos = " << cPos.x << " " << cPos.y << " " << cPos.z << std::endl;
 
-	/*glm::vec3 colour = traceHelper(objects, 0, 0, projView, worldModel, scale, cPos, database);
+	uint* d_output;
 
-	if (colour.x > 0.f) {
-		std::cout << "Hit sigmet" << std::endl;
-	}*/
-	for (int i = 0; i < wWidth; i++) {
-		std::vector<glm::vec4> row;
-		for (int j = 0; j < wHeight; j++) {
+	// clear image
+	//checkCudaErrors(cudaMemset(d_output, 0, wWidth*wHeight * 4));
 
-			float w = (((float)i / (float)wWidth) * 2.f) - 1.f;
-			float h = (((float)j / (float)wHeight) * 2.f) - 1.f;
+	dim3 blockSize(16, 16);
+	dim3 gridSize = dim3(iDivUp(wWidth, blockSize.x), iDivUp(wHeight, blockSize.y));
 
-			//row.push_back(traceHelper(objects, w, h, projView, worldModel, scale, c->getPosition()));
-			row.push_back(traceHelper(objects, w, h, projView, worldModel, scale, cPos, database));
-		}
-		std::cout << "done row " << i << " of " << wWidth << std::endl;
-		buffer.push_back(row);
-	}
+	glm::mat4 invProjView = glm::inverse(projView);
+	glm::mat4 invWorldModel = glm::inverse(worldModel);
 
-	//std::cout << "about to draw" << std::endl;
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	float3 cudaCPos = make_float3(cPos.x, cPos.y, cPos.z);
+
+	//render_kernel(gridSize, blockSize, d_output, wWidth, wHeight, invProjView, invWorldModel, cudaCPos, database);
+
+	//getLastCudaError("kernel failed");
+
+	//checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
+
+	traceHelper(0.f, 0.f, projView, worldModel, cPos, database);
+
+
+	//for (int i = 0; i < wWidth; i++) {
+	//	std::vector<glm::vec4> row;
+	//	for (int j = 0; j < wHeight; j++) {
+
+	//		float w = (((float)i / (float)wWidth) * 2.f) - 1.f;
+	//		float h = (((float)j / (float)wHeight) * 2.f) - 1.f;
+
+	//		row.push_back(traceHelper(w, h, projView, worldModel, cPos, database));
+	//	}
+
+	//	std::cout << "Done row " << i << std::endl;
+	//	buffer.push_back(row);
+	//}
+
 	glDisable(GL_DEPTH_TEST);
 	glPointSize(2.f);
 
 	glEnable(GL_BLEND);
 	glBegin(GL_POINTS);
 
-	//glColor3f(1.f, 0.f, 0.f);
 	glColor4f(1.f, 0.f, 0.f, 0.3f);
-
+/*
 	for (int i = 0; i < wWidth; i++) {
 		for (int j = 0; j < wHeight; j++) {
 			glm::vec4 val = buffer[i][j];
 			glColor4f(val.x, val.y, val.z, val.w);
-			//glVertex2f(j, i);
 
 			float w = ((float)i / (float)wWidth) * 2.f - 1.f;
 			float h = ((float)j / (float)wHeight) * 2.f - 1.f;
 
 			if (val.w > 0.f) glVertex2f(w, h);
 		}
-	}
+	}*/
 	glEnd();
-
-	//std::cout << "done draw" << std::endl;
-
-	/*glm::vec3 *image = new glm::vec3[width * height], *pixel = image;
-
-
-	float invWidth = 1 / float(width);
-	float invHeight = 1 / float(height);
-	float fov = 30.f;
-	float aspectratio = (float)width / float(height);
-	float angle = tan(M_PI * 0.5 * fov / 180.);
-
-	glm::vec4 s = worldModel * glm::vec4(c->getPosition(), 1.0);
-	glm::vec3 source = glm::vec3(s.x, s.y, s.z);
-
-	glm::vec4 v = worldModel * glm::vec4(c->getLookDir(), 1.0);
-	glm::vec3 view = glm::normalize(glm::vec3(v.x, v.y, v.z));
-
-	int count = 0;*/
-	// for each pixel of the image
-	//for (int j = 0; j < height; ++j) {
-	//	for (int i = 0; i < width; ++i) {
-			// compute primary ray direction
-			/*int x = i - 1;
-			int y = j - 1;
-
-			float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
-			float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
-			glm::vec3 raydir(xx, yy, -1);
-			raydir = glm::normalize(raydir);*/
-			/*
-			std::cout << "pos : " << source.x << " " << source.y << " " << source.z << std::endl;
-
-			glm::vec4 testPos = worldModel * glm::vec4(0.f, 0.f, 0.f, 1.f);
-			std::cout << "test pos : " << testPos.x << " " << testPos.y << " " << testPos.z << std::endl;
-
-			testPos = worldModel * glm::vec4(0.f, 5000.f, 0.f, 1.f);
-			std::cout << "test pos : " << testPos.x << " " << testPos.y << " " << testPos.z << std::endl;
-
-*/
-
-			//std::cout << "view: " << view.x << " " << view.y << " " << view.z << std::endl;
-
-			/*glm::mat4 inverseModel = glm::inverse(worldModel);
-
-			glm::vec4 t = inverseModel * glm::vec4(source, 1.0);
-			glm::vec3 tracePoint = glm::vec3(t.x, t.y, t.z);*/
-
-			/*SphCoord coord(tracePoint);
-			SphCoord coord2(source);
-
-			std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 10);
-			std::cout << code << std::endl;
-			
-			code = SdogCell::codeForPos(coord2.latitude, coord2.longitude, coord2.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 10);
-			std::cout << code << std::endl;*/
-
-
-			////glm::vec3 raydir = glm::vec3(0.f, 0.f, -1.f);
-			//Ray ray;
-			//ray.origin = source;
-			//ray.dir = view;
-
-			////traceHelper(ray, 0, database, worldModel);
-			////count++;
-
-			//glm::vec3 sphereCenter(0.f, 0.f, 0.f);
-			////glm::vec4 wCenter = worldModel * glm::vec4(sphereCenter, 1.0);
-
-			//float sphereRad = 6371.f;
-
-			//double dist = abs(glm::length(sphereCenter - source));
-
-			//if (dist < sphereRad) {
-			//	std::cout << " In sphere at " << dist << std::endl;
-			//}
-
-			//else std::cout << "NOT in sphere at " << dist << std::endl;
-		//}
-		//std::cout << "Cast row " << j << " of " << height << std::endl;
-	//}
-	//std::cout << "cast " << count << " rays." << std::endl;
 }
 
 void RayTracer::resize(unsigned int w, unsigned int h)
@@ -518,309 +309,6 @@ sgg 22/3/2010
 //	}
 //}
 
-//Camera* RayTracer::camera;
-//RenderEngine* RayTracer::renderEngine;
-//Program* RayTracer::program;
-//int RayTracer::mouseOldX;
-//int RayTracer::mouseOldY;
-//bool RayTracer::moved;
-//
-//// Must be called before processing any SDL2 events
-//void RayTracer::setUp(Camera* camera, RenderEngine* renderEngine, Program* program) {
-//	InputHandler::camera = camera;
-//	InputHandler::renderEngine = renderEngine;
-//	InputHandler::program = program;
-//}
-
-//void RayTracer::pollEvent(SDL_Event& e) {
-//	if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
-//		InputHandler::key(e.key);
-//	}
-//	else if (e.type == SDL_MOUSEBUTTONDOWN) {
-//		moved = false;
-//	}
-//	else if (e.type == SDL_MOUSEBUTTONUP) {
-//		InputHandler::mouse(e.button);
-//	}
-//	else if (e.type == SDL_MOUSEMOTION) {
-//		InputHandler::motion(e.motion);
-//	}
-//	else if (e.type == SDL_MOUSEWHEEL) {
-//		InputHandler::scroll(e.wheel);
-//	}
-//	else if (e.type == SDL_WINDOWEVENT) {
-//		InputHandler::reshape(e.window);
-//	}
-//	else if (e.type == SDL_QUIT) {
-//		SDL_Quit();
-//		exit(0);
-//	}
-//}
-//
-//// Callback for key presses
-//void RayTracer::key(SDL_KeyboardEvent& e) {
-//
-//	auto key = e.keysym.sym;
-//
-//	if (e.state == SDL_PRESSED) {
-//		if (key == SDLK_f) {
-//			renderEngine->toggleFade();
-//		}
-//		else if (key == SDLK_ESCAPE) {
-//			SDL_Quit();
-//			exit(0);
-//		}
-//	}
-//}
-//
-//// Callback for mouse button presses
-//void RayTracer::mouse(SDL_MouseButtonEvent& e) {
-//	mouseOldX = e.x;
-//	mouseOldY = e.y;
-//}
-//
-//// Callback for mouse motion
-//void RayTracer::motion(SDL_MouseMotionEvent& e) {
-//	int dx, dy;
-//	dx = e.x - mouseOldX;
-//	dy = e.y - mouseOldY;
-//
-//	// left mouse button moves camera
-//	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-//		program->updateRotation(mouseOldX, e.x, mouseOldY, e.y, false);
-//	}
-//	else if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
-//		program->updateRotation(mouseOldX, e.x, mouseOldY, e.y, true);
-//	}
-//
-//	// Update current position of the mouse
-//	int width, height;
-//	SDL_Window* window = SDL_GetWindowFromID(e.windowID);
-//	SDL_GetWindowSize(window, &width, &height);
-//
-//	int iX = e.x;
-//	int iY = height - e.y;
-//	//program->setMousePos(iX, iY);
-//
-//	mouseOldX = e.x;
-//	mouseOldY = e.y;
-//}
-//
-//// Callback for mouse scroll
-//void RayTracer::scroll(SDL_MouseWheelEvent& e) {
-//	int dy;
-//	dy = e.y;
-//
-//	const Uint8 *state = SDL_GetKeyboardState(0);
-//	if (state[SDL_SCANCODE_U]) {
-//		//program->updateRadialBounds(RadialBound::MAX, -dy);
-//	}
-//	else if (state[SDL_SCANCODE_J]) {
-//		//program->updateRadialBounds(RadialBound::MIN, -dy);
-//	}
-//	else if (state[SDL_SCANCODE_M]) {
-//		//program->updateRadialBounds(RadialBound::BOTH, -dy);
-//	}
-//	else {
-//		if (abs(dy) > 0) program->updateScale(dy);
-//		//camera->updateZoom(dy);
-//	}
-//}
-//
-//// Callback for window reshape/resize
-//void RayTracer::reshape(SDL_WindowEvent& e) {
-//	if (e.event == SDL_WINDOWEVENT_RESIZED) {
-//		renderEngine->setWindowSize(e.data1, e.data2);
-//	}
-//}
-
-//
-//void keyboard(unsigned char key, int x, int y)
-//{
-//	switch (key)
-//	{
-//	case 27:
-//#if defined (__APPLE__) || defined(MACOSX)
-//		exit(EXIT_SUCCESS);
-//#else
-//		glutDestroyWindow(glutGetWindow());
-//		return;
-//#endif
-//		break;
-//
-//	case 'f':
-//		linearFiltering = !linearFiltering;
-//		setTextureFilterMode(linearFiltering);
-//		break;
-//
-//	case '+':
-//		density += 0.01f;
-//		break;
-//
-//	case '-':
-//		density -= 0.01f;
-//		break;
-//
-//	case ']':
-//		brightness += 0.1f;
-//		break;
-//
-//	case '[':
-//		brightness -= 0.1f;
-//		break;
-//
-//	case ';':
-//		transferOffset += 0.01f;
-//		break;
-//
-//	case '\'':
-//		transferOffset -= 0.01f;
-//		break;
-//
-//	case '.':
-//		transferScale += 0.01f;
-//		break;
-//
-//	case ',':
-//		transferScale -= 0.01f;
-//		break;
-//
-//	default:
-//		break;
-//	}
-//
-//	printf("density = %.2f, brightness = %.2f, transferOffset = %.2f, transferScale = %.2f\n", density, brightness, transferOffset, transferScale);
-//	glutPostRedisplay();
-//}
-//
-//int ox, oy;
-//int buttonState = 0;
-//
-//void mouse(int button, int state, int x, int y)
-//{
-//	if (state == GLUT_DOWN)
-//	{
-//		buttonState |= 1 << button;
-//	}
-//	else if (state == GLUT_UP)
-//	{
-//		buttonState = 0;
-//	}
-//
-//	ox = x;
-//	oy = y;
-//	glutPostRedisplay();
-//}
-//
-//void motion(int x, int y)
-//{
-//	float dx, dy;
-//	dx = (float)(x - ox);
-//	dy = (float)(y - oy);
-//
-//	if (buttonState == 4)
-//	{
-//		// right = zoom
-//		viewTranslation.z += dy / 100.0f;
-//	}
-//	else if (buttonState == 2)
-//	{
-//		// middle = translate
-//		viewTranslation.x += dx / 100.0f;
-//		viewTranslation.y -= dy / 100.0f;
-//	}
-//	else if (buttonState == 1)
-//	{
-//		// left = rotate
-//		viewRotation.x += dy / 5.0f;
-//		viewRotation.y += dx / 5.0f;
-//	}
-//
-//	ox = x;
-//	oy = y;
-//	glutPostRedisplay();
-//}
-//
-//// display results using OpenGL (called by GLUT)
-////void RayTracer::display(SdogDB* database)
-//void RayTracer::display()
-//{
-//	sdkStartTimer(&timer);
-//
-//	// use OpenGL to build view matrix
-//	GLfloat modelView[16];
-//	glMatrixMode(GL_MODELVIEW);
-//	glPushMatrix();
-//	glLoadIdentity();
-//	glRotatef(-viewRotation.x, 1.0, 0.0, 0.0);
-//	glRotatef(-viewRotation.y, 0.0, 1.0, 0.0);
-//	glTranslatef(-viewTranslation.x, -viewTranslation.y, -viewTranslation.z);
-//	glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
-//	glPopMatrix();
-//
-//	invViewMatrix[0] = modelView[0];
-//	invViewMatrix[1] = modelView[4];
-//	invViewMatrix[2] = modelView[8];
-//	invViewMatrix[3] = modelView[12];
-//	invViewMatrix[4] = modelView[1];
-//	invViewMatrix[5] = modelView[5];
-//	invViewMatrix[6] = modelView[9];
-//	invViewMatrix[7] = modelView[13];
-//	invViewMatrix[8] = modelView[2];
-//	invViewMatrix[9] = modelView[6];
-//	invViewMatrix[10] = modelView[10];
-//	invViewMatrix[11] = modelView[14];
-//
-//	//trace();
-//	//trace(database);
-//
-//	// display results
-//	glClear(GL_COLOR_BUFFER_BIT);
-//
-//	// draw image from PBO
-//	glDisable(GL_DEPTH_TEST);
-//
-//	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//#if 0
-//	// draw using glDrawPixels (slower)
-//	glRasterPos2i(0, 0);
-//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
-//	glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-//#else
-//	// draw using texture
-//
-//	// copy from pbo to texture
-//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
-//	glBindTexture(GL_TEXTURE_2D, tex);
-//	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-//
-//	// draw textured quad
-//	glEnable(GL_TEXTURE_2D);
-//	glBegin(GL_QUADS);
-//	glTexCoord2f(0, 0);
-//	glVertex2f(0, 0);
-//	glTexCoord2f(1, 0);
-//	glVertex2f(1, 0);
-//	glTexCoord2f(1, 1);
-//	glVertex2f(1, 1);
-//	glTexCoord2f(0, 1);
-//	glVertex2f(0, 1);
-//	glEnd();
-//
-//	glDisable(GL_TEXTURE_2D);
-//	glBindTexture(GL_TEXTURE_2D, 0);
-//#endif
-//
-//	glutSwapBuffers();
-//	glutReportErrors();
-//
-//	sdkStopTimer(&timer);
-//
-//	computeFPS();
-//}
-//
 //void reshape(int w, int h)
 //{
 //	width = w;
@@ -856,215 +344,62 @@ sgg 22/3/2010
 //	// flushed before the application exits
 //	checkCudaErrors(cudaProfilerStop());
 //}
-//
-//void initGL(int *argc, char **argv)
-//{
-//	// initialize GLUT callback functions
-//	glutInit(argc, argv);
-//	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-//	glutInitWindowSize(width, height);
-//	glutCreateWindow("CUDA volume rendering");
-//
-//	if (!isGLVersionSupported(2, 0) ||
-//		!areGLExtensionsSupported("GL_ARB_pixel_buffer_object"))
-//	{
-//		printf("Required OpenGL extensions are missing.");
-//		exit(EXIT_SUCCESS);
-//	}
-//}
-//
-//void initPixelBuffer()
-//{
-//	if (pbo)
-//	{
-//		// unregister this buffer object from CUDA C
-//		checkCudaErrors(cudaGraphicsUnregisterResource(cuda_pbo_resource));
-//
-//		// delete old buffer
-//		glDeleteBuffers(1, &pbo);
-//		glDeleteTextures(1, &tex);
-//	}
-//
-//	// create pixel buffer object for display
-//	glGenBuffers(1, &pbo);
-//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
-//	glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width*height * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
-//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-//
-//	// register this buffer object with CUDA
-//	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&cuda_pbo_resource, pbo, cudaGraphicsMapFlagsWriteDiscard)); // This line caused errors(?)
-//
-//	// create texture for display
-//	glGenTextures(1, &tex);
-//	glBindTexture(GL_TEXTURE_2D, tex);
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//	glBindTexture(GL_TEXTURE_2D, 0);
-//}
-//
-//// Load raw data from disk
-//void *loadRawFile(char *filename, size_t size)
-//{
-//	FILE *fp = fopen(filename, "rb");
-//
-//	if (!fp)
-//	{
-//		fprintf(stderr, "Error opening file '%s'\n", filename);
-//		return 0;
-//	}
-//
-//	void *data = malloc(size);
-//	size_t read = fread(data, 1, size, fp);
-//	fclose(fp);
-//
-//#if defined(_MSC_VER_)
-//	printf("Read '%s', %Iu bytes\n", filename, read);
-//#else
-//	printf("Read '%s', %zu bytes\n", filename, read);
-//#endif
-//
-//	return data;
-//}
-//
-//void RayTracer::runSingleTest(const char *ref_file, const char *exec_path)
-//{
-//	bool bTestResult = true;
-//
-//	uint *d_output;
-//	checkCudaErrors(cudaMalloc((void **)&d_output, width*height * sizeof(uint)));
-//	checkCudaErrors(cudaMemset(d_output, 0, width*height * sizeof(uint)));
-//
-//	float modelView[16] =
-//	{
-//		1.0f, 0.0f, 0.0f, 0.0f,
-//		0.0f, 1.0f, 0.0f, 0.0f,
-//		0.0f, 0.0f, 1.0f, 0.0f,
-//		0.0f, 0.0f, 4.0f, 1.0f
-//	};
-//
-//	invViewMatrix[0] = modelView[0];
-//	invViewMatrix[1] = modelView[4];
-//	invViewMatrix[2] = modelView[8];
-//	invViewMatrix[3] = modelView[12];
-//	invViewMatrix[4] = modelView[1];
-//	invViewMatrix[5] = modelView[5];
-//	invViewMatrix[6] = modelView[9];
-//	invViewMatrix[7] = modelView[13];
-//	invViewMatrix[8] = modelView[2];
-//	invViewMatrix[9] = modelView[6];
-//	invViewMatrix[10] = modelView[10];
-//	invViewMatrix[11] = modelView[14];
-//
-//	// call CUDA kernel, writing results to PBO
-//	copyInvViewMatrix(invViewMatrix, sizeof(float4) * 3);
-//
-//	// Start timer 0 and process n loops on the GPU
-//	int nIter = 10;
-//
-//	for (int i = -1; i < nIter; i++)
-//	{
-//		if (i == 0)
-//		{
-//			cudaDeviceSynchronize();
-//			sdkStartTimer(&timer);
-//		}
-//
-//		//render_kernel(gridSize, blockSize, d_output, width, height, database);
-//
-//		render_kernel(gridSize, blockSize, d_output, width, height, density, brightness, transferOffset, transferScale);
-//
-//	}
-//
-//	cudaDeviceSynchronize();
-//	sdkStopTimer(&timer);
-//	// Get elapsed time and throughput, then log to sample and master logs
-//	double dAvgTime = sdkGetTimerValue(&timer) / (nIter * 1000.0);
-//	printf("volumeRender, Throughput = %.4f MTexels/s, Time = %.5f s, Size = %u Texels, NumDevsUsed = %u, Workgroup = %u\n",
-//		(1.0e-6 * width * height) / dAvgTime, dAvgTime, (width * height), 1, blockSize.x * blockSize.y);
-//
-//
-//	getLastCudaError("Error: render_kernel() execution FAILED");
-//	checkCudaErrors(cudaDeviceSynchronize());
-//
-//	unsigned char *h_output = (unsigned char *)malloc(width*height * 4);
-//	checkCudaErrors(cudaMemcpy(h_output, d_output, width*height * 4, cudaMemcpyDeviceToHost));
-//
-//	sdkSavePPM4ub("volume.ppm", h_output, width, height);
-//	bTestResult = sdkComparePPM("volume.ppm", sdkFindFilePath(ref_file, exec_path), MAX_EPSILON_ERROR, THRESHOLD, true);
-//
-//	cudaFree(d_output);
-//	free(h_output);
-//	cleanup();
-//
-//	exit(bTestResult ? EXIT_SUCCESS : EXIT_FAILURE);
-//}
-//
-RayTracer::RayTracer(Camera* c) {
+
+void RayTracer::initPixelBuffer()
+{
+	int width = 800;
+	int height = 800;
+
+	if (pbo)
+	{
+		// unregister this buffer object from CUDA C
+		checkCudaErrors(cudaGraphicsUnregisterResource(cuda_pbo_resource));
+
+		// delete old buffer
+		glDeleteBuffers(1, &pbo);
+	}
+
+	// create pixel buffer object for display
+	glGenBuffers(1, &pbo);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width*height * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+
+	// register this buffer object with CUDA
+	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&cuda_pbo_resource, pbo, cudaGraphicsMapFlagsWriteDiscard)); // This line caused errors(?)
+}
+
+RayTracer::RayTracer(Camera* c, int ac, char** v) : argc(ac), argv(v) {
 	std::cout << "set camera" << std::endl;
 
+	pbo = 0;
+
 	camera = c;
-	//char *ref_file = NULL;
+	char *ref_file = NULL;
 
-	////start logs
-	//printf("%s Starting...\n\n", sSDKsample);
+	cudaExtent volumeSize = make_cudaExtent(32, 32, 32);
+	timer = 0;
 
-	//int argc = 1;
-	//char** argv;
+	findCudaDevice(argc, (const char **)argv);
 
-	//// First initialize OpenGL context, so we can properly set the GL for CUDA.
-	//// This is necessary in order to achieve optimal performance with OpenGL/CUDA interop.
-	//initGL(&argc, argv);
+	std::cout << "argc: " << argc << std::endl;
+	std::cout << "argv: " << argv << std::endl;
 
-	//findCudaDevice(argc, (const char **)argv);
 
-	//std::cout << "argc: " << argc << std::endl;
-	//std::cout << "argv: " << argv << std::endl;
-
-	//// parse arguments
-	//char *filename;
-
-	//// load volume data
-	//char *path = sdkFindFilePath(volumeFilename, argv[0]);
-
-	//if (path == 0)
-	//{
-	//	printf("Error finding file '%s'\n", volumeFilename);
-	//	exit(EXIT_FAILURE);
-	//}
-
-	//size_t size = volumeSize.width*volumeSize.height*volumeSize.depth * sizeof(VolumeType);
+	size_t size = volumeSize.width*volumeSize.height*volumeSize.depth * sizeof(VolumeType);
 	//void *h_volume = loadRawFile(path, size);
 
 	//initCuda(h_volume, volumeSize);
 	//free(h_volume);
 
-	//sdkCreateTimer(&timer);
+	sdkCreateTimer(&timer);
 
-	//printf("Press '+' and '-' to change density (0.01 increments)\n"
-	//	"      ']' and '[' to change brightness\n"
-	//	"      ';' and ''' to modify transfer function offset\n"
-	//	"      '.' and ',' to modify transfer function scale\n\n");
+	int width = 800;
+	int height = 800;
 
-	//// calculate new grid size
-	//gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
+	// calculate new grid size
+	gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
 
-	//if (ref_file)
-	//{
-	//	runSingleTest(ref_file, argv[0]);
-	//}
-	//else
-	//{
-	//	// This is the normal rendering path for VolumeRender
-	//	glutKeyboardFunc(keyboard);
-	//	glutMouseFunc(mouse);
-	//	glutMotionFunc(motion);
-	//	glutReshapeFunc(reshape);
+	initPixelBuffer();
 
-	//	initPixelBuffer();
-
-	//	glutCloseFunc(cleanup);
-
-	//	//glutMainLoop();
-	//}
 }

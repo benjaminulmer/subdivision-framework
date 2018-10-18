@@ -32,22 +32,19 @@
 #include "SdogCell.h"
 #include "SdogDB.h"
 
-struct Ray {
-	glm::vec3 dir;
-	glm::vec3 origin;
-};
+typedef unsigned char VolumeType;
 
 class RayTracer
 {
 public:
-	RayTracer(Camera* c);// {}
+	RayTracer(Camera* c, int ac, char** v);// {}
 	//RayTracer(unsigned int w, unsigned int h);
 
 	~RayTracer() {}
 
 	void display();
 	void trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB* database, glm::mat4 projView, glm::mat4 worldModel, float scale);
-	glm::vec4 traceHelper(const std::vector<Renderable*>& objects, float x, float y, glm::mat4 projView, glm::mat4 worldModel, float scale, glm::vec3 camPos, SdogDB* database);
+	glm::vec4 traceHelper(float x, float y, glm::mat4 projView, glm::mat4 worldModel, glm::vec3 camPos, SdogDB* database);
 	//void trace(SdogDB* database);
 	void resize(unsigned int w, unsigned int h);
 
@@ -60,10 +57,14 @@ public:
 
 private:
 
+	int argc;
+	char** argv;
+
 	//temporary:
 	//void display(SdogDB* database);
 	void runSingleTest(const char *ref_file, const char *exec_path);
 
+	void initPixelBuffer();
 	// end temporary
 
 	//int wWidth;
@@ -76,6 +77,12 @@ private:
 	//void traceHelper(const Ray &ray, int depth, SdogDB* database, glm::mat4 worldModel);
 
 	Camera* camera;
+	GLuint pbo;     // OpenGL pixel buffer object
+	cudaExtent volumeSize;
+	StopWatchInterface *timer;
+	dim3 gridSize;
+	struct cudaGraphicsResource *cuda_pbo_resource; // CUDA Graphics Resource (to transfer PBO)
+
 
 	/*SDL_Window* window;
 

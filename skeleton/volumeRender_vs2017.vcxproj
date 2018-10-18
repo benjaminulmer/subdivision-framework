@@ -116,6 +116,9 @@
     <ClCompile>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</WholeProgramOptimization>
     </ClCompile>
+    <CudaCompile>
+      <Emulation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</Emulation>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AirSigmet.cpp" />
@@ -134,7 +137,6 @@
     <ClCompile Include="ShaderTools.cpp" />
     <ClCompile Include="SphCoord.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="VolumeRender.cpp" />
     <ClCompile Include="WindGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -154,12 +156,12 @@
     <ClInclude Include="ShaderTools.h" />
     <ClInclude Include="SphCoord.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="VolumeRender.h" />
     <ClInclude Include="WindGrid.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="RayTracer.cu" />
-    <CudaCompile Include="VolumeRender.cu" />
+    <CudaCompile Include="RayTracer.cu">
+      <Emulation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</Emulation>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\main.frag" />

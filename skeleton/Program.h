@@ -27,6 +27,8 @@ public:
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
 	void updateScale(int inc);
 
+	void setArgs(int c, char** v) { argc = c; argv = v; }
+
 	void rayTrace();
 
 private:
@@ -65,4 +67,7 @@ private:
 	void mainLoop();
 
 	bool traceRays;
+
+	int argc;
+	char** argv;
 };

@@ -8,6 +8,7 @@ public:
 	SphCoord();
 	SphCoord(double latitude, double longitude, bool radians = true);
 	SphCoord(const glm::vec3& point);
+	SphCoord(float x, float y, float z);
 
 	double arcLength(const SphCoord& other) const;
 	glm::vec3 toCartesian(double radius) const;

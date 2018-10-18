@@ -20,7 +20,7 @@
 #include "SphCoord.h"
 #include "Geometry.h"
 
-#include "VolumeRender.h"
+//#include "VolumeRender.h"
 
 Program::Program() {
 
@@ -55,7 +55,7 @@ void Program::start() {
 	renderEngine = new RenderEngine(window);
 	InputHandler::setUp(camera, renderEngine, this);
 
-	RayTracer* tracer = new RayTracer(camera);
+	RayTracer* tracer = new RayTracer(camera, argc, argv);
 
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
@@ -521,12 +521,9 @@ void Program::windRender1() {
 // Main loop
 void Program::mainLoop() {
 
-	//glutDisplayFunc(RayTracer::display);
 
-	//glutMainLoop();
-
-	//VolumeRender* vRender = new VolumeRender();
-	//vRender->setup(1);
+	//VolumeRender* vRender = new VolumeRender(argc, argv);
+	//vRender->setup();
 
 	while (true) {
 

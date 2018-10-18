@@ -31,6 +31,15 @@ SphCoord::SphCoord(const glm::vec3& point) {
 	longitude = atan2(point.x, point.z);
 }
 
+// Constructs from a cartesian point. Assumes sphere is at origin
+SphCoord::SphCoord(float x, float y, float z) {
+
+	glm::vec3 point(x, y, z);
+
+	radius = glm::length(point);
+	latitude = asin(point.y / radius);
+	longitude = atan2(point.x, point.z);
+}
 
 // Returns the arc length between this and another spherical point
 //
