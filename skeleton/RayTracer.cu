@@ -17,6 +17,8 @@
 #ifndef _VOLUMERENDER_KERNEL_CU_
 #define _VOLUMERENDER_KERNEL_CU_
 
+#define RADIUS_EARTH_KM 6371.0f
+
 #include <helper_cuda.h>
 #include <helper_math.h>
 
@@ -236,25 +238,16 @@ void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, u
 	d_render << <gridSize, blockSize >> > (d_output, imageW, imageH, invProjView, invWorldModel, camPos, database);
 }
 
-// These two functions from https://stackoverflow.com/questions/20201335/add-char-arrays-in-cuda
-__device__ char * my_strcpy(char dest[], const char src[]) {
-	int i = 0;
-	do {
-		dest[i] = src[i];
-	} while (src[i++] != 0);
-	return dest;
-}
-
-__device__ char* my_strcat(char dest[], const char src[]) {
-	int i = 0;
-	while (dest[i] != 0) i++;
-	my_strcpy(dest + i, src);
-	return dest;
-}
-
 // Returns the SDOG cell code for the provided spherical point at a given subdivision level - Converted to CUDA code from Ben's C++ function
 __global__ void
-cudaCodeForPos_kernel(double latRad, double longRad, double radius, double gridRadius, unsigned int level, char* returnCode) {
+cudaCodeForPos_kernel(SphereCoord coord, char* returnCode) {
+	//cudaCodeForPos_kernel(double latRad, double longRad, double radius, double gridRadius, unsigned int level, char* returnCode) {
+
+	double latRad = coord.latitude;
+	double longRad = coord.longitude;
+	double radius = coord.radius;
+	double gridRadius = (RADIUS_EARTH_KM * 4.f / 3.f);
+	unsigned int level = 8;
 
 	double M_PI = 3.14159265358979323846;
 	double M_PI_2 = M_PI / 2.0;
@@ -456,18 +449,12 @@ cudaCodeForPos_kernel(double latRad, double longRad, double radius, double gridR
 // gridRadius - radius of the grid the cell belongs to
 // return - code for the cell that contains the point
 extern "C"
-void cudaCodeForPos(double latRad, double longRad, double radius, double gridRadius, unsigned int level, char* returnCode) {
-	cudaCodeForPos_kernel << <1, 1 >> >(latRad, longRad, radius, gridRadius, level, returnCode);
-}
+void cudaCodeForPos(float trace_x, float trace_y, float trace_z, char* returnCode) {
+	//void cudaCodeForPos(double latRad, double longRad, double radius, double gridRadius, unsigned int level, char* returnCode) {
 
-__global__ void
-getInteger_kernel(uint* returnInt) {
-	returnInt[0] = 12;
-}
+	SphereCoord coord(trace_x, trace_y, trace_z);
 
-extern "C"
-void getInteger(uint* returnInt) {
-	getInteger_kernel <<<1,1>>>(returnInt);
+	cudaCodeForPos_kernel << <1, 1 >> >(coord, returnCode);
 }
 
 #endif // #ifndef _VOLUMERENDER_KERNEL_CU_

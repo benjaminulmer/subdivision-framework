@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #undef main
 
+#include "AirSigmet.h"
 #include "Camera.h"
 #include "RayTracer.h"
 #include "RenderEngine.h"
@@ -15,6 +16,11 @@ enum class RadialBound {
 	MAX,
 	MIN,
 	BOTH
+};
+
+struct Cell {
+	AirSigmet sigmet;
+	std::string code;
 };
 
 class Program {
@@ -70,4 +76,6 @@ private:
 
 	int argc;
 	char** argv;
+
+	std::vector<Cell> dataCache;
 };

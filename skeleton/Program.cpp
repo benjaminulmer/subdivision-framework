@@ -463,15 +463,26 @@ void Program::airSigRender1() {
 			//std::cout << code << std::endl;
 
 			cell.addToRenderable(*r, r->renderColour, *drawPolys);
+
+			Cell cacheCell;
+			cacheCell.sigmet = datum.airSigmet;
+			cacheCell.code = code;
+
+			dataCache.push_back(cacheCell);
 		}
-		//
-		//for (const std::string& code : datum.interior) {
-		//	//if (code.length() < 11) continue;
+		
+		for (const std::string& code : datum.interior) {
+			//if (code.length() < 11) continue;
 
-		//	SdogCell cell(code, radius);
+			//SdogCell cell(code, radius);
+			//cell.addToRenderable(*r, r->renderColour, *drawPolys);
 
-		//	cell.addToRenderable(*r, r->renderColour, *drawPolys);
-		//}
+			Cell cacheCell;
+			cacheCell.sigmet = datum.airSigmet;
+			cacheCell.code = code;
+
+			dataCache.push_back(cacheCell);
+		}
 
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
@@ -561,9 +572,9 @@ void Program::mainLoop() {
 		glm::mat4 projView = renderEngine->getProjection() * camera->getLookAt();// *worldModel;
 
 		if (traceRays) {
-			std::cout << "Tracing..." << std::endl;
+			//std::cout << "Tracing..." << std::endl;
 			rayTracer->trace(bounds, camera, dataBase, projView, worldModel, scale);
-			std::cout << "Done tracing" << std::endl;
+			//std::cout << "Done tracing" << std::endl;
 			//traceRays = false;
 		}
 
