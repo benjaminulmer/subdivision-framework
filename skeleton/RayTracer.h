@@ -1,16 +1,11 @@
 #pragma once
 
-//#include <gl/glew.h>
 #include <glm/glm.hpp>
 #include <map>
-
 #include <vector>
 
 // This is the class that links with NVIDIA CUDA to do ray casting on the gpu. 
 #include <cudaSamples/helper_gl.h>
-//#include <GL/glew.h>
-//#include <glm/glm.hpp>
-//#include <SDL2/SDL.h>
 
 #include <GL/freeglut.h>
 
@@ -32,61 +27,69 @@
 #include "SdogCell.h"
 #include "SdogDB.h"
 
+typedef unsigned int uint;
+typedef unsigned char uchar;
+
+#define MAX_EPSILON_ERROR 5.00f
+#define THRESHOLD         0.30f
+
+#define _USE_MATH_DEFINES
+#include <math.h> 
+
+#include <glm/gtx/intersect.hpp>
+
+typedef struct
+{
+	float4 m[4];
+} float4x4;
+
+extern "C" void initCuda(void *h_volume, cudaExtent volumeSize);
+extern "C" void cudaCodeForPos(float trace_x, float trace_y, float trace_z, char* returnCode);
+
+extern "C"
+void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, uint imageH, float4x4 projView,
+	float4x4 worldModel, float3 camPos, SdogDB* database);
+
 typedef unsigned char VolumeType;
+
+struct Cell {
+	AirSigmet sigmet;
+	std::string code;
+};
 
 class RayTracer
 {
 public:
-	RayTracer(Camera* c, int ac, char** v);// {}
-	//RayTracer(unsigned int w, unsigned int h);
-
+	RayTracer(Camera* c, int ac, char** v);
 	~RayTracer() {}
 
-	void display();
 	void trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB* database, glm::mat4 projView, glm::mat4 worldModel, float scale);
-	glm::vec4 traceHelper(float x, float y, glm::mat4 projView, glm::mat4 worldModel, glm::vec3 camPos, SdogDB* database);
-	//void trace(SdogDB* database);
 	void resize(unsigned int w, unsigned int h);
 
 	//int iDivUp(int a, int b);
 
 	std::vector<std::vector<glm::vec4>> renderBuffer;
 
-	// Stores colours (with alpha value) associated with a given sigmet
-	std::map<std::string, glm::vec4> cache;
+	void addToCache(AirSigmet sigmet, std::string code);
 
 private:
 
-	int argc;
-	char** argv;
-
 	//temporary:
-	//void display(SdogDB* database);
-	void runSingleTest(const char *ref_file, const char *exec_path);
-
 	void initPixelBuffer();
 	// end temporary
 
-	//int wWidth;
-	//int wHeight;
+	int wWidth;
+	int wHeight;
 
-	//SdogDB* database;
-
-	std::vector<std::vector<glm::vec3>> pixels;
-
-	//void traceHelper(const Ray &ray, int depth, SdogDB* database, glm::mat4 worldModel);
+	glm::vec4 traceHelper(float x, float y, glm::mat4 projView, glm::mat4 worldModel, glm::vec3 camPos, SdogDB* database);
 
 	Camera* camera;
 	GLuint pbo;     // OpenGL pixel buffer object
-	cudaExtent volumeSize;
-	StopWatchInterface *timer;
 	dim3 gridSize;
+	dim3 blockSize;
+
 	struct cudaGraphicsResource *cuda_pbo_resource; // CUDA Graphics Resource (to transfer PBO)
 
-
-	/*SDL_Window* window;
-
-	void pollEvent(SDL_Event& e);*/
-
+	std::vector<Cell> dataCache;
 };
 

@@ -1,33 +1,5 @@
 #include "RayTracer.h"
 
-typedef unsigned int uint;
-typedef unsigned char uchar;
-
-#define MAX_EPSILON_ERROR 5.00f
-#define THRESHOLD         0.30f
-
-#define _USE_MATH_DEFINES
-#include <math.h> 
-
-#include <glm/gtx/intersect.hpp>
-
-dim3 blockSize(16, 16);
-
-typedef struct
-{
-	float4 m[4];
-} float4x4;
-
-extern "C" void initCuda(void *h_volume, cudaExtent volumeSize);
-//extern "C" void freeCudaBuffers();
-extern "C" void cudaCodeForPos(float trace_x, float trace_y, float trace_z, char* returnCode);
-
-extern "C"
-void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, uint imageH, float4x4 projView,
-	float4x4 worldModel, float3 camPos, SdogDB* database);
-
-//void initPixelBuffer();
-
 int iDivUp(int a, int b)
 {
 	return (a % b != 0) ? (a / b + 1) : (a / b);
@@ -121,11 +93,6 @@ void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB
 {
 	//std::cout << "about to trace" << std::endl;
 
-	int wWidth = 800;
-	int wHeight = 800;
-
-	//std::cout << "w: " << wWidth << " h: " << wHeight << std::endl;
-
 	std::vector<std::vector<glm::vec4>> buffer;
 
 	glm::vec4 cPos = glm::inverse(worldModel) * glm::vec4(c->getPosition(), 1.0);
@@ -173,10 +140,10 @@ void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB
 	glPointSize(2.f);
 
 	glEnable(GL_BLEND);
-	glBegin(GL_POINTS);
+	/*glBegin(GL_POINTS);
 
 	glColor4f(1.f, 0.f, 0.f, 0.3f);
-/*
+
 	for (int i = 0; i < wWidth; i++) {
 		for (int j = 0; j < wHeight; j++) {
 			glm::vec4 val = buffer[i][j];
@@ -187,8 +154,8 @@ void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB
 
 			if (val.w > 0.f) glVertex2f(w, h);
 		}
-	}*/
-	glEnd();
+	}
+	glEnd();*/
 }
 
 void RayTracer::resize(unsigned int w, unsigned int h)
@@ -236,9 +203,6 @@ void RayTracer::resize(unsigned int w, unsigned int h)
 
 void RayTracer::initPixelBuffer()
 {
-	int width = 800;
-	int height = 800;
-
 	if (pbo)
 	{
 		// unregister this buffer object from CUDA C
@@ -251,43 +215,38 @@ void RayTracer::initPixelBuffer()
 	// create pixel buffer object for display
 	glGenBuffers(1, &pbo);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, pbo);
-	glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width*height * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, wWidth*wHeight * sizeof(GLubyte) * 4, 0, GL_STREAM_DRAW_ARB);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
 	// register this buffer object with CUDA
 	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&cuda_pbo_resource, pbo, cudaGraphicsMapFlagsWriteDiscard)); // This line caused errors(?)
 }
 
-RayTracer::RayTracer(Camera* c, int ac, char** v) : argc(ac), argv(v) {
+void RayTracer::addToCache(AirSigmet sigmet, std::string code) {
+	Cell cell;
+	cell.sigmet = sigmet;
+	cell.code = code;
+
+	dataCache.push_back(cell);
+}
+
+RayTracer::RayTracer(Camera* c, int argc, char** argv) : camera(c) {
 	std::cout << "set camera" << std::endl;
 
 	pbo = 0;
 
-	camera = c;
-	char *ref_file = NULL;
-
 	cudaExtent volumeSize = make_cudaExtent(32, 32, 32);
-	timer = 0;
 
 	findCudaDevice(argc, (const char **)argv);
 
-	std::cout << "argc: " << argc << std::endl;
-	std::cout << "argv: " << argv << std::endl;
+	wWidth = 800;
+	wHeight = 800;
 
-
-	size_t size = volumeSize.width*volumeSize.height*volumeSize.depth * sizeof(VolumeType);
-	//void *h_volume = loadRawFile(path, size);
-
-	//initCuda(h_volume, volumeSize);
-	//free(h_volume);
-
-	sdkCreateTimer(&timer);
-
-	int width = 800;
-	int height = 800;
+	std::cout << "w: " << wWidth << " h: " << wHeight << std::endl;
 
 	// calculate new grid size
-	gridSize = dim3(iDivUp(width, blockSize.x), iDivUp(height, blockSize.y));
+	blockSize = dim3(16, 16);
+	gridSize = dim3(iDivUp(wWidth, blockSize.x), iDivUp(wHeight, blockSize.y));
 
 	initPixelBuffer();
 

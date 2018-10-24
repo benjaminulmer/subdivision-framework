@@ -55,7 +55,7 @@ void Program::start() {
 	renderEngine = new RenderEngine(window);
 	InputHandler::setUp(camera, renderEngine, this);
 
-	RayTracer* tracer = new RayTracer(camera, argc, argv);
+	rayTracer = new RayTracer(camera, argc, argv);
 
 	// Assign buffers
 	RenderEngine::assignBuffers(cells, false);
@@ -464,11 +464,7 @@ void Program::airSigRender1() {
 
 			cell.addToRenderable(*r, r->renderColour, *drawPolys);
 
-			Cell cacheCell;
-			cacheCell.sigmet = datum.airSigmet;
-			cacheCell.code = code;
-
-			dataCache.push_back(cacheCell);
+			//rayTracer->addToCache(datum.airSigmet, code);
 		}
 		
 		for (const std::string& code : datum.interior) {
@@ -477,12 +473,10 @@ void Program::airSigRender1() {
 			//SdogCell cell(code, radius);
 			//cell.addToRenderable(*r, r->renderColour, *drawPolys);
 
-			Cell cacheCell;
-			cacheCell.sigmet = datum.airSigmet;
-			cacheCell.code = code;
-
-			dataCache.push_back(cacheCell);
+			//rayTracer->addToCache(datum.airSigmet, code);
 		}
+
+		//rayTracer->addToCache(datum.airSigmet, "test");
 
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;

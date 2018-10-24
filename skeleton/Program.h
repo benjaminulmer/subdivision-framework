@@ -18,11 +18,6 @@ enum class RadialBound {
 	BOTH
 };
 
-struct Cell {
-	AirSigmet sigmet;
-	std::string code;
-};
-
 class Program {
 
 public:
@@ -76,6 +71,4 @@ private:
 
 	int argc;
 	char** argv;
-
-	std::vector<Cell> dataCache;
 };

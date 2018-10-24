@@ -114,7 +114,7 @@ __device__ uint rgbaFloatToInt(float4 rgba)
 //__device__ std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 8);
 
 __global__ void
-d_render(uint *d_output, uint imageW, uint imageH, float4x4 invProjView, float4x4 invWorldModel, float3 camPos, SdogDB* database)
+d_render(uint *d_output, uint imageW, uint imageH, float4x4 invProjView, float4x4 invWorldModel, float3 camPos)
 {
 
 	//uint x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -233,9 +233,9 @@ void initCuda(void *h_volume, cudaExtent volumeSize)
 
 extern "C"
 void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, uint imageH, float4x4 invProjView,
-	float4x4 invWorldModel, float3 camPos, SdogDB* database)
+	float4x4 invWorldModel, float3 camPos)
 {
-	d_render << <gridSize, blockSize >> > (d_output, imageW, imageH, invProjView, invWorldModel, camPos, database);
+	d_render << <gridSize, blockSize >> > (d_output, imageW, imageH, invProjView, invWorldModel, camPos);
 }
 
 // Returns the SDOG cell code for the provided spherical point at a given subdivision level - Converted to CUDA code from Ben's C++ function
