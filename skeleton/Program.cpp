@@ -464,7 +464,7 @@ void Program::airSigRender1() {
 
 			cell.addToRenderable(*r, r->renderColour, *drawPolys);
 
-			//rayTracer->addToCache(datum.airSigmet, code);
+			rayTracer->addToCache(datum.airSigmet, code);
 		}
 		
 		for (const std::string& code : datum.interior) {
@@ -476,7 +476,6 @@ void Program::airSigRender1() {
 			//rayTracer->addToCache(datum.airSigmet, code);
 		}
 
-		//rayTracer->addToCache(datum.airSigmet, "test");
 
 		r->alpha = alpha;
 		r->drawMode = GL_TRIANGLES;
@@ -567,7 +566,7 @@ void Program::mainLoop() {
 
 		if (traceRays) {
 			//std::cout << "Tracing..." << std::endl;
-			rayTracer->trace(bounds, camera, dataBase, projView, worldModel, scale);
+			rayTracer->trace(bounds, camera, projView, worldModel, scale);
 			//std::cout << "Done tracing" << std::endl;
 			//traceRays = false;
 		}

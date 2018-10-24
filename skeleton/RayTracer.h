@@ -25,7 +25,6 @@
 #include "Camera.h"
 #include "Constants.h"
 #include "SdogCell.h"
-#include "SdogDB.h"
 
 typedef unsigned int uint;
 typedef unsigned char uchar;
@@ -48,7 +47,7 @@ extern "C" void cudaCodeForPos(float trace_x, float trace_y, float trace_z, char
 
 extern "C"
 void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, uint imageH, float4x4 projView,
-	float4x4 worldModel, float3 camPos, SdogDB* database);
+	float4x4 worldModel, float3 camPos);
 
 typedef unsigned char VolumeType;
 
@@ -63,7 +62,7 @@ public:
 	RayTracer(Camera* c, int ac, char** v);
 	~RayTracer() {}
 
-	void trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB* database, glm::mat4 projView, glm::mat4 worldModel, float scale);
+	void trace(const std::vector<Renderable*>& objects, Camera* c, glm::mat4 projView, glm::mat4 worldModel, float scale);
 	void resize(unsigned int w, unsigned int h);
 
 	//int iDivUp(int a, int b);
@@ -81,7 +80,9 @@ private:
 	int wWidth;
 	int wHeight;
 
-	glm::vec4 traceHelper(float x, float y, glm::mat4 projView, glm::mat4 worldModel, glm::vec3 camPos, SdogDB* database);
+	glm::vec4 traceHelper(float x, float y, glm::mat4 projView, glm::mat4 worldModel, glm::vec3 camPos);
+
+	void getAirSigmetForCell(std::string code, std::vector<AirSigmet>& out, int level);
 
 	Camera* camera;
 	GLuint pbo;     // OpenGL pixel buffer object

@@ -5,7 +5,7 @@ int iDivUp(int a, int b)
 	return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
-glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 invProjView, glm::mat4 worldModel, glm::vec3 camPos, SdogDB* database)
+glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 invProjView, glm::mat4 worldModel, glm::vec3 camPos)
 {
 	glm::vec4 worldNew(x, y, -1.f, 1.f);
 
@@ -71,16 +71,14 @@ glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 invProjView, glm::m
 		else if (stoi(code) == 0) break;
 
 		continueCount = 0;
-		//std::cout << code << std::endl; 
 
 		prevCode = code; 
 		count++;
 
-		database->getAirSigmetForCell(code, sigs);
+		getAirSigmetForCell(code, sigs, 8);
 
 		if (sigs.size() == 0) continue;
 
-		//std::cout << "has sigmet" << std::endl;
 
 		colour = glm::vec4(1.f, 0.f, 0.f, 0.5f);
 		break;
@@ -89,7 +87,19 @@ glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 invProjView, glm::m
 	return colour;
 }
 
-void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB* database, glm::mat4 projView, glm::mat4 worldModel, float scale)
+void RayTracer::getAirSigmetForCell(std::string code, std::vector<AirSigmet>& out, int level) {
+
+	for (int i = 0; i < dataCache.size(); i++) {
+
+		std::string compareCode = dataCache[i].code.substr(0, level + 1);
+
+		if (compareCode.compare(code) == 0) {
+			out.push_back(dataCache[i].sigmet);
+		}
+	}
+}
+
+void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, glm::mat4 projView, glm::mat4 worldModel, float scale)
 {
 	//std::cout << "about to trace" << std::endl;
 
@@ -117,7 +127,7 @@ void RayTracer::trace(const std::vector<Renderable*>& objects, Camera* c, SdogDB
 
 	//checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
 
-	glm::vec4 colour = traceHelper(0.f, 0.f, invProjView, worldModel, cPos, database);
+	glm::vec4 colour = traceHelper(0.f, 0.f, invProjView, worldModel, cPos);
 
 	if (colour.w > 0) std::cout << "Hit sigmet" << std::endl;
 
