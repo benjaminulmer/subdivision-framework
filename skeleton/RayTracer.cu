@@ -50,9 +50,6 @@ enum SdogCellType {
 	INVALID
 };
 
-__constant__ float3x4 c_invViewMatrix;  // inverse view matrix
-
-
 __device__ struct SphereCoord
 {
 	SphereCoord(float x, float y, float z) {
@@ -66,28 +63,39 @@ __device__ struct SphereCoord
 	double radius;
 };
 
-// transform vector by matrix (no translation)
-__device__
-float3 mul(const float3x4 &M, const float3 &v)
+__device__ struct CacheCell 
 {
-	float3 r;
-	r.x = dot(v, make_float3(M.m[0]));
-	r.y = dot(v, make_float3(M.m[1]));
-	r.z = dot(v, make_float3(M.m[2]));
-	return r;
-}
+	CacheCell() {};
+	char* code;
+	int sigmetType;
+};
 
-// transform vector by matrix with translation
-__device__
-float4 mul(const float3x4 &M, const float4 &v)
-{
-	float4 r;
-	r.x = dot(v, M.m[0]);
-	r.y = dot(v, M.m[1]);
-	r.z = dot(v, M.m[2]);
-	r.w = 1.0f;
-	return r;
-}
+CacheCell* dataCache;
+int dataCacheSize = 0;
+
+
+// transform vector by matrix (no translation)
+//__device__
+//float3 mul(const float3x4 &M, const float3 &v)
+//{
+//	float3 r;
+//	r.x = dot(v, make_float3(M.m[0]));
+//	r.y = dot(v, make_float3(M.m[1]));
+//	r.z = dot(v, make_float3(M.m[2]));
+//	return r;
+//}
+//
+//// transform vector by matrix with translation
+//__device__
+//float4 mul(const float3x4 &M, const float4 &v)
+//{
+//	float4 r;
+//	r.x = dot(v, M.m[0]);
+//	r.y = dot(v, M.m[1]);
+//	r.z = dot(v, M.m[2]);
+//	r.w = 1.0f;
+//	return r;
+//}
 
 // transform vector by matrix with translation
 __device__
@@ -101,7 +109,6 @@ float4 mul(const float4x4 &M, const float4 &v)
 	return r;
 }
 
-
 __device__ uint rgbaFloatToInt(float4 rgba)
 {
 	rgba.x = __saturatef(rgba.x);   // clamp to [0.0, 1.0]
@@ -110,8 +117,6 @@ __device__ uint rgbaFloatToInt(float4 rgba)
 	rgba.w = __saturatef(rgba.w);
 	return (uint(rgba.w * 255) << 24) | (uint(rgba.z * 255) << 16) | (uint(rgba.y * 255) << 8) | uint(rgba.x * 255);
 }
-
-//__device__ std::string code = SdogCell::codeForPos(coord.latitude, coord.longitude, coord.radius, (RADIUS_EARTH_KM * 4.f / 3.f), 8);
 
 __global__ void
 d_render(uint *d_output, uint imageW, uint imageH, float4x4 invProjView, float4x4 invWorldModel, float3 camPos)
@@ -443,11 +448,6 @@ cudaCodeForPos_kernel(SphereCoord coord, char* returnCode) {
 	} while (code[i++] != 0);
 }
 
-// latRad - latitude of point, in radians
-// longRad - longitude of point, in radians
-// radius - radius of point (0 is centre of the sphere)
-// gridRadius - radius of the grid the cell belongs to
-// return - code for the cell that contains the point
 extern "C"
 void cudaCodeForPos(float trace_x, float trace_y, float trace_z, char* returnCode) {
 	//void cudaCodeForPos(double latRad, double longRad, double radius, double gridRadius, unsigned int level, char* returnCode) {
@@ -455,6 +455,19 @@ void cudaCodeForPos(float trace_x, float trace_y, float trace_z, char* returnCod
 	SphereCoord coord(trace_x, trace_y, trace_z);
 
 	cudaCodeForPos_kernel << <1, 1 >> >(coord, returnCode);
+}
+
+extern "C"
+void copyDataCache(const char *cacheSource, size_t sizeofCache)
+{
+	//checkCudaErrors(cudaMemcpyToSymbol(dataCache, cacheSource, sizeofCache));
+}
+
+
+extern "C"
+void addToDataCache(const char *cacheSource, size_t sizeofCache)
+{
+	//checkCudaErrors(cudaMemcpyToSymbol(dataCache, cacheSource, sizeofCache));
 }
 
 #endif // #ifndef _VOLUMERENDER_KERNEL_CU_

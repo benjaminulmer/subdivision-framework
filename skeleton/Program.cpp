@@ -481,7 +481,7 @@ void Program::airSigRender1() {
 		r->drawMode = GL_TRIANGLES;
 
 		RenderEngine::setBufferData(*r, false);
-
+		rayTracer->copyCacheToKernel();
 		std::cout << "Done sigmet " << count << " of " << data.size() << std::endl;
 	}
 }

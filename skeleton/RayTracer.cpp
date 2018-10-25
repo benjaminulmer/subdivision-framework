@@ -31,6 +31,7 @@ glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 invProjView, glm::m
 	char* cudaCode;
 
 	checkCudaErrors(cudaMalloc((void **)&cudaCode, 20 * sizeof(char)));
+	char *charCode = (char *)malloc(20 * sizeof(char));
 
 	while(count < 750) 
 	{
@@ -43,7 +44,6 @@ glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 invProjView, glm::m
 
 		getLastCudaError("kernel failed");
 
-		char *charCode = (char *)malloc(20 * sizeof(char));
 		checkCudaErrors(cudaMemcpy(charCode, cudaCode, 20 * sizeof(char), cudaMemcpyDeviceToHost));
 
 		//std::cout << "Code:     " << code << std::endl;
@@ -53,7 +53,7 @@ glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 invProjView, glm::m
 			std::cout << "codes don't match!" << std::endl;
 		}*/
 
-		std::vector<AirSigmet> sigs;
+		std::vector<int> sigs;
 
 		std::string code(charCode);
 
@@ -84,17 +84,20 @@ glm::vec4 RayTracer::traceHelper(float x, float y, glm::mat4 invProjView, glm::m
 		break;
 
 	}
+	cudaFree(cudaCode);
+	free(charCode);
+
 	return colour;
 }
 
-void RayTracer::getAirSigmetForCell(std::string code, std::vector<AirSigmet>& out, int level) {
+void RayTracer::getAirSigmetForCell(std::string code, std::vector<int>& out, int level) {
 
 	for (int i = 0; i < dataCache.size(); i++) {
 
-		std::string compareCode = dataCache[i].code.substr(0, level + 1);
+		std::string codeString = std::string(dataCache[i].code).substr(0, level + 1);
 
-		if (compareCode.compare(code) == 0) {
-			out.push_back(dataCache[i].sigmet);
+		if (code.compare(codeString) == 0) {
+			out.push_back(dataCache[i].sigmetType);
 		}
 	}
 }
@@ -234,10 +237,50 @@ void RayTracer::initPixelBuffer()
 
 void RayTracer::addToCache(AirSigmet sigmet, std::string code) {
 	Cell cell;
-	cell.sigmet = sigmet;
-	cell.code = code;
+	cell.sigmetType = (int)sigmet.type;
+	char* newChar = new char[code.length() + 1];
+	std::strcpy(newChar, code.c_str());
+	cell.code = newChar;
+	//std::cout << "start" << std::endl;
+	//std::cout << code << std::endl;
+	//std::cout << (newChar) << std::endl;
 
 	dataCache.push_back(cell);
+}
+
+// This should be called exactly once, when all the data has been added to the cache already
+void RayTracer::copyCacheToKernel() {
+	std::string dataString = "";
+
+	int resolution = std::strlen(dataCache[0].code);
+
+	for (int i = 0; i < dataCache.size(); i++) {
+		std::string codeString(dataCache[i].code);
+		codeString.append(std::to_string(dataCache[i].sigmetType));
+
+		dataString.append(codeString);
+
+		//char* transferData;
+		//std::strcpy(transferData, codeString.c_str());
+
+		/*
+		std::cout << "New transfer char*:" << std::endl;
+		std::cout << dataCache[i].code << std::endl;
+		std::cout << dataCache[i].sigmetType << std::endl;
+		std::cout << transferData << std::endl;
+		*/
+	}
+	char* transferData;
+	//std::strcpy(transferData, dataString.c_str());
+	std::cout << dataString.c_str() << std::endl;
+	
+	size_t sizeofCache = sizeof(char) * dataString.length();
+
+	//checkCudaErrors(
+	//char* dataCache;
+	//cudaMemcpyToSymbol(dataCache, dataString.c_str(), sizeofCache);//);
+
+	//copyDataCache(dataString.c_str(), sizeof(char) * dataString.length());
 }
 
 RayTracer::RayTracer(Camera* c, int argc, char** argv) : camera(c) {

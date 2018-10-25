@@ -49,11 +49,13 @@ extern "C"
 void render_kernel(dim3 gridSize, dim3 blockSize, uint *d_output, uint imageW, uint imageH, float4x4 projView,
 	float4x4 worldModel, float3 camPos);
 
+extern "C" void copyDataCache(const char *cacheSource, size_t sizeofCache);
+
 typedef unsigned char VolumeType;
 
 struct Cell {
-	AirSigmet sigmet;
-	std::string code;
+	int sigmetType;
+	char* code;
 };
 
 class RayTracer
@@ -70,6 +72,7 @@ public:
 	std::vector<std::vector<glm::vec4>> renderBuffer;
 
 	void addToCache(AirSigmet sigmet, std::string code);
+	void copyCacheToKernel();
 
 private:
 
@@ -82,7 +85,7 @@ private:
 
 	glm::vec4 traceHelper(float x, float y, glm::mat4 projView, glm::mat4 worldModel, glm::vec3 camPos);
 
-	void getAirSigmetForCell(std::string code, std::vector<AirSigmet>& out, int level);
+	void getAirSigmetForCell(std::string code, std::vector<int>& out, int level);
 
 	Camera* camera;
 	GLuint pbo;     // OpenGL pixel buffer object
