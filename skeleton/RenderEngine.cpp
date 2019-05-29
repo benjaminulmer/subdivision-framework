@@ -6,15 +6,17 @@
 
 #include <iostream>
 
+#include "Constants.h"
 #include "ShaderTools.h"
 #include "Texture.h"
 
-RenderEngine::RenderEngine(SDL_Window* window) : window(window), fade(true) {
+RenderEngine::RenderEngine(SDL_Window* window, double cameraDist) : window(window), fade(true) {
 
 	SDL_GetWindowSize(window, &width, &height);
 
 	mainProgram = ShaderTools::compileShaders("./shaders/main.vert", "./shaders/main.frag");
 
+	updatePlanes(cameraDist);
 	projection = glm::perspective(fovYRad, (double)width/height, near, far);
 
 	// Default openGL state
@@ -28,7 +30,7 @@ RenderEngine::RenderEngine(SDL_Window* window) : window(window), fade(true) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPointSize(30.f);
-	glLineWidth(1.5f);
+	glLineWidth(1.f);
 	glClearColor(0.4f, 0.4f, 0.4f, 1.f);
 }
 
@@ -165,4 +167,33 @@ void RenderEngine::setWindowSize(int newWidth, int newHeight) {
 	height = newHeight;
 	projection = glm::perspective(fovYRad, (double)width / height, near, far);
 	glViewport(0, 0, width, height);
+}
+
+
+// Updates near and far planes based on camera distance
+//
+// cameraDist - distance camera is from surface of the Earth
+void RenderEngine::updatePlanes(double cameraDist) {
+
+	double cameraPlusRad = RADIUS_EARTH_M + cameraDist;
+	double t = sqrt(cameraPlusRad * cameraPlusRad + RADIUS_EARTH_M * RADIUS_EARTH_M);
+	double theta = asin(RADIUS_EARTH_M / cameraPlusRad);
+
+	far = cos(theta) * t;
+	// TODO maybe a better way to calculate near
+	near = cameraDist - RADIUS_EARTH_M - 33000.0;
+	//if (near < 0.0) {
+	//	near = cameraDist - 33000.0 * scaleFactor;
+	//}
+	if (near < 0.0) {
+		if (far < 6500000.0) {
+			near = far / 1000.0;
+		}
+		else {
+			near = far / 100.0;
+		}
+
+	}
+
+	projection = glm::perspective(fovYRad, (double)width / height, near, far);
 }

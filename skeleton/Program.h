@@ -45,9 +45,7 @@ private:
 
 	double radius;
 
-	double scale;
-	double latRot;
-	double longRot;
+	double cameraDist;
 
 	void setupWindow();
 	void insertAirSigmets();

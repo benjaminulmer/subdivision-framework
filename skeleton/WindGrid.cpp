@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "WindGrid.h"
 
 #include "Constants.h"

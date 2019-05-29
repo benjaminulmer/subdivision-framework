@@ -12,7 +12,7 @@
 class RenderEngine {
 
 public:
-	RenderEngine(SDL_Window* window);
+	RenderEngine(SDL_Window* window, double cameraDist);
 
 	void render(const std::vector<const Renderable*>& objects, const glm::dmat4& view, float max, float min);
 
@@ -22,6 +22,7 @@ public:
 	static GLuint loadTexture(const std::string& filename);
 
 	void setWindowSize(int newWidth, int newHeight);
+	void updatePlanes(double cameraDist);
 	void toggleFade() { fade = !fade; }
 
 	double getFovY() { return fovYRad; }
@@ -34,9 +35,9 @@ private:
 	SDL_Window* window;
 	int width, height;
 
-	const double fovYRad = 60.f * ((float)M_PI / 180.f);
-	const double near = 1.f;
-	const double far = 1000.f;
+	const double fovYRad = 60.f * ((float)3.14159 / 180.f);
+	double near = 1.f;
+	double far = 1000.f;
 
 	GLuint mainProgram;
 	bool fade;

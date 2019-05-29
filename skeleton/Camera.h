@@ -2,37 +2,41 @@
 
 #include <glm/glm.hpp>
 
+
+// Class for camera information in look at format
 class Camera {
 
 public:
-	Camera();
+	Camera(double initialDist);
 
 	glm::dmat4 getLookAt() const;
 	glm::dvec3 getPosition() const;
 	glm::dvec3 getUp() const;
 	glm::dvec3 getLookDir() const;
 
-	void setScale(double scale);
+	void setDist(double newDist);
 
-	void updateLongitudeRotation(double rad);
-	void updateLatitudeRotation(double rad);
-	void updateZoom(int value);
-	void translate(const glm::dvec3& planeTranslation);
+	void updateFromVertRot(double rad);
+	void updateNorthRot(double rad);
+	void updateLatRot(double rad);
+	void updateLngRot(double rad);
 
 	void reset();
 
 private:
-	const double zoomScale;
-	const double rotScale;
-
-	double curScale;
 
 	glm::dvec3 eye;
 	glm::dvec3 up;
 	glm::dvec3 centre;
 
-	double longitudeRotRad;
-	double latitudeRotRad;
+	glm::dvec3 rotatedEye;
+	glm::dvec3 rotatedUp;
+	glm::dvec3 rotatedCentre;
 
-	glm::dvec3 translation;
+	double latRot;
+	double lngRot;
+	double fromVertRot;
+	double northRot;
+
+	void rotateVectors();
 };

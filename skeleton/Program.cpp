@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "Program.h"
 
 #include <GL/glew.h>
@@ -26,8 +25,7 @@ Program::Program() {
 	camera = nullptr;
 	dataBase = nullptr;
 
-	longRot = 0;
-	latRot = 0;
+	cameraDist = RADIUS_EARTH_M * 3.0;
 
 	width = height = 800;
 }
@@ -46,8 +44,8 @@ void Program::start() {
 		exit(EXIT_FAILURE);
 	}
 
-	camera = new Camera();
-	renderEngine = new RenderEngine(window);
+	camera = new Camera(cameraDist);
+	renderEngine = new RenderEngine(window, cameraDist);
 	InputHandler::setUp(camera, renderEngine, this);
 
 	// Assign buffers
@@ -57,7 +55,6 @@ void Program::start() {
 	RenderEngine::assignBuffers(wind, false);
 
 	// Set starting radius
-	scale = 1.0;
 	radius = RADIUS_EARTH_M * 4.0 / 3.0;
 
 	// Load coastline vector data
@@ -83,13 +80,14 @@ void Program::start() {
 	objects.push_back(&wind);
 
 	// Draw stuff
-	cells.drawMode = GL_TRIANGLES;
+	cells.drawMode = GL_LINES;
 	bound.drawMode = GL_TRIANGLES;
-	wind.drawMode = GL_TRIANGLES;
+	wind.drawMode = GL_POINTS;
 	polys.drawMode = GL_LINES;
 
 	//airSigRender1();
-	windRender1();
+	//windRender1();
+	testSmallScale();
 
 	cells.doubleToFloats();
 	bound.doubleToFloats();
@@ -333,38 +331,39 @@ void Program::mainLoop() {
 		float max = glm::length(cameraPos) + RADIUS_EARTH_VIEW;
 		float min = glm::length(cameraPos) - RADIUS_EARTH_VIEW;
 
-		glm::dmat4 worldModel(1.f);
-		double s = scale * (1.0 / RADIUS_EARTH_M) * RADIUS_EARTH_VIEW;
-		worldModel = glm::scale(worldModel, glm::dvec3(s, s, s));
-		worldModel = glm::rotate(worldModel, latRot, glm::dvec3(-1.0, 0.0, 0.0));
-		worldModel = glm::rotate(worldModel, longRot, glm::dvec3(0.0, 1.0, 0.0));
-
-		renderEngine->render(objects, (glm::dmat4)camera->getLookAt() * worldModel, max, min);
+		renderEngine->render(objects, (glm::dmat4)camera->getLookAt(), max, min);
 		SDL_GL_SwapWindow(window);
 	}
 
 	delete dataBase;
 }
 
-// Updates camera rotation
-// Locations are in pixel coordinates
+// Updates rotation/orientation of Earth model
+//
+// oldX - old x pixel location of mouse
+// oldY - old y pixel location of mouse
+// newX - new x pixel location of mouse
+// newY - new y pixel location of mouse
+// skew - true tilts the camera, otherwise rotates the Earth
 void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) {
+
+	//frustumUpdate = true;
 
 	glm::dmat4 projView = renderEngine->getProjection() * camera->getLookAt();
 	glm::dmat4 invProjView = glm::inverse(projView);
 
-	double oldXN = (2.0 * oldX) / (width) - 1.0; 
-	double oldYN = (2.0 * oldY) / (height) - 1.0;
+	double oldXN = (2.0 * oldX) / (width)-1.0;
+	double oldYN = (2.0 * oldY) / (height)-1.0;
 	oldYN *= -1.0;
 
-	double newXN = (2.0 * newX) / (width) - 1.0;
-	double newYN = (2.0 * newY) / (height) - 1.0;
+	double newXN = (2.0 * newX) / (width)-1.0;
+	double newYN = (2.0 * newY) / (height)-1.0;
 	newYN *= -1.0;
 
 	glm::dvec4 worldOld(oldXN, oldYN, -1.0, 1.0);
 	glm::dvec4 worldNew(newXN, newYN, -1.0, 1.0);
 
-	worldOld = invProjView * worldOld; 
+	worldOld = invProjView * worldOld;
 	worldOld /= worldOld.w;
 
 	worldNew = invProjView * worldNew;
@@ -373,38 +372,42 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 	glm::dvec3 rayO = camera->getPosition();
 	glm::dvec3 rayDOld = glm::normalize(glm::dvec3(worldOld) - rayO);
 	glm::dvec3 rayDNew = glm::normalize(glm::dvec3(worldNew) - rayO);
-	double sphereRad = RADIUS_EARTH_VIEW * scale;
+	double sphereRad = RADIUS_EARTH_M;
 	glm::dvec3 sphereO = glm::dvec3(0.0);
 
 	glm::dvec3 iPosOld, iPosNew, iNorm;
 
-	if (glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm) && 
-			glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
+	if (glm::intersectRaySphere(rayO, rayDOld, sphereO, sphereRad, iPosOld, iNorm) &&
+		glm::intersectRaySphere(rayO, rayDNew, sphereO, sphereRad, iPosNew, iNorm)) {
 
 		double longOld = atan2(iPosOld.x, iPosOld.z);
 		double latOld = M_PI_2 - acos(iPosOld.y / sphereRad);
 
 		double longNew = atan2(iPosNew.x, iPosNew.z);
 		double latNew = M_PI_2 - acos(iPosNew.y / sphereRad);
-		
+
 		if (skew) {
-			camera->updateLatitudeRotation(latNew - latOld);
+			camera->updateFromVertRot(newYN - oldYN);
+			camera->updateNorthRot(oldXN - newXN);
 		}
 		else {
-			latRot += latNew - latOld;
-			longRot += longNew - longOld;
+			camera->updateLatRot(latNew - latOld);
+			camera->updateLngRot(longNew - longOld);
 		}
 	}
 }
 
 // Changes scale of model
-void Program::updateScale(int inc) {
+void Program::updateScale(int dir) {
 
-	if (inc < 0) {
-		scale /= 1.4f;
+	//frustumUpdate = true;
+
+	if (dir > 0) {
+		cameraDist /= 1.2f;
 	}
-	else {
-		scale *= 1.4f;
+	else if (dir < 0) {
+		cameraDist *= 1.2f;
 	}
-	camera->setScale(scale);
+	camera->setDist(cameraDist);
+	renderEngine->updatePlanes(cameraDist);
 }

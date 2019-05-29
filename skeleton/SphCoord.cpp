@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "SphCoord.h"
 
 #include <glm/gtc/epsilon.hpp>

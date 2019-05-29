@@ -1,117 +1,134 @@
-#define _USE_MATH_DEFINES
 #include "Camera.h"
+#include "Constants.h"
 
 #include <glm/gtx/rotate_vector.hpp>
 
+#include <algorithm>
 #include <cmath>
 
-#include "Constants.h"
 
-Camera::Camera() : zoomScale(1.3), rotScale(0.008) {
+// Create camera with intial distance from the surface of the Earth
+//
+// initialDist - distance camera is from surface
+Camera::Camera(double initialDist) :
+	latRot(0.0),
+	lngRot(0.0),
+	fromVertRot(0.0),
+	northRot(0.0) {
+
+	eye = glm::dvec3(0.0, 0.0, RADIUS_EARTH_M + initialDist);
+	up = glm::dvec3(0.0, 1.0, 0.0);
+	centre = glm::dvec3(0.0, 0.0, RADIUS_EARTH_M);
 	reset();
 }
 
-// Returns view matrix for the camera
-glm::dmat4 Camera::getLookAt() const {
 
-	// Rotate eye along longitude
-	glm::dvec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
+// Rotates vectors to create final eye, up, and centre vector
+void Camera::rotateVectors() {
 
-	// Find axis then rotate eye and up along latitude
-	glm::dvec3 axis = glm::cross(eyeTemp, glm::dvec3(0.0, 1.0, 0.0));
+	glm::dvec3 rightW(1.0, 0.0, 0.0);
+	glm::dvec3 forwW(0.0, 0.0, 1.0);
+	glm::dvec3 downW(0.0, -1.0, 0.0);
 
-	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, axis);
-	glm::dvec3 upTemp = glm::rotate(up, latitudeRotRad, axis);
+	// Tile and north rotation
+	rotatedEye = glm::rotate((eye - centre), fromVertRot, rightW);
+	rotatedEye = glm::rotate(rotatedEye, northRot, forwW);
+	rotatedUp = glm::rotate(up, fromVertRot, rightW);
+	rotatedUp = glm::rotate(rotatedUp, northRot, forwW);
 
-	return glm::lookAt(eyeTemp + translation, centre + translation, upTemp);
+	// Latitude and longitude rotation, i.e. panning
+	rotatedEye = glm::rotate(rotatedEye, latRot, rightW);
+	rotatedEye = glm::rotate(rotatedEye, lngRot, downW);
+	rotatedUp = glm::rotate(rotatedUp, latRot, rightW);
+	rotatedUp = glm::rotate(rotatedUp, lngRot, downW);
+	rotatedCentre = glm::rotate(centre, latRot, rightW);
+	rotatedCentre = glm::rotate(rotatedCentre, lngRot, downW);
 }
+
+
+// Returns the view matrix for the camera
+//
+// return - view matrix
+glm::dmat4 Camera::getLookAt() const {
+	return glm::lookAt(rotatedCentre + rotatedEye, rotatedCentre, rotatedUp);
+}
+
 
 // Returns position of the camera
+// 
+// return - position of camera
 glm::dvec3 Camera::getPosition() const {
-
-	glm::dvec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
-	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, glm::cross(eyeTemp, glm::dvec3(0.0, 1.0, 0.0)));
-
-	return eyeTemp + translation;
+	return rotatedCentre + rotatedEye;
 }
 
-// Returns up of the camera
+
+// Returns up vector of the camera
+//
+// return - up vector
 glm::dvec3 Camera::getUp() const {
-
-	// Rotate eye along longitude
-	glm::dvec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
-
-	// Find axis then rotate eye and up along latitude
-	glm::dvec3 axis = glm::cross(eyeTemp, glm::dvec3(0.0, 1.0, 0.0));
-
-	eyeTemp = glm::rotate(eyeTemp, latitudeRotRad, axis);
-	return glm::rotate(up, latitudeRotRad, axis);
+	return rotatedUp;
 }
+
 
 // Returns looking direction of camera
+//
+// return - looking direction vector
 glm::dvec3 Camera::getLookDir() const {
-	return glm::normalize(centre - getPosition());
+	return glm::normalize(rotatedCentre - getPosition());
 }
 
-// Sets current model scale
-void Camera::setScale(double scale) {
-	curScale = scale;
 
-	eye = glm::dvec3(0.0, 0.0, RADIUS_EARTH_VIEW * scale + 30.0);
-	centre = glm::dvec3(0.0, 0.0, RADIUS_EARTH_VIEW * scale);
-	latitudeRotRad = 0.0;
+// Sets the distance camera is from the surface of the Earth
+//
+// newDist - new distance
+void Camera::setDist(double newDist) {
+
+	eye = glm::dvec3(0.0, 0.0, RADIUS_EARTH_M + newDist);
+	centre = glm::dvec3(0.0, 0.0, RADIUS_EARTH_M);
+	rotateVectors();
 }
 
-// Rotates camera along longitudinal axis (spherical coords)
-void Camera::updateLongitudeRotation(double rad) {
-	longitudeRotRad += rad;
+
+// Updates amount of rotation about the vector tangent to the Earth and going right in screen space
+//
+// rad - number of radians to add to current rotation
+void Camera::updateFromVertRot(double rad) {
+	fromVertRot += rad;
+	fromVertRot = std::clamp(fromVertRot, 0.0, M_PI_2);
+	rotateVectors();
 }
 
-// Rotates camera along latitudinal axis (spherical coords)
-void Camera::updateLatitudeRotation(double rad) {
-	latitudeRotRad -= rad;
+
+// Updates amount of rotation about the normal at the look at position
+//
+// rad - number of radians to add to current rotation
+void Camera::updateNorthRot(double rad) {
+	northRot += rad;
+	rotateVectors();
 }
 
-// Zooms camera in or out (+1 or -1)
-void Camera::updateZoom(int sign) {
 
-	if (sign < 0) {
-		eye.z = (eye.z - RADIUS_EARTH_VIEW) / zoomScale + RADIUS_EARTH_VIEW;
-	}
-	else {
-		eye.z = (eye.z - RADIUS_EARTH_VIEW) * zoomScale + RADIUS_EARTH_VIEW;;
-	}
-	if (eye.z > 4.0 * RADIUS_EARTH_VIEW) eye.z = 4.0 * RADIUS_EARTH_VIEW;
+// Updates amount of latitude rotation
+//
+// rad - number of radians to add to current rotation
+void Camera::updateLatRot(double rad) {
+	latRot += rad;
+	rotateVectors();
 }
 
-// Translates camera along x and y of view plane
-void Camera::translate(const glm::dvec3& planeTranslation) {
 
-	glm::dvec3 pTrans(planeTranslation);
-
-	// Scale translation based on zoom level
-	double scale = (eye.z / 500.f);
-	pTrans *= scale;
-
-	// Get rotation axis
-	glm::dvec3 eyeTemp = glm::rotateY(eye, -longitudeRotRad);
-	glm::dvec3 axis = glm::cross(eyeTemp, glm::dvec3(0.0, 1.0, 0.0));
-
-	// Convert screen space translation into world space translation
-	glm::dvec3 rotatedTranslation = glm::rotateY(planeTranslation, -longitudeRotRad);
-	rotatedTranslation = glm::rotate(rotatedTranslation, latitudeRotRad, axis);
-
-	translation += rotatedTranslation;
+// Updates amount of longitude rotation
+//
+// rad - number of radians to add to current rotation
+void Camera::updateLngRot(double rad) {
+	lngRot += rad;
+	rotateVectors();
 }
 
-// Reset camera to starting position
+
+// Reset tilt and north rotation of camera
 void Camera::reset() {
-	eye = glm::dvec3(0.0, 0.0, RADIUS_EARTH_VIEW + 30.0);
-	up = glm::dvec3(0.0, 1.0, 0.0);
-	centre = glm::dvec3(0.0, 0.0, RADIUS_EARTH_VIEW);
-
-	longitudeRotRad = 0;
-	latitudeRotRad = 0;
-
-	translation = glm::dvec3(0.0);
+	fromVertRot = 0.0;
+	northRot = 0.0;
+	rotateVectors();
 }
