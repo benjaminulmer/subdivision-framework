@@ -1,5 +1,7 @@
 # Own stuff here
 
+skeleton/models
+skeleton/textures
 skeleton/data
 include/
 lib/

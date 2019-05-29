@@ -1,5 +1,8 @@
 #include "Program.h"
 
+#include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <GL/glew.h>
 #include <glm/gtx/intersect.hpp>
 #include <SDL2/SDL_opengl.h>
@@ -53,6 +56,7 @@ void Program::start() {
 	RenderEngine::assignBuffers(polys, false);
 	RenderEngine::assignBuffers(bound, false);
 	RenderEngine::assignBuffers(wind, false);
+	RenderEngine::assignBuffers(earth, true);
 
 	// Set starting radius
 	radius = RADIUS_EARTH_M * 4.0 / 3.0;
@@ -61,6 +65,10 @@ void Program::start() {
 	rapidjson::Document cl = ContentReadWrite::readJSON("data/coastlines.json");
 	coastLines = Renderable(cl);
 	RenderEngine::assignBuffers(coastLines, false);
+
+	// Load earth model and texture
+	ContentReadWrite::loadOBJ("models/earth-1deg.obj", earth);
+	earth.textureID = renderEngine->loadTexture("textures/sphere.png");
 
 	// Create grid database connection and load data sets
 	dataBase = new SdogDB("test.db", radius);
@@ -78,12 +86,14 @@ void Program::start() {
 	objects.push_back(&polys);
 	objects.push_back(&bound);
 	objects.push_back(&wind);
+	objects.push_back(&earth);
 
 	// Draw stuff
 	cells.drawMode = GL_LINES;
 	bound.drawMode = GL_TRIANGLES;
 	wind.drawMode = GL_POINTS;
 	polys.drawMode = GL_LINES;
+	earth.drawMode = GL_TRIANGLES;
 
 	//airSigRender1();
 	//windRender1();
@@ -94,12 +104,14 @@ void Program::start() {
 	polys.doubleToFloats();
 	wind.doubleToFloats();
 	coastLines.doubleToFloats();
+	earth.doubleToFloats();
 
 	RenderEngine::setBufferData(cells, false);
 	RenderEngine::setBufferData(bound, false);
 	RenderEngine::setBufferData(polys, false);
 	RenderEngine::setBufferData(wind, false);
 	RenderEngine::setBufferData(coastLines, false);
+	renderEngine->setBufferData(earth, true);
 
 	mainLoop();
 }
@@ -132,7 +144,20 @@ void Program::setupWindow() {
 	if (context == NULL) {
 		std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
 	}
-	SDL_GL_SetSwapInterval(1); // Vsync on
+	SDL_GL_SetSwapInterval(0); // Vsync on
+
+	// Set up IMGUI
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	io = &ImGui::GetIO();
+	io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+
+	ImGui::StyleColorsDark();
+
+	// Setup Platform/Renderer bindings
+	ImGui_ImplSDL2_InitForOpenGL(window, context);
+	const char* glsl_version = "#version 430 core";
+	ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
 // Reads AirSigmets from file, inserts into grid, and then inserts into DB
@@ -323,8 +348,37 @@ void Program::mainLoop() {
 		// Process all SDL events
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
+
+			ImGui_ImplSDL2_ProcessEvent(&e);
+			if (io->WantCaptureMouse && (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP ||
+			                             e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEWHEEL)) {
+				continue;
+			}
+			if (io->WantCaptureKeyboard && (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)) {
+				continue;
+			}
 			InputHandler::pollEvent(e);
 		}
+
+		// Dear ImGUI setup
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplSDL2_NewFrame(window);
+		ImGui::NewFrame();
+		//ImGui::ShowDemoWindow();
+
+		ImGui::Begin("Options");
+		if (ImGui::CollapsingHeader("Status")) {
+			ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			ImGui::Text("Camera dist: %.0f", cameraDist);
+			ImGui::Text("Near: %.0f", renderEngine->getNear());
+			ImGui::Text("Far: %.0f", renderEngine->getFar());
+			ImGui::Text("Near / far: %.1f", renderEngine->getFar() / renderEngine->getNear());
+			ImGui::Text("FOV X: %.1f", renderEngine->getFovY() * renderEngine->getAspectRatio() * 180.0 / M_PI);
+			ImGui::Text("FOV Y: %.1f", renderEngine->getFovY() * 180.0 / M_PI);
+			ImGui::Text("X / Y: %.3f", renderEngine->getAspectRatio());
+		}
+		ImGui::End();
+		ImGui::Render();
 
 		// Find min and max distance from camera to cell renderable - used for fading effect
 		glm::vec3 cameraPos = camera->getPosition();
@@ -332,6 +386,7 @@ void Program::mainLoop() {
 		float min = glm::length(cameraPos) - RADIUS_EARTH_VIEW;
 
 		renderEngine->render(objects, (glm::dmat4)camera->getLookAt(), max, min);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		SDL_GL_SwapWindow(window);
 	}
 
@@ -398,7 +453,7 @@ void Program::updateRotation(int oldX, int newX, int oldY, int newY, bool skew) 
 }
 
 // Changes scale of model
-void Program::updateScale(int dir) {
+void Program::updateCameraDist(int dir) {
 
 	//frustumUpdate = true;
 

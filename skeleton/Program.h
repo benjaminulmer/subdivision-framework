@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <imgui.h>
 #include <SDL2/SDL.h>
 #undef main
 
@@ -24,11 +25,17 @@ public:
 	void start();
 
 	void updateRotation(int oldX, int newX, int oldY, int newY, bool skew);
-	void updateScale(int inc);
+	void updateCameraDist(int dir);
+	void setWindowSize(int newWidth, int newHeight) {
+		width = newWidth;
+		height = newHeight;
+	}
 
 private:
 	SDL_Window* window;
 	int width, height;
+
+	ImGuiIO* io;
 
 	RenderEngine* renderEngine;
 	Camera* camera;
@@ -40,11 +47,11 @@ private:
 	Renderable bound;
 	Renderable wind;
 	Renderable coastLines;
+	Renderable earth;
 
 	std::vector<const Renderable*> objects;
 
 	double radius;
-
 	double cameraDist;
 
 	void setupWindow();

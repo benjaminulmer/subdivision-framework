@@ -1,5 +1,7 @@
 #include "ContentReadWrite.h"
 
+#include "Constants.h"
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -9,8 +11,9 @@
 bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 	printf("Loading OBJ file %s...\n", path);
 
-	FILE * file; 
+	FILE* file; 
 	file = fopen(path, "r");
+
 	if( file == NULL ){
 		printf("Cannot open file. Check path.");
 		getchar();
@@ -79,12 +82,12 @@ bool ContentReadWrite::loadOBJ(const char* path, Renderable& r) {
 		unsigned int uvIndex = uvIndices[i];
 
 		// Get the attributes thanks to the index
-		glm::vec3 vertex = verts[ vertexIndex ];
+		glm::dvec3 vertex = verts[ vertexIndex ];
 		glm::vec3 normal = normals[ normalIndex ];
 		glm::vec2 uv = uvs[ uvIndex ];
 
 		// Put the attributes in buffers
-		r.verts.push_back(vertex);
+		r.verts.push_back(RADIUS_EARTH_M * vertex);
 		r.colours.push_back(normal);
 		r.uvs.push_back(uv);
 	}

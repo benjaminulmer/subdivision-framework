@@ -104,7 +104,7 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 		//program->updateRadialBounds(RadialBound::BOTH, -dy);
 	}
 	else {
-		program->updateScale(-dy);
+		program->updateCameraDist(-dy);
 		//camera->updateZoom(dy);
 	}
 }
@@ -113,5 +113,6 @@ void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 void InputHandler::reshape(SDL_WindowEvent& e) {
 	if (e.event == SDL_WINDOWEVENT_RESIZED) {
 		renderEngine->setWindowSize(e.data1, e.data2);
+		program->setWindowSize(e.data1, e.data2);
 	}
 }

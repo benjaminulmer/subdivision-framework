@@ -74,6 +74,7 @@ void RenderEngine::render(const std::vector<const Renderable*>& objects, const g
 		}
 
 		glDrawArrays(r->drawMode, 0, (GLsizei)r->verts.size());
+		Texture::unbind2DTexture();
 		glBindVertexArray(0);
 	}
 }
